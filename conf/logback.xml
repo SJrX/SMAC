@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+
+<!-- <define name="logFile" class="ca.ubc.cs.beta.config."-->
+
+  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+  <file>${OUTPUTDIR}/${RUNID}/log.txt</file>
+  <encoder>
+    	<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    	<!--RAW OUTPUT-->
+      <!--<pattern>%msg%n</pattern>-->
+    </encoder>
+  </appender>
+  
+  <appender name="FILE-RAW" class="ch.qos.logback.core.FileAppender">
+  <file>${OUTPUTDIR}/${RUNID}/raw.txt</file>
+  <encoder>
+      <pattern>%msg%n</pattern>
+    </encoder>
+  </appender>
+ 
+ 
+  <appender name="RUNHASHLOG" class="ch.qos.logback.core.FileAppender">
+  <file>${OUTPUTDIR}/${RUNID}/runhashes.txt</file>
+  <encoder>
+      <pattern>%msg%n</pattern>
+  </encoder>
+ </appender>
+  
+  
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- encoders are assigned the type
+         ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+    <encoder>
+    	<!--<pattern>%d{HH:mm:ss.SSS} [%thread]  %logger{36} - %msg%n</pattern>-->
+    	<!--RAW OUTPUT-->
+      <pattern>[%-5level] %msg%n</pattern>
+    </encoder>
+  </appender>
+  
+  <logger name="ca.ubc.cs.beta.smac.RunHistory" level="warn"/>
+	
+  <root level="debug">
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="FILE" />
+    <appender-ref ref="FILE-RAW" />
+  </root>
+  
+  
+</configuration>
