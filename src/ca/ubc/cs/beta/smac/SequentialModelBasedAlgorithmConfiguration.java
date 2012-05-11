@@ -18,6 +18,7 @@ import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.helper.ParamWithEI;
 import ca.ubc.cs.beta.smac.history.RunHistory;
 import ca.ubc.cs.beta.smac.model.builder.HashCodeVerifyingModelBuilder;
@@ -54,7 +55,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private final ExpectedImprovementFunction ei;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvalutor algoEval, ExpectedImprovementFunction ei, StateFactory sf) {
+	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf) {
 		super(smacConfig, instances, testInstances, algoEval,sf);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestConfig.logModel;

@@ -22,8 +22,8 @@ import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 
-import ca.ubc.cs.beta.smac.ac.factory.AutomaticConfiguratorFactory;
 import ca.ubc.cs.beta.smac.ac.runners.AlgorithmRunner;
+import ca.ubc.cs.beta.smac.ac.runners.AutomaticConfiguratorFactory;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 
 /**

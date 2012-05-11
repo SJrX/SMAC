@@ -13,7 +13,7 @@
 	<classpathentry kind="lib" path="lib/Jama-1.0.2.jar" sourcepath="/ubc/cs/home/s/seramage/Jama"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar" sourcepath="lib/commons-collections-3.2.1-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="src" path="/fastrf"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/AutomaticConfiguratorUtils"/>
+	<classpathentry kind="src" path="/RandomForests"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/AutomaticConfiguratorLibrary"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

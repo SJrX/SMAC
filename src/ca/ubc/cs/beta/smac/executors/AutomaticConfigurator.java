@@ -21,9 +21,9 @@ import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.OverallObjective;
 import ca.ubc.cs.beta.smac.RunObjective;
-import ca.ubc.cs.beta.smac.TargetAlgorithmEvalutor;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
+import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.smac.state.StateDeserializer;
 import ca.ubc.cs.beta.smac.state.StateFactory;
@@ -87,7 +87,7 @@ public class AutomaticConfigurator
 		
 			
 			
-			TargetAlgorithmEvalutor algoEval;
+			TargetAlgorithmEvaluator algoEval;
 			if(config.runHashCodeFile != null)
 			{
 				logger.info("Algorithm Execution will verify run Hash Codes");

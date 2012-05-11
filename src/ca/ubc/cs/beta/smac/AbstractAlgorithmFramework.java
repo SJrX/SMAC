@@ -26,6 +26,7 @@ import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.smac.ac.InstanceSeedGenerator;
+import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 import ca.ubc.cs.beta.smac.history.NewRunHistory;
 import ca.ubc.cs.beta.smac.history.RunHistory;
@@ -63,7 +64,7 @@ public class AbstractAlgorithmFramework {
 	protected final List<ProblemInstance> instances;
 	protected final List<ProblemInstance> testInstances;
 	
-	protected final TargetAlgorithmEvalutor algoEval;
+	protected final TargetAlgorithmEvaluator algoEval;
 	
 	/**
 	 * Stores our configuration
@@ -80,7 +81,7 @@ public class AbstractAlgorithmFramework {
 	protected ParamConfiguration incumbent = null;
 	
 	
-	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvalutor algoEval, StateFactory stateFactory)
+	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory)
 	{
 		
 		this.instances = instances;

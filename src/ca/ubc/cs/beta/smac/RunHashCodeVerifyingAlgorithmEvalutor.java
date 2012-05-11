@@ -11,10 +11,11 @@ import org.slf4j.MarkerFactory;
 
 import ca.ubc.cs.beta.ac.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.ac.config.RunConfig;
+import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 import ca.ubc.cs.beta.smac.exceptions.TrajectoryDivergenceException;
 
-public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvalutor {
+public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvaluator {
 
 	private final Queue<Integer> runHashQueue;
 	private int hashCodesOfRuns = 0;
