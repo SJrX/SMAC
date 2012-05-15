@@ -24,8 +24,8 @@ import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
-import ca.ubc.cs.beta.smac.ac.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 import ca.ubc.cs.beta.smac.history.NewRunHistory;
@@ -109,7 +109,7 @@ public class AbstractAlgorithmFramework {
 		rand = SeedableRandomSingleton.getRandom(); 
 
 		configSpace = ParamFileHelper.getParamFileParser(smacConfig.paramFile);
-		runHistory = new NewRunHistory(new InstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
+		runHistory = new NewRunHistory(new RandomInstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
 		//RunHistory h1 = new LegacyRunHistory(new InstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
 		//runHistory = new DebugRunHistory(h1,h2);
 		iteration = 0;

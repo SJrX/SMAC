@@ -12,8 +12,8 @@ import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ca.ubc.cs.beta.ac.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.ac.config.ProblemInstance;
+import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
@@ -230,10 +230,10 @@ public class AutomaticConfigurator
 			
 			logger.trace("Command Line Options Parsed");
 			logger.info("Parsing instances from {}", config.instanceFile );
-			instances = ProblemInstanceHelper.getInstances(config.instanceFile,config.experimentDir, config.instanceFeatureFile, true);
+			instances = ProblemInstanceHelper.getInstances(config.instanceFile,config.experimentDir, config.instanceFeatureFile, true).getInstances();
 			
 			logger.info("Parsing test instances from {}", config.instanceFile );
-			testInstances = ProblemInstanceHelper.getInstances(config.testInstanceFile, config.experimentDir, true);
+			testInstances = ProblemInstanceHelper.getInstances(config.testInstanceFile, config.experimentDir, true).getInstances();
 			
 			return config;
 		} catch(IOException e)

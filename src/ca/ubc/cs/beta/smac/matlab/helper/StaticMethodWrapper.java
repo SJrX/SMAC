@@ -8,8 +8,9 @@ import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import ca.ubc.cs.beta.models.fastrf.RegtreeBuildParams;
+import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
+import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
-import ca.ubc.cs.beta.smac.ac.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.helper.ArrayMathOps;
 import ec.util.MersenneTwister;
 
@@ -56,7 +57,7 @@ public class StaticMethodWrapper {
 			throw new IllegalStateException("Seed could not be changed, perhaps you need to run clear java");
 		}
 		
-		instanceSeedGenerator = new InstanceSeedGenerator(instanceCount, seed);
+		instanceSeedGenerator = new RandomInstanceSeedGenerator(instanceCount, seed);
 		
 	}
 	
