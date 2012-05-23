@@ -21,6 +21,8 @@ import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.helper.ParamWithEI;
 import ca.ubc.cs.beta.smac.history.RunHistory;
+import ca.ubc.cs.beta.smac.model.builder.AdaptiveCappingModelBuilder;
+import ca.ubc.cs.beta.smac.model.builder.BasicModelBuilder;
 import ca.ubc.cs.beta.smac.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.smac.model.builder.ModelBuilder;
 import ca.ubc.cs.beta.smac.model.data.PCAModelDataSanitizer;
@@ -111,11 +113,21 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 		
 		sdm = new PCAModelDataSanitizer(instanceFeatures, paramValues, numPCA, runResponseValues, usedInstanceIdxs, logModel, configSpace);
+		
+		
 		/**
 		 * Create unique 
 		 */
 		//You can change this back to a BasicModelBuilder
-		ModelBuilder mb = new HashCodeVerifyingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory);
+		ModelBuilder mb;
+		if(config.adaptiveCapping)
+		{
+			mb = new AdaptiveCappingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.cutoffTime, smacConfig.overallObj.getPenaltyFactor());
+		} else
+		{
+			mb = new BasicModelBuilder(sdm, smacConfig.randomForestConfig, runHistory); 
+		}
+		 /*= new HashCodeVerifyingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory);*/
 		forest = mb.getRandomForest();
 		preparedForest = mb.getPreparedRandomForest();
 	
