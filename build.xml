@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<project name="SMAC" default="compile">
+	<description>
+		Sequential Model-based Automatic Configurator
+	</description>
+	<property name="software.dir" value="/ubc/cs/home/s/seramage/arrowspace/software/"/>
+	<property name="deploy.dir" value="${software.dir}/smac/"/>
+	<property name="deploy-wg.dir" value="/ubc/cs/home/s/seramage/disks/westgrid-home/apps/smac/"/>
+	<property name="version.major" value="0"/>
+	<property name="version.minor" value="90"/>
+	<property name="version.beta" value="b"/>
+	<path id="compile.classpath">
+		<fileset dir="lib" id="lib">
+			<include name="*.jar"/>
+		</fileset>
+		<!--<fileset dir="${software.dir}/fastrf/" id="fastrf">
+			<include name="fastrf.jar"/>
+		</fileset>-->
+		<fileset dir="${software.dir}/aclib/" id="aclib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>	
+	
+	<target name="init" description="Initialize the project directories"> 
+		<mkdir dir="build/classes/"/>
+		<mkdir dir="dist"/>
+	</target>
+	<target name="clean">
+		<delete dir="build"/>
+		<delete dir="dist"/>
+	</target>
+	<target name="compile" depends="init">
+		<javac srcdir="src" destdir="build/classes">
+		<classpath refid="compile.classpath"/>
+		</javac>
+	</target>
+	<target name="archive" depends="compile">
+		<jar destfile="dist/smac.jar" basedir="build/classes"/>
+		<buildnumber file="buildnumber-${ant.project.name}"/>
+		<copy todir="dist/" force="true">
+			<fileset dir="deployables">
+				<include name="*"/>
+				<include name="**/"/>
+			</fileset>
+			<fileset dir="">
+				<include name="conf/**"/>
+			</fileset>
+			<fileset refid="lib"/>
+			<!--<fileset refid="fastrf"/>-->
+			<fileset refid="aclib"/>
+			<fileset dir="scripts">
+				<include name="*"/>
+			</fileset>	
+		</copy>
+		<chmod perm="755">
+			<fileset dir="dist/">
+				<include name="smac"/>
+				<include name="smac-possible-restores"/>
+			</fileset>
+		</chmod>
+	</target>	
+	
+	<target name="zip" depends="archive">
+		<zip destFile="${software.dir}/smac-v${version.major}_${version.minor}${version.beta}_${build.number}.zip">
+			<zipfileset dir="dist/" includes="**/*"/>
+		</zip>
+	</target>
+	<target name="deploy-release" depends="archive">
+		<mkdir dir="${deploy.dir}"/>
+		<copy todir="${deploy.dir}" force="true">
+			<fileset dir="dist/">
+				<include name="**/"/>
+			</fileset>
+		</copy>
+		<chmod perm="444">
+				<fileset dir="${deploy.dir}">
+						<include name="*"/>
+				</fileset>
+		</chmod>
+		<chmod perm="555">
+				<fileset dir="${deploy.dir}">
+						<include name="smac"/>
+						<include name="smac-possible-restores"/>
+				</fileset>
+		</chmod>
+	</target>
+	<target name="deploy" depends="zip, deploy-release"/>
+	<!--
+	<target name="deploy-wg" depends="archive">
+			
+			<mkdir dir="${deploy-wg.dir}"/>
+			<chmod perm="666">
+				<fileset dir="${deploy-wg.dir}">
+										<include name="*"/>
+								</fileset>
+			</chmod>
+			<copy todir="${deploy-wg.dir}" force="true">
+				<fileset dir="dist/">
+					<include name="*"/>
+				</fileset>
+			</copy>
+			<chmod perm="444">
+					<fileset dir="${deploy-wg.dir}">
+							<include name="*"/>
+					</fileset>
+			</chmod>
+			<chmod perm="555">
+					<fileset dir="${deploy-wg.dir}">
+							<include name="*.sh"/>
+					</fileset>
+			</chmod>
+		</target>
+-->
+	
+	
+</project>

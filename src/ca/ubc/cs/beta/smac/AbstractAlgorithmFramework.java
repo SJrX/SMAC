@@ -1,5 +1,8 @@
 package ca.ubc.cs.beta.smac;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.text.DateFormat;
@@ -22,6 +25,7 @@ import ca.ubc.cs.beta.ac.config.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
@@ -59,7 +63,7 @@ public class AbstractAlgorithmFramework {
 	
 	
 	
-	protected final int cutoffTime;
+	protected final double cutoffTime;
 	
 	protected final List<ProblemInstance> instances;
 	protected final List<ProblemInstance> testInstances;
@@ -76,17 +80,18 @@ public class AbstractAlgorithmFramework {
 		
 	private final StateFactory stateFactory;
 	
+	private final FileWriter fout;
 	
 	private int iteration;
 	protected ParamConfiguration incumbent = null;
 	
 	
-	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory)
+	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace)
 	{
 		
 		this.instances = instances;
 		this.testInstances = testInstances;
-		this.cutoffTime = smacConfig.cutoffTime;
+		this.cutoffTime = smacConfig.scenarioConfig.cutoffTime;
 		this.config = smacConfig;
 		
 		this.algoEval = algoEval;
@@ -95,7 +100,7 @@ public class AbstractAlgorithmFramework {
 		long time = System.currentTimeMillis();
 		
 		Date d = new Date(time);
-		DateFormat df = DateFormat.getDateInstance();
+		DateFormat df = DateFormat.getDateTimeInstance();
 		
 		log.info("Automatic Configuration Start Time is {}", df.format(d));
 		
@@ -108,11 +113,24 @@ public class AbstractAlgorithmFramework {
 		
 		rand = SeedableRandomSingleton.getRandom(); 
 
-		configSpace = ParamFileHelper.getParamFileParser(smacConfig.paramFile);
-		runHistory = new NewRunHistory(new RandomInstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
+		this.configSpace = configSpace;
+		runHistory = new NewRunHistory(new RandomInstanceSeedGenerator(instances,smacConfig.seed),smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.runObj);
 		//RunHistory h1 = new LegacyRunHistory(new InstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
 		//runHistory = new DebugRunHistory(h1,h2);
 		iteration = 0;
+		
+		try {
+			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + "traj-algo-" + config.runID.replaceAll("\\s+", "_") + ".txt";
+			this.fout = new FileWriter(new File(outputFileName));
+			fout.write(config.runID + "\n");
+			
+			
+			
+		} catch (IOException e) {
+			
+			throw new IllegalStateException("Could not create trajectory file: " , e);
+		}
+		
 	}
 	
 	
@@ -183,13 +201,13 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected boolean have_to_stop(int iteration)
 	{
-		if(runHistory.getTotalRunCost() > config.tunerTimeout)
+		if(runHistory.getTotalRunCost() > config.scenarioConfig.tunerTimeout)
 		{
-			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost(), config.tunerTimeout);
+			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost(), config.scenarioConfig.tunerTimeout);
 			return true;
 		}
 		
-		if(iteration > config.numIteratations)
+		if(iteration >= config.numIteratations)
 		{
 			log.info("Iteration {} greater than number permitted {}", iteration, config.numIteratations);
 			return true;
@@ -225,12 +243,42 @@ public class AbstractAlgorithmFramework {
 		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
 		double cpuTime = runHistory.getTotalRunCost();
 		
-		Object[] arr2 = { iteration, wallTime , config.runtimeLimit - wallTime , cpuTime,config.tunerTimeout - cpuTime,   b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000, b.getCurrentThreadUserTime() / 1000.0 / 1000 / 1000 , Runtime.getRuntime().maxMemory() / 1024.0 / 1024, Runtime.getRuntime().totalMemory() / 1024.0 / 1024, Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
+		double acTime = b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;
+		Object[] arr2 = { iteration, wallTime , config.runtimeLimit - wallTime , cpuTime,config.scenarioConfig.tunerTimeout - cpuTime,   b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000, b.getCurrentThreadUserTime() / 1000.0 / 1000 / 1000 , Runtime.getRuntime().maxMemory() / 1024.0 / 1024, Runtime.getRuntime().totalMemory() / 1024.0 / 1024, Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
 		
 		
-		//Object[] data = { (System.currentTimeMillis() - applicationStartTime) / 1000,};
+
 		
-		log.info("*****Runtime Statistics*****\n Iteration: {}\n Wallclock Time: {} s\n Wallclock Time Remaining:{} s\n Total CPU Time: {} s\n CPU Time Remaining: {} s\n AC CPU Time: {} s\n AC User Time: {} s\n Max Memory: {} MB\n Total Java Memory: {} MB\n Free Java Memory: {} MB\n",arr2);	
+		// -1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
+		writeIncumbent(runHistory.getTotalRunCost() + acTime, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),-1,runHistory.getThetaIdx(incumbent), acTime, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+		
+		log.info("*****Runtime Statistics*****\n Iteration: {}\n Wallclock Time: {} s\n Wallclock Time Remaining:{} s\n Total CPU Time: {} s\n CPU Time Remaining: {} s\n AC CPU Time: {} s\n AC User Time: {} s\n Max Memory: {} MB\n Total Java Memory: {} MB\n Free Java Memory: {} MB\n",arr2);
+		
+		
+	}
+	
+	/**
+	 * Writes the incumbent to the trajectory file
+	 * @param totalTime
+	 * @param meanInc
+	 * @param stdDevInc
+	 * @param thetaIdxInc
+	 * @param acTime
+	 * @param paramString
+	 */
+	private void writeIncumbent(double totalTime, double meanInc, double stdDevInc, int thetaIdxInc, double acTime, String paramString)
+	{
+		
+		String outLine = totalTime + ", " + meanInc + ", " + stdDevInc + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
+		try 
+		{
+			fout.write(outLine);
+			fout.flush();
+		} catch(IOException e)
+		{
+			throw new IllegalStateException("Could not update trajectory file", e);
+		}
+
 	}
 	public int getIteration()
 	{
@@ -242,84 +290,98 @@ public class AbstractAlgorithmFramework {
 	public void run()
 	{
 		try {
-			
-			if(iteration == 0)
-			{ 
-				incumbent = configSpace.getDefaultConfiguration();
-				log.info("Default Configuration set as Incumbent: {}", incumbent);
-				iteration = 0;
-				logIncumbent(iteration);
+			try {
+				
+				if(iteration == 0)
+				{ 
+					incumbent = configSpace.getDefaultConfiguration();
+					log.info("Default Configuration set as Incumbent: {}", incumbent);
+					iteration = 0;
+					
+					
+					/**
+					 * Evaluate Default Configuration
+					 */
+					ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
+					log.trace("New Problem Instance Seed Pair generated {}", pisp);
+					RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
+					evaluateRun(incumbentRunConfig);
+					//Create initial row
+					writeIncumbent(0, Double.MAX_VALUE, -1,runHistory.getThetaIdx(incumbent),0, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+					logIncumbent(iteration);
+				} else
+				{
+					//We are restoring state
+				}
+				
 				/**
-				 * Evaluate Default Configuration
+				 * Main Loop
 				 */
-				ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
-				log.trace("New Problem Instance Seed Pair generated {}", pisp);
-				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
-				evaluateRun(incumbentRunConfig);
-			} else
-			{
-				//We are restoring state
-			}
-			
-			/**
-			 * Main Loop
-			 */
-			
-			
-			
-			while(!have_to_stop(iteration))
-			{
-				if(shouldSave()) saveState();
 				
 				
-				runHistory.incrementIteration();
-				iteration++;
-				log.info("Starting Iteration {}", iteration);
-				StopWatch t = new AutoStartStopWatch();
-				learnModel(runHistory, configSpace);
 				
+				while(!have_to_stop(iteration))
+				{
+					if(shouldSave()) saveState();
+					
+					
+					runHistory.incrementIteration();
+					iteration++;
+					log.info("Starting Iteration {}", iteration);
+					StopWatch t = new AutoStartStopWatch();
+					learnModel(runHistory, configSpace);
+					
+					
+					t.stop();
+					
+					ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
+					challengers.addAll(selectConfigurations());
+					intensify(challengers,0);
+					
+					
+					
+					logIncumbent(iteration);
+				}
 				
-				t.stop();
+				saveState("it", true);
 				
-				ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
-				challengers.addAll(selectConfigurations());
-				intensify(challengers,0);
+				/**
+				 * Validation
+				 */
+				log.info("Starting Validation");
+				//Validation
+				List<RunConfig> validationRuns = new ArrayList<RunConfig>(config.numberOfTestInstances);
+				for(int i=0; i < Math.min(config.numberOfTestInstances,testInstances.size()); i++)
+				{
+					ProblemInstanceSeedPair validationPISP = new ProblemInstanceSeedPair(testInstances.get(i),rand.nextInt(Integer.MAX_VALUE));
+					log.debug("Validate Incumbent on {}", validationPISP);
+					validationRuns.add(getRunConfig(validationPISP, cutoffTime, incumbent));
+				}
 				
-				
+				evaluateRun(validationRuns);
 				
 				logIncumbent(iteration);
-			}
-			
-			saveState("it", true);
-			
-			/**
-			 * Validation
-			 */
-			log.info("Starting Validation");
-			//Validation
-			List<RunConfig> validationRuns = new ArrayList<RunConfig>(config.numberOfTestInstances);
-			for(int i=0; i < config.numberOfTestInstances; i++)
+			} catch(RuntimeException e)
 			{
-				ProblemInstanceSeedPair validationPISP = new ProblemInstanceSeedPair(testInstances.get(i),rand.nextInt(Integer.MAX_VALUE));
-				log.debug("Validate Incumbent on {}", validationPISP);
-				validationRuns.add(getRunConfig(validationPISP, cutoffTime, incumbent));
-			}
-			
-			evaluateRun(validationRuns);
-			
-			logIncumbent(iteration);
-		} catch(RuntimeException e)
-		{
-			try{
-				saveState("CRASH",true);
-			} catch(RuntimeException e2)
-			{
-				log.error("RuntimeException encountered while trying to save state during crash", e2);
+				try{
+					saveState("CRASH",true);
+				} catch(RuntimeException e2)
+				{
+					log.error("RuntimeException encountered while trying to save state during crash", e2);
+					throw e;
+				}
 				throw e;
 			}
-			throw e;
+		} finally
+		{
+			try {
+				fout.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				log.error("Trying to close Trajectory File failed with exception {}", e);
+			}
+			
 		}
-		
 		
 		
 		//log.info("Real Time: {} s, CPU Time: {}, User Time:{} ",data);

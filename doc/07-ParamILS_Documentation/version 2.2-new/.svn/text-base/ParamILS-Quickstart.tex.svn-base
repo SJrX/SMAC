@@ -1,0 +1,227 @@
+\documentclass[10pt,letterpaper,twoside]{article}
+
+\begin{document}
+
+\title{Updated Quick start guide for ParamILS, version 2.2}
+
+\author{
+    Frank~Hutter\\
+    Department of Computer Science\\
+	University of British Columbia\\
+	Vancouver, BC\ \ V6T~1Z4, Canada.
+	hutter at cs dot ubc dot ca
+}
+
+\maketitle
+
+\section{Introduction}\label{sec:intro}
+ParamILS~\cite{Hut04,HutHooStu07} is a tool for parameter optimization. It works for any parameterized algorithm
+whose parameters can be discretized. ParamILS searches through the space of possible
+parameter configurations, evaluating configurations by running the algorithm to be
+optimized on a set of benchmark instances.
+
+Users provide
+\begin{itemize}
+	\item a parametric algorithm $\mathcal{A}$ (executable to be called from the command line), 
+	\item all parameters and their possible values (parameters need to be configurable from the command line), and
+	\item a set of benchmark problems, $\mathcal{S}$.
+\end{itemize}
+Users can also choose from a multitude of optimization objectives, reaching from
+minimizing average runtime to maximizing median approximation qualities.
+
+ParamILS then executes algorithm $\mathcal{A}$ with different combinations of parameters on 
+instances sampled from $\mathcal{S}$, searching for the configuration that yields overall
+best performance across the benchmark problems. For details, see~\cite{HutHooStu07}.
+If you use ParamILS in your research, please cite that article. It would also be nice if you
+sent us an email -- we are always interested in additional application domains.
+
+\section{Download and Configuration}\label{sec:config}
+This quick start guide is for \textbf{version 2.2} of ParamILS. There is also an older quick start guide for version 1.0.
+Compared to that version, the user interface has been much improved.
+
+Download the zip file paramils2.2.zip from http://www.cs.ubc.ca/labs/beta/Projects/ParamILS and unzip
+it in a new directory. 
+The version in this zip file is a Linux executable, and currently such an executable is only available for Linux. 
+If you wish to use ParamILS for other platforms, you can do so, but you will have to download the source code version
+(paramils2.2-source.zip), and probably fiddle with path issues etc. (see the quick start guide for version 1.0)
+
+ParamILS is written in Ruby. Ruby is a scripting language similar to Perl, but
+object-oriented and \emph{a lot} easier to read -- Ruby can be freely downloaded for all 
+platforms from \texttt{http://www.ruby-lang.org/en/}.
+The executable above has been generated with RubyScript2Exe\footnote{http://www.erikveen.dds.nl/rubyscript2exe/index.html}.
+
+\section{Example tuning scenarios}
+The zip file contains examples for three algorithms: SAPS~\cite{HutTomHoo02}, a local search algorithm for SAT;
+Spear\footnote{http://www.cs.ubc.ca/\~{}babic/index\_spear.htm, described in some more detail in~\cite{HutBabHooHu07}}, a tree search algorithm for SAT (and satisfiability modulo theories) developed by Domagoj Babic; and the commercial optimization tool ILOG CPLEX~\footnote{http://www.ilog.com/products/cplex/}.
+Executables for Saps and Spear are included in the zip file, but CPLEX needs to be purchased to run the CPLEX example.
+
+We include two tuning scenarios for Saps, one for Spear and one for CPLEX.
+In the Spear example, the instance collection is the same as in one of the SAPS examples:
+the algorithm is optimized on 5 graph colouring problem instances and tested on five other ones. 
+(Note that our examples are toy examples with very small training and test data sets; we recommend
+substantially larger data sets for real applications!)
+The second tuning scenario for Saps optimizes Saps performance for a single instance,
+and tests on the same one, but of course with different seeds -- this is useful to study peak 
+performance of an algorithm.
+For CPLEX, we include a tuning scenario for mixed integer programs from
+combinatorial auctions (see \cite{LeyPeaSho00} for details).
+
+Type \texttt{bin/paramils} to see the syntax for starting these four examples.
+(You may run an example if you wish - these toy scenarios should take less than a minute.)
+For example, the call for the first scenario is
+\texttt{paramils -numRun 0 -scenariofile example\_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt -validN 100}.
+
+
+\section{Tuning scenario files}
+Note that most information in the above example call is not given on the command line, but hidden in
+a text file description of the tuning scenario, in this case example\_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt.
+\emph{Tuning scenario files} such as this define a tuning scenario completely, and also contain
+some information about where ParamILS should write its results etc.
+They can contain the following information:
+
+\begin{description}
+	\item[algo] An algorithm executable or a call to a wrapper script around an algorithm that conforms with the input/output format of ParamILS.
+	\item[execdir] Directory to execute \texttt{<algo>} from: ``cd \texttt{<execdir>}; \texttt{<algo>}'' 
+	\item[deterministic] Set to 0 for randomized algorithms, 1 for deterministic 
+	\item[run\_obj] A scalar quantifying how ``good'' a single algorithm execution is, such as its required runtime. Implemented examples for this
+	include \texttt{runtime}, \texttt{runlength}, \texttt{approx} (approximation quality, i.e., 1-(optimal quality divided by found quality)), \texttt{speedup} (speedup over a reference runtime for this instance -- note that for this option the reference needs to be defined in the \texttt{instance\_seed\_file} as covered in Section \ref{sec:rest}). Additional objectives for single algorithm executions can be defined by modifying function \texttt{single\_run\_objective} in file \texttt{algo\_specifics.rb}.
+	\item[overall\_obj] While \texttt{run\_obj} defines the objective function for a single algorithm run, \texttt{overall\_obj} defines how those single objectives are combined to reach a single scalar value to compare two parameter configurations. Implemented examples include
+	\texttt{mean}, \texttt{median}, \texttt{q90} (the 90\% quantile), \texttt{adj\_mean} (a version of the mean accounting for unsuccesful runs: total runtime divided by number of succesful runs), \texttt{mean1000} (another version of the mean accounting for unsuccessful runs: (total runtime of succesful runs + 1000$\times$ runtime of unsuccesful runs) divided by number of runs -- this effetively maximizes the number of successful runs, breaking ties by the runtime of
+	successful runs; it is the criterion I use in most of my experiments), and \texttt{geomean} (geometric mean, primarily used in combination with \texttt{run\_obj}=\texttt{speedup}.
+	The empirical statistic of the cost distribution (across multiple instances and seeds) to be minimized, such as the mean (of the single run\_objectives).
+	\item[cutoff\_time] The time after which a single algorithm execution will be terminated unsuccesfully. This is an important parameter: if choosen too high, lots of time will be wasted with unsuccessful runs. If chosen too low the optimization is biased to perform well on easy instances only.
+	\item[cutoff\_length] The runlength after which a single algorithm execution will be terminated unsuccesfully. This length can, e.g. be defined in flips for an SLS algorithm or decisions for a tree search.
+	\item[tunerTimeout] The timeout of the tuner. Validation of the final best found parameter configuration starts after the timeout.
+	\item[paramfile] Specifies the file with the parameters of the algorithms.
+	\item[outdir] Specifies the directory ParamILS should write its results to. 
+	\item[instance\_file] Specifies the file with a list of training instances.
+	\item[test\_instance\_file] Specifies the file with a list of test instances.
+	\item[instance\_seed\_file] Specifies the file with a list of training instance/seed pairs -- this and instance\_file are mutually exclusive.
+	\item[test\_instance\_seed\_file] Specifies the file with a list of training instance/seed pairs -- this and test\_instance\_file are mutually exclusive.
+\end{description}
+
+
+ParamILS writes output about its progress to stdout and also writes to files in the specified directory \texttt{<outdir>}. 
+The file with \texttt{-log} in its name logs ParamILS behaviour, the file with \texttt{-traj} only keeps track 
+of its current best solution trajectory, and the \texttt{-result} file summarizes the final result. See section \ref{sec:output} for information on how to read these files.
+Note that for FocusedILS, the quality of the incumbent solution does not improve monotonically because the number of runs it is based on
+varies. Solution quality starts at the worst possible value, \texttt{100000000}. It then typically quickly improves
+to a very low value because in the beginning each evaluation is only based on a single algorithm execution (leading to initial over-tuning); 
+as more runs become available the performance estimates get more realistic.
+Detailed information about the incumbent configurations found is written to the log file.
+
+In order to get reasonable performance estimates, ParamILS performs multiple runs for each configuration.
+These runs can differ in the input instance and the algorithm seed. For deterministic algorithms,
+the runs only differ in their input instances (the seed for deterministic algorithms should always be fixed to -1).
+Different input instances and seeds will lead to different results, or the same final result being found faster or slower. 
+Thus, if multiple CPUs are available for the optimization, we recommend to start several copies of ParamILS,
+differing only in the parameter \texttt{-numRun}. This is especially important for FocusedILS, whose performance
+depends quite strongly on the order of training instances (and the seeds) used.
+
+\section{Configurable parameters}
+
+\noindent{}There are a number of configurable parameters the user can set:
+
+\begin{description}
+	\item[maxEvals] The number of algorithm executions after which the optimization is terminated.
+	\item[maxIts] The number of ILS iterations after which the optimization is terminated.
+	\item[approach] Use \texttt{basic} for BasicILS, \texttt{focused} for FocusedILS, and \texttt{random} for random search.
+	\item[N] For BasicILS, N is the number of runs to perform to evaluate each parameter configuration. For FocusedILS, it is the \emph{maximal} number of runs to perform to evaluate a parameter configuration.
+\end{description}
+
+There is also a number of internal parameters that control the heuristics in ParamILS.
+% Not up to date.
+%\begin{description}
+%	\item[R] ParamILS internal parameter: The number of random configurations evaluated at the start of ParamILS.
+%	\item[pertubation\_strength\_basic] ParamILS internal parameter: The pertubation strength of ParamILS.
+%	\item[pertubation\_strength\_scaling] ParamILS internal parameter: If set to 1, the pertubation strength is the maximum of the basic pertubation strength and the basic pertubation strength multiplied by the number of parameters divided by 10. 
+%	\item[p\_restart] ParamILS internal parameter: The probability of restarting from a random configuration at the end of an iteration of ParamILS.
+%\end{description}
+
+\section{Using Instance-Specific information}\label{sec:rest}
+Whether you choose to provide an instance\_file (i.e. a list of problem instance filenames),
+or an instance\_seed\_file (i.e. a list of pairs of problem instance filenames and seeds),
+you specify one instance per line. 
+You may choose to include additional information
+after the instance filename, such as the optimal solution quality for the instance,
+or the instance hardness for one or more other algorithms.
+Thus, the syntax for each line of the instance\_file is 
+\texttt{<instance\_filename> <rest>}, where \texttt{<rest>} is an arbitrary (possibly empty) string;
+when using an the instance\_seed\_file, the syntax is 
+\texttt{<seed> <instance\_filename> <rest>}
+The syntax for these files allows you to do this easily: the \texttt{<rest>} string is always parsed and passed on to the objective function computation. 
+The rest may, for example, specify a reference runtime (or runlength, or whatever) for the instance. This is very useful
+if the objective is to beat a competing algorithm, or a previous version of the same algorithm (In my opinion, this objective is used 
+too much in computer science research, but since the demand is there I provide the option). The single run objective \texttt{speedup}
+is currently the only objective function using this reference value, but you are welcome to implemente additional 
+objective functions (using paramils2.2-source.zip).
+
+\section{Running ParamILS for your own code}
+In order to employ ParamILS to optimize your own code, you need to provide instance lists in the same format as in the above example, 
+provide a file listing your algorithm's parameters in a predefined format, and match the required input/output format. 
+These two latter points are covered in this section.
+
+\subsection{Algorithm parameter file}\label{sec:paramsfile}
+I recommend you create a separate subdirectory for each algorithm you want to optimize.
+The parameters of your algorithm need to be defined in a file e.g. called \texttt{params.txt}.
+
+This file consists of three parts: basic parameters, specification of conditional parameters, and forbidden parameter combinations, where
+each of the the latter two can be empty. (Examples for such files can be found in the example directories.)
+In the first part, each line lists one parameter, in curly parentheses the possible values considered,
+and in square parentheses the default value.
+In the second part, conditional parameters that are only active when some higher-level parameters
+take on certain values are specified as follows:
+conditional\_param | higher\_level\_param in {values for higher\_level\_param that allow conditional\_param to be active, separated by commas}.
+In the third part, forbidden combinations of parameters may be listed. These forbidden combinations are listed one per line, in curly parentheses in the form:
+\texttt{\{param1=value1,param2=value2,...\}}.
+
+\subsection{Algorithm executable / wrapper}\label{sec:exec-spec}
+The algorithm executable must comply with the following input/output criteria.
+It is called as:\\
+\texttt{<algo\_exectuable> <instance\_name> <instance-specific information> <cutoff\_time> <cutoff\_length> <seed> <params>}\\
+and outputs (possibly amongst others) a line\\
+\texttt{Result for ParamILS: <solved>, <runtime>, <runlength>, <best\_sol>, <seed>}\\
+containing information about the 
+algorithm execution. 
+
+The part \texttt{<instance-specific information>} is a string in double quotes containing exactly the \texttt{<rest>} string for the current instance that was discussed in Section \ref{sec:rest}. Thus, for example, when no additional instance information is provided for an instance in the instance\_file/instance\_seed\_file, this part is the empty string: "".
+
+As for the output, \texttt{<solved>} can be either of the strings ``SAT'', ``UNSAT'', or ``TIMEOUT''; \texttt{<best\_sol>} is the best solution found (for SAT, the lowest number of unsatisfied clauses), and the other fields should be self-explanatory.
+It is important to output a value for each of these fields, even if they don't make sense for your algorithm (just output e.g. -1 in that case;
+for the seed, please output the value that is passed as an input -- everything else will lead to an error).
+If you don't want to change your algorithm output, you can write a simple wrapper around it; I did this for the SAPS example above.
+In fact, a wrapper could reuse most parts of that SAPS wrapper. If you want to write a simple ruby wrapper around your algorithm executable, have a look at
+\texttt{saps\_wrapper.rb} in directory \texttt{example\_saps}.
+Note that this wrapper by no means needs to be written in Ruby -- this is just the scripting language I am most comfortable with. In fact, you do not require a Ruby installation at all to run ParamILS when you use the Linux executable discussed above.
+
+
+\section{Interpreting ParamILS's Output}\label{sec:output}
+The most important output file is the log file, which has \texttt{-log} and some other information about the run's parameters in its file name. A file name could for example be \texttt{focused-runs2000-runobjruntime-overallobjmean-time5.0} \texttt{-tunerTime18000.0-algospear1.2.1.1-log\_0.txt}; this logs the output of a FocusedILS run optimizing the performance of Spear using up to 2000 runs to judge the quality of a parameter configuration (which is the default), minimizing mean runtime with a cutoff of 5.0 seconds per run and a tuner time of 18,000s = 5h. The \texttt{\_0} indicates that this run is using instance/seed file \texttt{\_0}; performance with different instance/seed files can vary substantially.
+A lot of information is written to the log file to enable reconstruction of the entire trajectory a ParamILS run has taken; the most important information for users is contained in lines like the following:
+\texttt{New Incumbent: <runtime>, <incumbent quality> [<number of runs this incumbent is based on>, <cutoff time per run>]. With state <parameter configuration>}.
+The first such line will read \texttt{New Incumbent: 0, 100000000 [0, 0]. With state <default>}; this indicates that at time zero the incumbent is simply the default configuration (user-specified in the algorithm parameter file, see Section \ref{sec:paramsfile}).
+Since ParamILS starts with a run on the initial configuration, the next such line will read 
+\texttt{New Incumbent: <runtime for the first run>, <quality of the first run> [1, <cutoff time per run>]. With state <default>}.
+The fields \texttt{<runtime for the first run>} and \texttt{<number of runs this incumbent is based on>} are monotonically increasing; that is, once ParamILS has found an incumbent based on $N$ runs, all future incumbents will be based on $\ge N$ runs.
+The field \texttt{<incumbent quality>}, however, is \emph{not} monotonically decreasing (improving). In constrast, it is almost always the case that initial performance estimates are optimistic (when based on a very small number of runs) and become more reliable when based on larger number of runs later on in the trajectory.
+
+At any given time during a ParamILS run, in order to find the best configuration found so far, you can inspect the logfile and do a text search for \texttt{New Incumbent:}; the last match will list the best configuration found thus far.
+The trajectory file (same filename as logfile, but \texttt{-log} replaced by \texttt{-traj}) only keeps track of the quality of the incumbent at any given time.
+Its entries are \texttt{<runtime>, <incumbent quality>, <number of runs this incumbent is based on>, <iteration number of ParamILS>, <cutoff time per run>, <value of incumbent parameters, (sorted \& comma-separated)>}. So if you want to get a quick idea about tuning progress, the \texttt{-traj} file can be helpful, but in order to see the incumbent configuration in a readable way please refer to the \texttt{-log} file.
+
+
+\section{Known problems}\label{sec:problems}
+
+ParamILS 2.2 implements a pruning criterion that often terminates runs before the cutoff time when their result will not affect ParamILS's further trajectory much or at all. This pruning criterion has only been implemented for tuning \texttt{mean} performance, and assumes non-negative values of the objective function. If you are using \texttt{median} performance or your objective function can take on negative values, please de-activate the pruning using \texttt{-pruning 0} in the command line call to ParamILS.
+
+%\section{Extensions}\label{sec:extensions}
+%I personally use ParamILS in combination with a MySQL database in which I store the results of algorithm executions, such that I can quickly
+%repeat previous runs of ParamILS. However, for most end users, this would be way too much overhead, so I do not support this component.
+%If your algorithm runs are very costly, you may think about saving some results, though, e.g. in a text file. 
+%For big jobs, you may also think about parallelizing runs on a cluster of machines. For this, I have used a tool called \emph{jobserver}
+%by Christian Bang; jobserver is freely available at \texttt{http://rubyforge.org/projects/jobserver/}.
+\bibliographystyle{plain}
+\footnotesize{
+\bibliography{short,frankbib}
+
+\end{document}

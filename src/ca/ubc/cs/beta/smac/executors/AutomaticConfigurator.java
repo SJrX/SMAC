@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -14,6 +15,7 @@ import java.util.regex.Pattern;
 
 import ca.ubc.cs.beta.ac.config.ProblemInstance;
 import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.config.JCommanderHelper;
 import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
@@ -72,33 +74,54 @@ public class AutomaticConfigurator
 					restoreSF = new NullStateFactory();
 					break;
 				case LEGACY:
-					restoreSF = new LegacyStateFactory(config.outputDirectory + File.separator + config.runID + File.separator + "state" + File.separator, config.restoreStateFrom);
+					restoreSF = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator + "state" + File.separator, config.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
 			
-			logger.info("Parsing Parameter Space File", config.paramFile.getAbsolutePath());
-			ParamConfigurationSpace configSpace = ParamFileHelper.getParamFileParser(config.paramFile);
+			logger.info("Parsing Parameter Space File", config.paramFile);
+			ParamConfigurationSpace configSpace = null;
 			
 			
+			String[] possiblePaths = { config.paramFile, config.experimentDir + File.separator + config.paramFile, config.scenarioConfig.algoExecConfig.algoExecDir + File.separator + config.paramFile }; 
+			for(String path : possiblePaths)
+			{
+				try {
+					logger.debug("Trying param file in path {} ", path);
+					configSpace = ParamFileHelper.getParamFileParser(path);
+					break;
+				} catch(IllegalStateException e)
+				{ 
+
+					
+				
+				}
+			}
 			
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.algoExec, config.rootDir, configSpace, false);
+			
+			if(configSpace == null)
+			{
+				throw new ParameterException("Could not find param file");
+			}
+			
+			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecConfig.algoExec, config.scenarioConfig.algoExecConfig.algoExecDir, configSpace, false);
 		
 			
 			
 			TargetAlgorithmEvaluator algoEval;
+			boolean concurrentRuns = (config.maxConcurrentAlgoExecs > 1);
 			if(config.runHashCodeFile != null)
 			{
 				logger.info("Algorithm Execution will verify run Hash Codes");
 				Queue<Integer> runHashCodes = parseRunHashCodes(config.runHashCodeFile);
-				algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(execConfig, runHashCodes);
+				algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(execConfig, runHashCodes, concurrentRuns);
 				 
 			} else
 			{
 				logger.info("Algorithm Execution will NOT verify run Hash Codes");
-				//TODO Seperate the generation of Run Hash Codes from 
-				algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(execConfig);
+				//TODO Seperate the generation of Run Hash Codes from verifying them
+				algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(execConfig, concurrentRuns);
 			}
 
 			if(config.modelHashCodeFile != null)
@@ -117,7 +140,7 @@ public class AutomaticConfigurator
 					sf = new NullStateFactory();
 					break;
 				case LEGACY:
-					sf = new LegacyStateFactory(config.outputDirectory + File.separator + config.runID + File.separator + "state" + File.separator, config.restoreStateFrom);
+					sf = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator + "state" + File.separator, config.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -129,10 +152,10 @@ public class AutomaticConfigurator
 			switch(config.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(config,instances, testInstances,algoEval,sf);
+					smac = new AbstractAlgorithmFramework(config,instances, testInstances,algoEval,sf, configSpace);
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(config, instances, testInstances, algoEval, config.expFunc.getFunction(),sf);
+					smac = new SequentialModelBasedAlgorithmConfiguration(config, instances, testInstances, algoEval, config.expFunc.getFunction(),sf, configSpace);
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
@@ -140,11 +163,12 @@ public class AutomaticConfigurator
 			
 			if(config.restoreIteration != null)
 			{
-				restoreState(config, restoreSF, smac, configSpace,config.overallObj,config.runObj, instances, execConfig);
+				restoreState(config, restoreSF, smac, configSpace,config.scenarioConfig.overallObj,config.scenarioConfig.runObj, instances, execConfig);
 			}
 			
 				
 			smac.run();
+			logger.info("SMAC Completed Successfully");
 			return;
 		} catch(Throwable t)
 		{
@@ -152,12 +176,21 @@ public class AutomaticConfigurator
 				if(logger != null)
 				{
 					
-					logger.error(exception, "Exception:{}", t.getClass().getCanonicalName());
 					logger.error(exception, "Message: {}",t.getMessage());
-					StringWriter sWriter = new StringWriter();
-					PrintWriter writer = new PrintWriter(sWriter);
-					t.printStackTrace(writer);
-					logger.error(stackTrace, "StackTrace:{}",sWriter.toString());
+
+					if(!(t instanceof ParameterException))
+					{
+						logger.error(exception, "Exception:{}", t.getClass().getCanonicalName());
+						StringWriter sWriter = new StringWriter();
+						PrintWriter writer = new PrintWriter(sWriter);
+						t.printStackTrace(writer);
+						logger.error(stackTrace, "StackTrace:{}",sWriter.toString());
+					}
+					
+						
+					
+					
+					
 					logger.info("Exiting Application with failure");
 					t = t.getCause();
 				} else
@@ -211,15 +244,18 @@ public class AutomaticConfigurator
 		JCommander com = new JCommander(config);
 		com.setProgramName("smac");
 		try {
-			com.parse(args);
 			
-			File outputDir = new File(config.outputDirectory);
+			
+			JCommanderHelper.parse(com, args);
+			//com.parse(args);
+			
+			File outputDir = new File(config.scenarioConfig.outputDirectory);
 			if(!outputDir.exists())
 			{
 				outputDir.mkdir();
 			}
 			
-			System.setProperty("OUTPUTDIR", config.outputDirectory);
+			System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
 			System.setProperty("RUNID", config.runID);
 			
 			logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
@@ -229,11 +265,11 @@ public class AutomaticConfigurator
 			
 			
 			logger.trace("Command Line Options Parsed");
-			logger.info("Parsing instances from {}", config.instanceFile );
-			instances = ProblemInstanceHelper.getInstances(config.instanceFile,config.experimentDir, config.instanceFeatureFile, true).getInstances();
+			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
+			instances = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck).getInstances();
 			
-			logger.info("Parsing test instances from {}", config.instanceFile );
-			testInstances = ProblemInstanceHelper.getInstances(config.testInstanceFile, config.experimentDir, true).getInstances();
+			logger.info("Parsing test instances from {}", config.scenarioConfig.instanceFile );
+			testInstances = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, !config.scenarioConfig.skipInstanceFileCheck).getInstances();
 			
 			return config;
 		} catch(IOException e)

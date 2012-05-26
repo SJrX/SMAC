@@ -1,0 +1,33 @@
+\begin{thebibliography}{1}
+
+\bibitem{Hut04}
+F.~Hutter.
+\newblock Stochastic local search for solving the most probable explanation
+  problem in {B}ayesian networks.
+\newblock Master's thesis, Department of Computer Science, Darmstadt University
+  of Technology, Darmstadt, Germany, September 2004.
+
+\bibitem{HutBabHooHu07}
+F.~Hutter, D.~Babi\'c, H.~H. Hoos, and A.~J. Hu.
+\newblock Boosting verification by automatic tuning of decision procedures.
+\newblock In {\em Formal Methods in Computer Aided Design (FMCAD'07)}, 2007.
+\newblock To appear.
+
+\bibitem{HutHooStu07}
+F.~Hutter, H.~H. Hoos, and T.~St\"{u}tzle.
+\newblock Automatic algorithm configuration based on local search.
+\newblock In {\em Proc.~of the Twenty-Second Conference on Artifical
+  Intelligence~(AAAI '07)}, pages 1152--1157, 2007.
+
+\bibitem{HutTomHoo02}
+F.~Hutter, D.~A.~D. Tompkins, and H.~H. Hoos.
+\newblock Scaling and probabilistic smoothing: Efficient dynamic local search
+  for {SAT}.
+\newblock In {\em Proc.~of CP-02}, pages 233--248, 2002.
+
+\bibitem{LeyPeaSho00}
+K.~Leyton-Brown, M.~Pearson, and Y.~Shoham.
+\newblock Towards a universal test suite for combinatorial auction algorithms.
+\newblock In {\em ACM Conference on Electronic Commerce (EC-00)}, 2000.
+
+\end{thebibliography}

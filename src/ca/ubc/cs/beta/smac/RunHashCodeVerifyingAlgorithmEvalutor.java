@@ -25,8 +25,8 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvalua
 	
 	
 	public RunHashCodeVerifyingAlgorithmEvalutor(
-			AlgorithmExecutionConfig execConfig, Queue<Integer> runHashes) {
-		super(execConfig);
+			AlgorithmExecutionConfig execConfig, Queue<Integer> runHashes, boolean concurrentRuns) {
+		super(execConfig, concurrentRuns);
 		
 		
 		this.runHashQueue = runHashes;
@@ -34,8 +34,8 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvalua
 	}
 	
 	public RunHashCodeVerifyingAlgorithmEvalutor(
-			AlgorithmExecutionConfig execConfig) {
-		this(execConfig, new LinkedList<Integer>());
+			AlgorithmExecutionConfig execConfig, boolean concurrentRuns) {
+		this(execConfig, new LinkedList<Integer>(), concurrentRuns);
 	}
 
 	@Override

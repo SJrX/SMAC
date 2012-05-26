@@ -1,0 +1,158 @@
+Call: /usr/bin/ruby ../scripts/param_ils_2_2_run.rb "-numRun" "0" "-scenariofile" "example_saps\scenario-win-Saps-SWGCP-sat-small-train-small-test.txt" "-validN" "100"
+
+
+seed: 1234
+algo: ruby win_saps_wrapper.rb
+tunerTimeout: 30.0
+maxEvals: 100000
+run_obj: runtime
+overall_obj: mean
+instance_file: example_data/SWGCP-satisfiable-small-train.txt
+test_instance_file: example_data/SWGCP-satisfiable-small-test.txt
+N: 2000
+cutoff_time: 5.0
+cutoff_length: 2147483647
+R: 10
+pertubation_strength_basic: 
+pertubation_strength_scaling: false
+p_restart: 0.01
+Run 1
+Level 
+========================================================
+Starting ILS for level 1, i.e. a limit of N=2000, and cutoff time=5.0.
+Current CPU time = 0, this run goes until 30.0 
+========================================================
+New Incumbent: 0, 100000000 [0, 0]. With state alpha=1.189, ps=0.1, rho=0.5, wp=0.03
+ Same incumbent, new precision:
+New Incumbent: 5.0, 5.00001 [1, 5.0]. With state alpha=1.189, ps=0.1, rho=0.5, wp=0.03
+New inc: 0.110000133514
+New Incumbent: 5.110000133514, 0.110000133514 [1, 5.0]. With state alpha=1.189, ps=0.2, rho=0.83, wp=0.04
+          -> Take improving step to random alpha=1.189 ps=0.2 rho=0.83 wp=0.04 (0.110000133514 [based on 1 runs with cutoff 5.0])
+
+        -> Worse random: alpha=1.256 ps=0 rho=0.17 wp=0.01 (pruned0 [based on 1 runs with cutoff 5.0])
+        -> Worse random: alpha=1.066 ps=0.066 rho=1 wp=0.03 (pruned0 [based on 1 runs with cutoff 5.0])
+        -> Worse random: alpha=1.4 ps=0.133 rho=0.666 wp=0.02 (pruned0 [based on 1 runs with cutoff 5.0])
+        -> Worse random: alpha=1.4 ps=0.066 rho=0 wp=0 (pruned0 [based on 1 runs with cutoff 5.0])
+New inc: 0.0469999313354
+New Incumbent: 5.690000133514, 0.0469999313354 [1, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+          -> Take improving step to random alpha=1.256 ps=0.166 rho=0 wp=0.01 (0.0469999313354 [based on 1 runs with cutoff 5.0])
+
+        -> Worse random: alpha=1.4 ps=0.2 rho=0.333 wp=0 (pruned0 [based on 1 runs with cutoff 5.0])
+        -> Worse random: alpha=1.189 ps=0.133 rho=0.83 wp=0.02 (pruned0 [based on 1 runs with cutoff 5.0])
+        -> Worse random: alpha=1.4 ps=0.066 rho=0.5 wp=0.03 (pruned0 [based on 1 runs with cutoff 5.0])
+        -> Worse random: alpha=1.01 ps=0.033 rho=0.5 wp=0 (pruned0 [based on 1 runs with cutoff 5.0])
+   BLS in iteration 1, start with alpha=1.256 ps=0.166 rho=0 wp=0.01 (0.0469999313354 [based on 1 runs with cutoff 5.0])
+    Changing alpha: 1.256->1.189, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing alpha: 1.256->1.126, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing ps: 0.166->0.1, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing rho: 0->0.5, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing alpha: 1.256->1.066, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing rho: 0->0.666, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing rho: 0->0.83, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing ps: 0.166->0.066, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing wp: 0.01->0, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing wp: 0.01->0.06, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing ps: 0.166->0.133, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing ps: 0.166->0, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing ps: 0.166->0.2, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing alpha: 1.256->1.326, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing rho: 0->0.333, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing wp: 0.01->0.04, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing alpha: 1.256->1.01, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing rho: 0->0.17, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing ps: 0.166->0.033, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing wp: 0.01->0.02, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing rho: 0->1, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing wp: 0.01->0.03, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing wp: 0.01->0.05, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+    Changing alpha: 1.256->1.4, evaluating ...
+        -> worse: (pruned0 [based on 1 runs with cutoff 5.0])
+          
+============= Performing 24 bonus runs of state: alpha=1.256 ps=0.166 rho=0 wp=0.01 (0.0469999313354 [based on 1 runs with cutoff 5.0]) ============ 
+
+ Same incumbent, new precision:
+New Incumbent: 8.59000013351399, 0.03149998188015 [2, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 8.69000013351399, 0.0380333212534333 [3, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+38/100000, 13.690000133514/30.0
+ Same incumbent, new precision:
+New Incumbent: 13.690000133514, 1.27852749094008 [4, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 15.783999996184, 1.44162196528606 [5, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 15.883999996184, 1.20918495962762 [6, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 20.883999996184, 1.75073139396653 [7, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 20.983999996184, 1.53588997782695 [8, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 21.083999996184, 1.36701331722672 [9, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+44/100000, 26.083999996184/30.0
+ Same incumbent, new precision:
+New Incumbent: 26.083999996184, 1.73031298550405 [10, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 27.364999895094, 1.68946634126823 [11, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 27.464999895094, 1.55001081553128 [12, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+ Same incumbent, new precision:
+New Incumbent: 32.464999895094, 1.81539536818272 [13, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+          -> After 24 bonus runs for LM: alpha=1.256 ps=0.166 rho=0 wp=0.01 (1.81539536818272 [based on 13 runs with cutoff 5.0])
+
+   LM for iteration 1: alpha=1.256 ps=0.166 rho=0 wp=0.01 (1.81539536818272 [based on 13 runs with cutoff 5.0])
+
+========== DETAILED RESULTS (iteration 1): ==========
+================================================
+
+==================================================================
+Best parameter configuration found so far (end of iteration 1): alpha=1.256, wp=0.01, rho=0, ps=0.166
+==================================================================
+Training quality of this incumbent parameter configuration: 1.81539536818272, based on 13 runs with cutoff 5.0
+==================================================================
+
+Comparing LM against incumbent:
+alpha=1.256 ps=0.166 rho=0 wp=0.01 (1.81539536818272 [based on 13 runs with cutoff 5.0])
+alpha=1.256 ps=0.166 rho=0 wp=0.01 (1.81539536818272 [based on 13 runs with cutoff 5.0])
+LM better, change incumbent
+New Incumbent: 32.464999895094, 1.81539536818272 [13, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+Final solution for depth 1 with limit N=2000, and cutoff time=5.0.
+New Incumbent: 32.464999895094, 1.81539536818272 [13, 5.0]. With state alpha=1.256, ps=0.166, rho=0, wp=0.01
+
+==================================================================
+ParamILS is finished.
+==================================================================
+
+Final best parameter configuration found: alpha=1.256, ps=0.166, rho=0, wp=0.01
+==================================================================
+Active parameters: alpha=1.256, ps=0.166, rho=0, wp=0.01
+
+==================================================================
+Training quality of this final best found parameter configuration: 1.81539536818272, based on 13 runs with cutoff 5.0
+==================================================================
+
+
+==================================================================
+Computing validation result on independent data -- 100 runs with cutoff time 5.0...
+==================================================================

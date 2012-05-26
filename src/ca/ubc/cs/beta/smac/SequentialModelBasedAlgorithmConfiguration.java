@@ -57,8 +57,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private final ExpectedImprovementFunction ei;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf) {
-		super(smacConfig, instances, testInstances, algoEval,sf);
+	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace) {
+		super(smacConfig, instances, testInstances, algoEval,sf, configSpace);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestConfig.logModel;
 		this.smacConfig = smacConfig;
@@ -122,7 +122,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		ModelBuilder mb;
 		if(config.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.cutoffTime, smacConfig.overallObj.getPenaltyFactor());
+			mb = new AdaptiveCappingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.overallObj.getPenaltyFactor());
 		} else
 		{
 			mb = new BasicModelBuilder(sdm, smacConfig.randomForestConfig, runHistory); 
@@ -186,7 +186,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		Set<ProblemInstance> instanceSet = new HashSet<ProblemInstance>();
 		instanceSet.addAll(runHistory.getInstancesRan(incumbent));
 		
-		double quality = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.cutoffTime);
+		double quality = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
 		
 		if (smacConfig.randomForestConfig.logModel)
 		{

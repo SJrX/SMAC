@@ -1,0 +1,10 @@
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0004.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0009.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0011.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0016.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0007.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0012.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0018.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0008.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0005.lp 
+-1 /.autofs/homes/ubccshome/f/fawcettc/paramils-2.3/paramils_2.3_building/paramils2.3/example_data/CATS-regions/CATS-d_regions-goods100-bids500_0002.lp 
