@@ -44,6 +44,7 @@
 			</fileset>
 			<fileset dir="">
 				<include name="conf/**"/>
+				<include name="doc/**"/>
 			</fileset>
 			<fileset refid="lib"/>
 			<!--<fileset refid="fastrf"/>-->
@@ -51,6 +52,7 @@
 			<fileset dir="scripts">
 				<include name="*"/>
 			</fileset>	
+			
 		</copy>
 		<chmod perm="755">
 			<fileset dir="dist/">
@@ -61,8 +63,11 @@
 	</target>	
 	
 	<target name="zip" depends="archive">
-		<zip destFile="${software.dir}/smac-v${version.major}_${version.minor}${version.beta}_${build.number}.zip">
-			<zipfileset dir="dist/" includes="**/*"/>
+		<zip destFile="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.zip" >
+			<mappedresources>
+			<fileset dir="dist/" includes="**/*"/>
+				<globmapper from="*" to="smac-v${version.major}.${version.minor}${version.beta}.${build.number}/*"/>
+			</mappedresources>
 		</zip>
 	</target>
 	<target name="deploy-release" depends="archive">

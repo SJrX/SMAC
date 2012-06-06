@@ -341,6 +341,7 @@ public class AbstractAlgorithmFramework {
 					
 					
 					logIncumbent(iteration);
+					
 				}
 				
 				saveState("it", true);
@@ -361,13 +362,15 @@ public class AbstractAlgorithmFramework {
 				evaluateRun(validationRuns);
 				
 				logIncumbent(iteration);
+				
 			} catch(RuntimeException e)
 			{
 				try{
+					
 					saveState("CRASH",true);
 				} catch(RuntimeException e2)
 				{
-					log.error("RuntimeException encountered while trying to save state during crash", e2);
+					log.error("SMAC has encounted an exception, and encountered another exception while trying to save the local state. NOTE: THIS DID NOT CAUSE SMAC TO FAIL. The following exception/error message is the cause. This is potentially another / seperate issue, or a disk failure of some kind. When submitting bug/error reports, please include enough context for *BOTH* exceptions \n  ", e2);
 					throw e;
 				}
 				throw e;

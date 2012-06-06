@@ -349,63 +349,74 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	 * @param epsilon - Minimum value of improvement required before terminating
 	 * @return best Param&EI Found
 	 */
-	private ParamWithEI localSearch(ParamWithEI eic, double fmin_sample, double epsilon)
+	private ParamWithEI localSearch(ParamWithEI startEIC, double fmin_sample, double epsilon)
 	{
-		ParamConfiguration c = eic.getValue();
-		double minEI = eic.getAssociatedValue();
 		
-		
-		double[][] cArray = {c.toValueArray()};
-		int LSHashCode = matlabHashCode(cArray);
-		log.trace("Local Search Start Hash Code: {}", LSHashCode);
-		
-		List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
-		
-		//eiVal = new double[neighbourhood.size()];
-		
-		
-		double[][] prediction = transpose(applyMarginalModel(neighbourhood));
-		
-		double[] means = prediction[0];
-		double[] vars = prediction[1];
-		
-		
-		double[] eiVal = ei.computeNegativeExpectedImprovement(fmin_sample, means,vars); 
-		
-		
-		
-		List<ParamConfiguration> minConfigs = new ArrayList<ParamConfiguration>(c.size());
-		
-		
-		double min = eiVal[0];
-		for(int i=1; i < eiVal.length; i++)
+		ParamWithEI incumbentEIC = startEIC;
+		while(true)
 		{
-			if(eiVal[i] < min)
-			{
-				min = eiVal[i];
-			}
-		}
-	
 		
-		
-		if(min >= minEI - epsilon)
-		{
-			return eic;
-		} else
-		{
+			
+			ParamConfiguration c = incumbentEIC.getValue();
+			double minEI = incumbentEIC.getAssociatedValue();
+			
+			
+			double[][] cArray = {c.toValueArray()};
+			int LSHashCode = matlabHashCode(cArray);
+			log.trace("Local Search Start Hash Code: {}", LSHashCode);
+			
+			List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
+			
 
-			for(int i=0; i < eiVal.length; i++)
+			
+			
+			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
+			
+			double[] means = prediction[0];
+			double[] vars = prediction[1];
+			
+			
+			double[] eiVal = ei.computeNegativeExpectedImprovement(fmin_sample, means,vars); 
+			
+			
+			
+			List<ParamConfiguration> minConfigs = new ArrayList<ParamConfiguration>(c.size());
+			
+			
+			double min = eiVal[0];
+			for(int i=1; i < eiVal.length; i++)
 			{
-				if(eiVal[i] <= min + epsilon)
+				if(eiVal[i] < min)
 				{
-					minEI = eiVal[i];
-					minConfigs.add(neighbourhood.get(i));
-				} 
+					min = eiVal[i];
+				}
 			}
-			int nextIdx = SeedableRandomSingleton.getRandom().nextInt(minConfigs.size());
-			ParamConfiguration best = minConfigs.get(nextIdx);
-			return localSearch(new ParamWithEI(minEI, best), fmin_sample, epsilon);
+		
+			
+			
+			if(min >= minEI - epsilon)
+			{
+				break;
+			} else
+			{
+	
+				for(int i=0; i < eiVal.length; i++)
+				{
+					if(eiVal[i] <= min + epsilon)
+					{
+						minEI = eiVal[i];
+						minConfigs.add(neighbourhood.get(i));
+					} 
+				}
+				int nextIdx = SeedableRandomSingleton.getRandom().nextInt(minConfigs.size());
+				ParamConfiguration best = minConfigs.get(nextIdx);
+				
+				incumbentEIC = new ParamWithEI(eiVal[nextIdx], best);
+				//return localSearch(new ParamWithEI(minEI, best), fmin_sample, epsilon);
+			}
 		}
+		
+		return incumbentEIC;
 	}
 
 	
