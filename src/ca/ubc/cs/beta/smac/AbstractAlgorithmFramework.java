@@ -367,6 +367,7 @@ public class AbstractAlgorithmFramework {
 			{
 				try{
 					
+					
 					saveState("CRASH",true);
 				} catch(RuntimeException e2)
 				{
