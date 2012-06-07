@@ -32,6 +32,7 @@ import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
+import ca.ubc.cs.beta.smac.history.DuplicateRunException;
 import ca.ubc.cs.beta.smac.history.NewRunHistory;
 import ca.ubc.cs.beta.smac.history.RunHistory;
 import ca.ubc.cs.beta.smac.state.RandomPoolType;
@@ -174,6 +175,11 @@ public class AbstractAlgorithmFramework {
 	
 	}
 	*/
+	
+	public ParamConfiguration getIncumbent()
+	{
+		return incumbent;
+	}
 	
 	public void restoreState(StateDeserializer sd)
 	{
@@ -345,23 +351,7 @@ public class AbstractAlgorithmFramework {
 				}
 				
 				saveState("it", true);
-				
-				/**
-				 * Validation
-				 */
-				log.info("Starting Validation");
-				//Validation
-				List<RunConfig> validationRuns = new ArrayList<RunConfig>(config.numberOfTestInstances);
-				for(int i=0; i < Math.min(config.numberOfTestInstances,testInstances.size()); i++)
-				{
-					ProblemInstanceSeedPair validationPISP = new ProblemInstanceSeedPair(testInstances.get(i),rand.nextInt(Integer.MAX_VALUE));
-					log.debug("Validate Incumbent on {}", validationPISP);
-					validationRuns.add(getRunConfig(validationPISP, cutoffTime, incumbent));
-				}
-				
-				evaluateRun(validationRuns);
-				
-				logIncumbent(iteration);
+				log.info("SMAC Completed");
 				
 			} catch(RuntimeException e)
 			{
@@ -754,7 +744,12 @@ public class AbstractAlgorithmFramework {
 	{
 		for(AlgorithmRun run : runs)
 		{
-			runHistory.append(run);
+			try {
+				runHistory.append(run);
+			} catch (DuplicateRunException e) {
+				//We are trying to log a duplicate run
+				throw new IllegalStateException(e);
+			}
 		}
 		return runs;
 	}

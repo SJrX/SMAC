@@ -3,22 +3,33 @@ package ca.ubc.cs.beta.smac.executors;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.ac.config.ProblemInstance;
+import ca.ubc.cs.beta.ac.config.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.config.JCommanderHelper;
 import ca.ubc.cs.beta.config.SMACConfig;
+import ca.ubc.cs.beta.config.ValidationRoundingMode;
+import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.OverallObjective;
@@ -26,6 +37,7 @@ import ca.ubc.cs.beta.smac.RunObjective;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 import ca.ubc.cs.beta.smac.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.smac.state.StateDeserializer;
 import ca.ubc.cs.beta.smac.state.StateFactory;
@@ -47,6 +59,8 @@ public class AutomaticConfigurator
 	private static Logger logger;
 	private static Marker exception;
 	private static Marker stackTrace;
+	private static InstanceSeedGenerator instanceSeedGen;
+	private static InstanceSeedGenerator testInstanceSeedGen;
 	public static void main(String[] args)
 	{
 		/*
@@ -168,7 +182,14 @@ public class AutomaticConfigurator
 			
 				
 			smac.run();
+			
+			TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
+			
+			validate(smac.getIncumbent(),config, testInstanceSeedGen, validatingTae);
+			
 			logger.info("SMAC Completed Successfully");
+			
+			
 			return;
 		} catch(Throwable t)
 		{
@@ -213,6 +234,250 @@ public class AutomaticConfigurator
 	
 
 
+
+	private static void validate(ParamConfiguration incumbent, SMACConfig config, InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae) {
+		
+		long testInstancesCount = Math.min(config.numberOfTestInstances, testInstances.size());
+		int testSeedsPerInstance = config.numberOfTestSeedsPerInstance;
+		long validationRunsCount = config.numberOfValidationRuns;
+		
+		ValidationRoundingMode mode = config.validationRoundingMode;		
+		
+		List<RunConfig> validationRuns = new ArrayList<RunConfig>();
+endloop:		
+		for(int i=0; i < testSeedsPerInstance; i++)
+		{
+
+			switch(mode)
+			{
+				case DOWN:
+					if(validationRuns.size() > 0)
+					{
+						/**
+						 * Note the sign difference (rounding down is > and rounding up is >=)
+						 * 
+						 * If we have 10 instances and 10 seeds
+						 * 
+						 * At 90 we do the following
+						 *      Target:   100       99
+						 * UP             more     more
+						 * 
+						 * DOWN           more     stop
+						 * 
+						 */
+						 if( (validationRuns.size() + testInstancesCount) > validationRunsCount)
+						 {							 
+							 break endloop;
+						 }
+					} else
+					{
+						logger.warn("Rounding down would mean 0 runs, scheduling at least one set of runs per incumbent" );
+					}
+					break;
+				case UP:
+					if( (validationRuns.size()) >= validationRunsCount)
+					 {							 
+						 break endloop;
+					 }
+					break;
+				default:
+					throw new IllegalStateException("Unknown Validation Mode");
+			}
+			for(int j=0; j< testInstancesCount; j++)
+			{
+				ProblemInstance pi = testInstances.get(j);
+				if(testInstGen.hasNextSeed(pi))
+				{
+					long seed = testInstGen.getNextSeed(pi);
+					validationRuns.add(new RunConfig(new ProblemInstanceSeedPair(pi,seed), config.scenarioConfig.cutoffTime, incumbent));
+				} else
+				{
+					logger.warn("Not enough seeds for instance {} skipping run ", pi);
+				}
+				
+			}
+			
+		}
+		logger.info("Scheduling {} validation runs", validationRuns.size());
+		List<AlgorithmRun> runs = validatingTae.evaluateRun(validationRuns);
+		
+		
+		try
+		{
+			writeInstanceRawResultsFile(runs, config);
+		} catch(IOException e)
+		{
+			logger.error("Could not write results file", e);
+		}
+		
+		
+		try
+		{
+			writeInstanceSeedResultFile(runs, config);
+		} catch(IOException e)
+		{
+			logger.error("Could not write results file", e);
+		}
+		
+		try
+		{
+			writeInstanceResultFile(runs, config);
+		} catch(IOException e)
+		{
+			logger.error("Could not write results file:", e);
+		}
+		
+		//writeInstanceResultFile(runs, config);
+		
+		
+	}
+
+
+
+
+	private static void writeInstanceResultFile(List<AlgorithmRun> runs,SMACConfig smacConfig) throws IOException 
+	{
+		Map<ProblemInstance, List<AlgorithmRun>> map = new LinkedHashMap<ProblemInstance,List<AlgorithmRun>>();
+		
+		File f = new File(smacConfig.scenarioConfig.outputDirectory + File.separator + smacConfig.runID +  File.separator + "validationResultsMatrix.csv");
+		logger.info("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
+		CSVWriter writer = new CSVWriter(new FileWriter(f));
+		
+		
+		
+		
+		int maxRunLength =0;
+		for(AlgorithmRun run : runs)
+		{
+			ProblemInstance pi = run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getInstance();
+			if(map.get(pi) == null)
+			{
+				map.put(pi, new ArrayList<AlgorithmRun>());
+			}
+			
+			List<AlgorithmRun> myRuns = map.get(pi);
+			
+			
+			myRuns.add(run);
+			
+			maxRunLength = Math.max(myRuns.size(), maxRunLength);
+		}
+		
+		
+		if(!smacConfig.noValidationHeaders)
+		{
+			ArrayList<String> headerRow = new ArrayList<String>();
+			headerRow.add("Instance");
+			headerRow.add("OverallObjective");
+			
+			for(int i=1; i <= maxRunLength; i++ )
+			{
+				headerRow.add("Run #" + i);
+			}
+			
+			
+			writer.writeNext(headerRow.toArray(new String[0]));
+		}
+		
+		
+		List<Double> overallObjectives = new ArrayList<Double>();
+		OverallObjective overallObj = smacConfig.scenarioConfig.overallObj;
+		
+		for(Entry<ProblemInstance, List<AlgorithmRun>> piRuns : map.entrySet())
+		{
+			List<String> outputLine = new ArrayList<String>();
+			outputLine.add(piRuns.getKey().getInstanceName());
+			List<AlgorithmRun> myRuns = piRuns.getValue();
+			
+			RunObjective runObj = smacConfig.scenarioConfig.runObj;
+
+			List<Double> results = new ArrayList<Double>(myRuns.size());
+			
+			for(int i=0; i < myRuns.size(); i++)
+			{
+				results.add(runObj.getObjective(myRuns.get(i)));
+			}
+			
+			double overallResult = overallObj.aggregate(results, smacConfig.scenarioConfig.cutoffTime);
+			outputLine.add(String.valueOf(overallResult));
+			
+			overallObjectives.add(overallResult);
+			for(AlgorithmRun run : piRuns.getValue())
+			{
+				outputLine.add(String.valueOf(smacConfig.scenarioConfig.runObj.getObjective(run)));
+			}
+			
+			
+			writer.writeNext(outputLine.toArray(new String[0]));
+			
+		}
+		
+		
+		String[] args = { "Overall Objective On Test Set", String.valueOf(overallObj.aggregate(overallObjectives, smacConfig.scenarioConfig.cutoffTime))};
+		writer.writeNext(args);
+		
+		writer.close();
+		
+	}
+
+
+
+
+	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,SMACConfig smacConfig) throws IOException
+	{
+		
+		File f = new File(smacConfig.scenarioConfig.outputDirectory + File.separator + smacConfig.runID +  File.separator + "validationResultsList.csv");
+		logger.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
+		CSVWriter writer = new CSVWriter(new FileWriter(f));
+		
+		
+		if(!smacConfig.noValidationHeaders)
+		{
+			String[] args = {"Seed","Instance","Response"};
+			writer.writeNext(args);
+		}
+		
+		for(AlgorithmRun run : runs)
+		{
+			
+			String[] args = { String.valueOf(run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getSeed()),run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getInstance().getInstanceName(), String.valueOf(smacConfig.scenarioConfig.runObj.getObjective(run)) };
+			writer.writeNext(args);
+		}
+		
+		writer.close();
+		
+	}
+
+
+
+
+	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,SMACConfig smacConfig) throws IOException
+	{
+		
+		File f = new File(smacConfig.scenarioConfig.outputDirectory + File.separator + smacConfig.runID +  File.separator + "RawValidationExecutionResults.csv");
+		logger.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
+		CSVWriter writer = new CSVWriter(new FileWriter(f));
+		
+		
+		if(!smacConfig.noValidationHeaders)
+		{
+			String[] args = {"Seed","Instance","Raw Result Line", "Result Line"};
+			writer.writeNext(args);
+		}
+		
+		for(AlgorithmRun run : runs)
+		{
+			
+			String[] args = { String.valueOf(run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getSeed()),run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getInstance().getInstanceName(), run.rawResultLine(), run.getResultLine() };
+			writer.writeNext(args);
+		}
+		
+		writer.close();
+		
+	}
+
+
+	
 
 	private static void restoreState(SMACConfig config, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective overallObj, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
 		
@@ -266,10 +531,16 @@ public class AutomaticConfigurator
 			
 			logger.trace("Command Line Options Parsed");
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
-			instances = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck).getInstances();
+			InstanceListWithSeeds ilws;
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck);
+			instanceSeedGen = ilws.getSeedGen();
+			instances = ilws.getInstances();
+			
 			
 			logger.info("Parsing test instances from {}", config.scenarioConfig.instanceFile );
-			testInstances = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, !config.scenarioConfig.skipInstanceFileCheck).getInstances();
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, !config.scenarioConfig.skipInstanceFileCheck);
+			testInstances = ilws.getInstances();
+			testInstanceSeedGen = ilws.getSeedGen();
 			
 			return config;
 		} catch(IOException e)
