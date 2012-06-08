@@ -104,7 +104,19 @@ public class ValidatorExecutor {
 				} else
 				{
 					log.info("Parsing Supplied Configuration");
-					configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.NODB_SYNTAX);
+					try {
+						configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.NODB_SYNTAX);
+					} catch(RuntimeException e)
+					{
+						try {
+							log.info("Being nice and checking if this is a STATEFILE encoded configuration");
+							configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.STATEFILE_SYNTAX);
+						} catch(RuntimeException e2)
+						{
+							throw e;
+						}
+						
+					}
 				}
 				log.info("Begining Validation on {}", configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX));
 				(new Validator()).validate(testInstances, configToValidate,config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj);

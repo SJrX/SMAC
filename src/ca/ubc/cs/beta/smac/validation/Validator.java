@@ -124,7 +124,7 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 		List<ProblemInstance> pisToUse = testInstGen.getProblemInstanceOrder(pis);
 		List<RunConfig> runs = new ArrayList<RunConfig>(numRuns);
 		int runsScheduled = 0;
-		
+		log.info("Creating Runs ");
 endloop:
 		while(true)
 		{

@@ -51,7 +51,7 @@ figs-within-sections
 \begin_body
 
 \begin_layout Title
-SMAC Manual, version 0.90b
+SMAC Manual, version 0.91b
 \end_layout
 
 \begin_layout Author
@@ -214,7 +214,7 @@ name "sec:config"
 
  This quick start guide is for 
 \series bold
-version 0.90b
+version 0.91b
 \series default
  of SMAC.
  It is important to note that this is a preliminary beta release.
@@ -830,14 +830,11 @@ instance_seed_file
 Configuration Options Reference
 \end_layout
 
-
-
-
-
 \begin_layout Description
 --algoExec algorithm call to execute
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
@@ -845,26 +842,33 @@ Configuration Options Reference
 --execDir Execution Directory for Algorithm
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
 \begin_layout Description
---runObj Per Target Algorithm Run Objective Type that we are optimizing for
+--runObj Per Target Algorithm Run Objective Type that we are optimizing
+ for
 \begin_inset Newline newline
 \end_inset
+
  Default: RUNTIME
 \begin_inset Newline newline
 \end_inset
+
  Values: RUNTIME, RUNLENGTH, APPROX, SPEEDUP, QUALITY
 \end_layout
 
 \begin_layout Description
---overallObj Aggregate over all Run's Objective Type that we are optimizing for
+--overallObj Aggregate over all Run's Objective Type that we are optimizing
+ for
 \begin_inset Newline newline
 \end_inset
+
  Default: MEAN
 \begin_inset Newline newline
 \end_inset
+
  Values: MEAN, MEDIAN, Q90, ADJ_MEAN, MEAN1000, MEAN10, GEOMEAN
 \end_layout
 
@@ -872,6 +876,7 @@ Configuration Options Reference
 --cutoffTime Cap Time for an Individual Run
 \begin_inset Newline newline
 \end_inset
+
  Default: 300.0
 \end_layout
 
@@ -879,6 +884,7 @@ Configuration Options Reference
 --cutoffLength Cap Time for an Individual Run
 \begin_inset Newline newline
 \end_inset
+
  Default: -1.0
 \end_layout
 
@@ -886,13 +892,16 @@ Configuration Options Reference
 --tunerTimeout Total CPU Time to execute for
 \begin_inset Newline newline
 \end_inset
+
  Default: 2147483647
 \end_layout
 
 \begin_layout Description
---instanceFile File containing instances in either "<instance filename>", or "<seed>,<instance filename>" format
+--instanceFile File containing instances in either "<instance filename>",
+ or "<seed>,<instance filename>" format
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
@@ -900,13 +909,16 @@ Configuration Options Reference
 --instanceFeatureFile File that contains the all the instances features
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
 \begin_layout Description
---testInstanceFile File containing instances specified one instance per line
+--testInstanceFile File containing instances specified one instance per
+ line
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
@@ -914,13 +926,16 @@ Configuration Options Reference
 --scenarioFile Scenario File
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
 \begin_layout Description
---deterministic Whether the target algorithm is deterministic (0 no, 1 yes) [An integer due to backwards compatibility]
+--deterministic Whether the target algorithm is deterministic (0 no, 1 yes)
+ [An integer due to backwards compatibility]
 \begin_inset Newline newline
 \end_inset
+
  Default: 0
 \end_layout
 
@@ -928,6 +943,7 @@ Configuration Options Reference
 --skipInstanceFileCheck Do not check if instances files exist on disk
 \begin_inset Newline newline
 \end_inset
+
  Default: false
 \end_layout
 
@@ -935,6 +951,7 @@ Configuration Options Reference
 --outputDirectory Output Directory
 \begin_inset Newline newline
 \end_inset
+
  Default: <current working directory>/smac-output
 \end_layout
 
@@ -942,6 +959,7 @@ Configuration Options Reference
 --seed Seed for Random Number Generator [0 means don't use a seed]
 \begin_inset Newline newline
 \end_inset
+
  Default: 0
 \end_layout
 
@@ -949,6 +967,7 @@ Configuration Options Reference
 --experimentDir Root Directory for Experiments Folder
 \begin_inset Newline newline
 \end_inset
+
  Default: <current working directory>/
 \end_layout
 
@@ -956,6 +975,7 @@ Configuration Options Reference
 --paramFile File containing Parameter Space of Execution
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
@@ -963,6 +983,7 @@ Configuration Options Reference
 --numIterations Total number of iterations to perform
 \begin_inset Newline newline
 \end_inset
+
  Default: 2147483647
 \end_layout
 
@@ -970,6 +991,7 @@ Configuration Options Reference
 --runtimeLimit Total Wall clock time to execute for
 \begin_inset Newline newline
 \end_inset
+
  Default: 2147483647
 \end_layout
 
@@ -977,27 +999,32 @@ Configuration Options Reference
 --totalNumRunLimit Total number of target algorithm runs to execute
 \begin_inset Newline newline
 \end_inset
+
  Default: 2147483647
 \end_layout
 
 \begin_layout Description
---numTestInstances Number of instances to test against (Will execute min of this, and number of instances in test Instance File)
+--runHashCodeFile File containing a list of Run Hashes one per line (Either
+ with just the format on each line, or with the following text per line:
+ "Run Hash Codes: (Hash Code) After (n) runs".
+ The number of runs in this file need not match the number of runs that
+ we execute, this file only ensures that the sequences never diverge.
+ Note the n is completely ignored so the order they are specified in is
+ the order we expect the hash codes in this version
 \begin_inset Newline newline
 \end_inset
- Default: 10
-\end_layout
 
-\begin_layout Description
---runHashCodeFile File containing a list of Run Hashes one per line (Either with just the format on each line, or with the following text per line: "Run Hash Codes: (Hash Code) After (n) runs". The number of runs in this file need not match the number of runs that we execute, this file only ensures that the sequences never diverge. Note the n is completely ignored so the order they are specified in is the order we expect the hash codes in this version
-\begin_inset Newline newline
-\end_inset
  Default: 
 \end_layout
 
 \begin_layout Description
---modelHashCodeFile File containing a list of Model Hashes one per line with the following text per line: "Preprocessed Forest Built With Hash Code: (n)" or "Random Forest Built with Hash Code: (n)" where (n) is the hashcode
+--modelHashCodeFile File containing a list of Model Hashes one per line
+ with the following text per line: "Preprocessed Forest Built With Hash
+ Code: (n)" or "Random Forest Built with Hash Code: (n)" where (n) is the
+ hashcode
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
@@ -1005,6 +1032,7 @@ Configuration Options Reference
 --runID String that identifies this run for logging purposes
 \begin_inset Newline newline
 \end_inset
+
  Default: Run-YYYY-MM-DD--HH-mm-ss-xxx (where xxx is milli-seconds)
 \end_layout
 
@@ -1012,6 +1040,7 @@ Configuration Options Reference
 --numPCA Number of prinicipal components of features
 \begin_inset Newline newline
 \end_inset
+
  Default: 7
 \end_layout
 
@@ -1019,9 +1048,11 @@ Configuration Options Reference
 --expectedImprovementFunction Expected Improvement Function to Use
 \begin_inset Newline newline
 \end_inset
+
  Default: EXPONENTIAL
 \begin_inset Newline newline
 \end_inset
+
  Values: EXPONENTIAL, SIMPLE, SPO, EI, EIh
 \end_layout
 
@@ -1029,13 +1060,16 @@ Configuration Options Reference
 --nuberOfChallengers Number of Challengers needed for Local Search
 \begin_inset Newline newline
 \end_inset
+
  Default: 10
 \end_layout
 
 \begin_layout Description
---numberOfRandomConfigsInEI Number of Random Configurations to evaluate in EI Search
+--numberOfRandomConfigsInEI Number of Random Configurations to evaluate
+ in EI Search
 \begin_inset Newline newline
 \end_inset
+
  Default: 10000
 \end_layout
 
@@ -1043,9 +1077,11 @@ Configuration Options Reference
 --stateSerializer Controls how the state will be saved to disk
 \begin_inset Newline newline
 \end_inset
+
  Default: LEGACY
 \begin_inset Newline newline
 \end_inset
+
  Values: NULL, LEGACY
 \end_layout
 
@@ -1053,9 +1089,11 @@ Configuration Options Reference
 --stateDeserializer Controls how the state will be saved to disk
 \begin_inset Newline newline
 \end_inset
+
  Default: LEGACY
 \begin_inset Newline newline
 \end_inset
+
  Values: NULL, LEGACY
 \end_layout
 
@@ -1063,6 +1101,7 @@ Configuration Options Reference
 --restoreStateFrom The Location (State Deserializer Dependent) of States
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
@@ -1070,6 +1109,7 @@ Configuration Options Reference
 --restoreIteration The Iteration to Restore
 \begin_inset Newline newline
 \end_inset
+
  Default: 
 \end_layout
 
@@ -1077,9 +1117,11 @@ Configuration Options Reference
 --executionMode Mode of Automatic Configurator to run
 \begin_inset Newline newline
 \end_inset
+
  Default: SMAC
 \begin_inset Newline newline
 \end_inset
+
  Values: SMAC, ROAR
 \end_layout
 
@@ -1087,6 +1129,7 @@ Configuration Options Reference
 --splitMin Minimum number of elements needed to split a node 
 \begin_inset Newline newline
 \end_inset
+
  Default: 10
 \end_layout
 
@@ -1094,6 +1137,7 @@ Configuration Options Reference
 --fullTreeBootstrap Bootstrap all data points into trees
 \begin_inset Newline newline
 \end_inset
+
  Default: false
 \end_layout
 
@@ -1101,6 +1145,7 @@ Configuration Options Reference
 --storeDataInLeaves Store full data in leaves of trees
 \begin_inset Newline newline
 \end_inset
+
  Default: false
 \end_layout
 
@@ -1108,6 +1153,7 @@ Configuration Options Reference
 --logModel Store data in Log Normal form
 \begin_inset Newline newline
 \end_inset
+
  Default: false
 \end_layout
 
@@ -1115,6 +1161,7 @@ Configuration Options Reference
 --nTrees Number of Trees in Random Forest
 \begin_inset Newline newline
 \end_inset
+
  Default: 10
 \end_layout
 
@@ -1122,13 +1169,16 @@ Configuration Options Reference
 --minVariance Minimum allowed variance
 \begin_inset Newline newline
 \end_inset
+
  Default: 1.0E-14
 \end_layout
 
 \begin_layout Description
---ratioFeatures Number of features to consider when building Regression Forest
+--ratioFeatures Number of features to consider when building Regression
+ Forest
 \begin_inset Newline newline
 \end_inset
+
  Default: 0.8333333333333334
 \end_layout
 
@@ -1136,6 +1186,7 @@ Configuration Options Reference
 --preprocessMarginal Build Random Forest with Preprocessed Marginal
 \begin_inset Newline newline
 \end_inset
+
  Default: false
 \end_layout
 
@@ -1143,6 +1194,7 @@ Configuration Options Reference
 --adaptiveCapping Enable Adaptive Capping
 \begin_inset Newline newline
 \end_inset
+
  Default: false
 \end_layout
 
@@ -1150,13 +1202,16 @@ Configuration Options Reference
 --capSlack Amount to scale computed cap time of challengers by
 \begin_inset Newline newline
 \end_inset
+
  Default: 1.3
 \end_layout
 
 \begin_layout Description
---capAddSlack Amount to increase computed cap time of challengers by [ general formula:   capTime = capSlack*computedCapTime + capAddSlack ]
+--capAddSlack Amount to increase computed cap time of challengers by [ general
+ formula:   capTime = capSlack*computedCapTime + capAddSlack ]
 \begin_inset Newline newline
 \end_inset
+
  Default: 1.0
 \end_layout
 
@@ -1164,17 +1219,73 @@ Configuration Options Reference
 --imputationIterations Amount of times to impute censored data
 \begin_inset Newline newline
 \end_inset
+
  Default: 10
 \end_layout
 
 \begin_layout Description
---maxConcurrentAlgoExecs Maximum number of concurrent target algorithm executions
+--maxConcurrentAlgoExecs Maximum number of concurrent target algorithm execution
+s
 \begin_inset Newline newline
 \end_inset
+
  Default: 1
 \end_layout
 
+\begin_layout Description
+--skipValidation Do not perform validation at the end
+\begin_inset Newline newline
+\end_inset
 
+ Default: false
+\end_layout
+
+\begin_layout Description
+--numSeedsPerTestInstance Number of test seeds to use per instance during
+ validation
+\begin_inset Newline newline
+\end_inset
+
+ Default: 1000
+\end_layout
+
+\begin_layout Description
+--numTestInstances Number of instances to test against (Will execute min
+ of this, and number of instances in test Instance File)
+\begin_inset Newline newline
+\end_inset
+
+ Default: 2147483647
+\end_layout
+
+\begin_layout Description
+--numberOfValidationRuns Approximate Number of Validation Runs to do
+\begin_inset Newline newline
+\end_inset
+
+ Default: 1000
+\end_layout
+
+\begin_layout Description
+--validationRoundingMode Whether to round the number of validation runs
+ up or down (to next multiple of numTestInstances
+\begin_inset Newline newline
+\end_inset
+
+ Default: UP
+\begin_inset Newline newline
+\end_inset
+
+ Values: UP, NONE
+\end_layout
+
+\begin_layout Description
+--noValidationHeaders Don't put headers on output CSV files for Validation
+\begin_inset Newline newline
+\end_inset
+
+ Default: false
+\end_layout
 
 \begin_layout Subsection
 Usage
@@ -1425,6 +1536,105 @@ Run-(Current Time)
  
 \end_layout
 
+\begin_layout Subsubsection
+Perform Additional Validation Runs
+\end_layout
+
+\begin_layout Standard
+When using instance (and not instance & seed files), SMAC Performs ~1000
+ (rounded up to the nearest multiple number of instances) target algorithm
+ runs (provided there are enough instances and seeds)
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --runID <someID> --numValidationRuns 2000
+\end_layout
+
+\begin_layout Subsubsection
+Limiting the Number of Seeds Used in a Validation Run
+\end_layout
+
+\begin_layout Standard
+By default SMAC limits the number of seeds used in validation runs to 1000
+ seeds per instance, this can be changed by using the following (This parameter
+ has no effect on instance seed files):
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --runID <someID> --numValidationRuns 100000
+ --numSeedsPerTestInstance 2
+\end_layout
+
+\begin_layout Subsubsection
+Limiting the Number of Instances Used in a Validation Run
+\end_layout
+
+\begin_layout Standard
+To use only some of the instances or instance seeds specified you can limit
+ them with the --numTestInstances parameter.
+ For instances it will only the specified number from the top of the file,
+ and will keep repeating them until enough seeds are used.
+ For instance seeds it will only use the specified number of instance seeds
+ in the file.
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --runID <someID> --numTestInstances 10
+\end_layout
+
+\begin_layout Subsubsection
+Skip Validation
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --runID <someID> --skipValidation
+\end_layout
+
+\begin_layout Standard
+Does not perform any validation when after automatic configuration is completed
+\end_layout
+
+\begin_layout Subsubsection
+Manual Validating Data
+\end_layout
+
+\begin_layout Standard
+SMAC also includes a method of validating data without a smac run.
+ You can supply a configuration using the --configuration directive.
+ Beyond this directive the rest of the options are a subset of those from
+ SMAC.
+\end_layout
+
+\begin_layout LyX-Code
+./smac-validate --scenarioFile <file> --numValidationRuns 100000 --configuration
+ 
+\begin_inset Quotes eld
+\end_inset
+
+config string
+\begin_inset Quotes erd
+\end_inset
+
+ --maxConcurrentAlgoExecs 8
+\end_layout
+
+\begin_layout Standard
+Usage Notes:
+\end_layout
+
+\begin_layout Enumerate
+If no configuration is specified the default configuration is validated.
+\end_layout
+
+\begin_layout Enumerate
+This validates against the test set and not the instance set, the instance
+ set is of no consequence here.
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
 \begin_layout Section
 Example tuning scenarios
 \end_layout
@@ -1521,7 +1731,51 @@ Using Instance-Specific information
 \end_layout
 
 \begin_layout Standard
-Instance Specific Information is not supported in this version
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:rest"
+
+\end_inset
+
+ Whether you choose to provide an instance_file (i.e.
+ a list of problem instance filenames), or an instance_seed_file (i.e.
+ a list of pairs of problem instance filenames and seeds), you specify one
+ instance per line.
+ You may choose to include additional information after the instance filename,
+ such as the optimal solution quality for the instance, or the instance
+ hardness for one or more other algorithms.
+ Thus, the syntax for each line of the instance_file is 
+\family typewriter
+<instance_filename> <rest>
+\family default
+, where 
+\family typewriter
+<rest>
+\family default
+ is an arbitrary (possibly empty) string; when using an the instance_seed_file,
+ the syntax is 
+\family typewriter
+<seed> <instance_filename> <rest>
+\family default
+ The syntax for these files allows you to do this easily: the 
+\family typewriter
+<rest>
+\family default
+ string is always parsed and passed on to the objective function computation.
+ The rest may, for example, specify a reference runtime (or runlength, or
+ whatever) for the instance.
+ This is very useful if the objective is to beat a competing algorithm,
+ or a previous version of the same algorithm (In my opinion, this objective
+ is used too much in computer science research, but since the demand is
+ there I provide the option).
+\end_layout
+
+\begin_layout Standard
+Note: 
+\family typewriter
+<rest>
+\family default
+ cannot contain any whitespace currently.
 \end_layout
 
 \begin_layout Section
@@ -1560,8 +1814,8 @@ algo-params.txt
 \end_layout
 
 \begin_layout Standard
-The file consists of two types of statements parameter declarations, and
- conditional declarations:
+The file consists of three types of statements: parameter declarations,
+ conditional declarations, and forbidden declarations:
 \end_layout
 
 \begin_layout Subsubsection*
@@ -1705,6 +1959,55 @@ in
 , and the values are restricted to being specified as categoricals.
  In the above example the quick-revert-to-insertion is conditional on the
  sort-algo parameter being set to quick, and will be ignored otherwise.
+\end_layout
+
+\begin_layout Subsubsection*
+Forbidden Parameters
+\end_layout
+
+\begin_layout Standard
+Forbidden Parameters are parameter settings which should not be treated
+ as valid by SMAC.
+ During the search phase, parameters matching a forbidden parameter configuratio
+n, will not be explored.
+ Note: Specifying a large number of these may degrade SMAC's performance.
+\end_layout
+
+\begin_layout Standard
+The Syntax is as follows:
+\end_layout
+
+\begin_layout LyX-Code
+{name1=val1,name2=val2...}
+\end_layout
+
+\begin_layout LyX-Code
+Example Param File
+\end_layout
+
+\begin_layout LyX-Code
+quick-sort { on, off} [on]
+\end_layout
+
+\begin_layout LyX-Code
+bubble-sort { on, off} [off]
+\end_layout
+
+\begin_layout LyX-Code
+{quick-sort=on, bubble-sort=on}
+\end_layout
+
+\begin_layout LyX-Code
+{quick-sort=off, bubble-sort=off}
+\end_layout
+
+\begin_layout Standard
+The above example implements an exclusive or (although it could be better
+ modelled with simply one parameter), and prevents both sort techniques
+ from being enabled at the same time, (the first forbidden parameter), and
+ forces one to be on at all times.
+ NOTE: The Default Parameter setting cannot itself be a forbidden parameter
+ setting.
 \end_layout
 
 \begin_layout Subsection
@@ -2440,6 +2743,40 @@ The rest give the parameter strings of the incumbent)
 
 \end_layout
 
+\begin_layout Subsubsection
+Validation Output
+\end_layout
+
+\begin_layout Standard
+When Validating Three output files are generated:
+\end_layout
+
+\begin_layout Enumerate
+RawValidationExecutionResults.csv - CSV File containing a list of seeds &
+ instances and the result of the wrapper execution (useful for debugging)
+\end_layout
+
+\begin_layout Enumerate
+validationResultsList.csv - CSV File containing a list of seeds & instances
+ and the resulting response
+\end_layout
+
+\begin_layout Enumerate
+validationResultsMatrix.csv - CSV File containing the list of instances on
+ each line, the second column is the aggregation of the remaining columns
+ which is the response value of the run, aggergated under the 
+\series bold
+--overallObjective
+\series default
+.
+ Finally there is one additional row that gives the aggregation of all the
+ individual 
+\series bold
+--overallObjectives
+\series default
+, aggregated in the same way.
+\end_layout
+
 \begin_layout Section
 Usage Differences Between This and Other Versions
 \end_layout
@@ -2469,10 +2806,72 @@ Previous Features Not Supported
 \end_layout
 
 \begin_layout Standard
-Forbidden Parameters
+Extended Trajectory Files from MATLAB SMAC do not exist.
 \end_layout
 
 \begin_layout Section
+Version Information
+\end_layout
+
+\begin_layout Subsection
+License
+\end_layout
+
+\begin_layout Standard
+SMAC is to be released under a dual usage license.
+ Academic & Non-commercial usage is permitted.
+ Commercial Usage requires a license.
+\end_layout
+
+\begin_layout Subsection
+Change Log
+\end_layout
+
+\begin_layout Standard
+--Version 0.91b --
+\end_layout
+
+\begin_layout Standard
+Second Beta Release: June 8th 2012
+\end_layout
+
+\begin_layout Itemize
+Fixed NullPointerException when crashing on iteration 0
+\end_layout
+
+\begin_layout Itemize
+Added Support for Instance Specific Information
+\end_layout
+
+\begin_layout Itemize
+Added Validation Support and Utility
+\end_layout
+
+\begin_layout Itemize
+Provided Domain of Configuration Options for SMAC
+\end_layout
+
+\begin_layout Itemize
+Validated Paremeter Setting for Default Configuration
+\end_layout
+
+\begin_layout Itemize
+Cleaned Up Error Messages related to Parsing Param File
+\end_layout
+
+\begin_layout Itemize
+Added Support for Forbidden Parameters
+\end_layout
+
+\begin_layout Standard
+-- Version 0.90b -- 
+\end_layout
+
+\begin_layout Standard
+Initial (Internal) Release: May 25th 2012
+\end_layout
+
+\begin_layout Subsection
 Known problems
 \end_layout
 
@@ -2495,10 +2894,6 @@ Validation of configuration options is poor and limited
 \end_layout
 
 \begin_layout Enumerate
-Instance Specific Information is not supported.
-\end_layout
-
-\begin_layout Enumerate
 Neighbourhood search of discretized continuous parameters may select identical
  parameter configurations.
 \end_layout
@@ -2518,6 +2913,10 @@ Standard Deviation not reported in Trajectory Files
 \series default
 is computed simply on target algorithm runtimes, it may not agree with ParamILS
  nor MATLAB SMAC's definition
+\end_layout
+
+\begin_layout Enumerate
+Scripts do not work outside of smac directory.
 \end_layout
 
 \begin_layout Standard
