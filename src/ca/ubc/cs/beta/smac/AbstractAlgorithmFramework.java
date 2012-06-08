@@ -120,8 +120,9 @@ public class AbstractAlgorithmFramework {
 		iteration = 0;
 		
 		try {
-			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + "traj-algo-" + config.runID.replaceAll("\\s+", "_") + ".txt";
+			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator +"traj-algo-" + config.runID.replaceAll("\\s+", "_") + ".txt";
 			this.fout = new FileWriter(new File(outputFileName));
+			log.info("Trajectory File Writing To: {}", outputFileName);
 			fout.write(config.runID + "\n");
 			
 			

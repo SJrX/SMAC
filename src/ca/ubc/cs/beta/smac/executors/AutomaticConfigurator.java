@@ -185,10 +185,13 @@ public class AutomaticConfigurator
 			
 				
 			smac.run();
+			if(!config.skipValidation)
+			{
 			
-			TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
-			String outputDir = config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator;
-			(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj);
+				TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
+				String outputDir = config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator;
+				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj);
+			}
 			
 			logger.info("SMAC Completed Successfully");
 			
