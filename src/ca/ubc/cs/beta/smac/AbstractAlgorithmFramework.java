@@ -27,7 +27,6 @@ import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;

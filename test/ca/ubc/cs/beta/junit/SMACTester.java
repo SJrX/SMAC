@@ -2,26 +2,15 @@ package ca.ubc.cs.beta.junit;
 
 import static org.junit.Assert.*;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PipedReader;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
 
 import org.junit.Test;
-import org.junit.experimental.ParallelComputer;
-import org.junit.runner.JUnitCore;
-import org.junit.runner.Result;
-
-import com.beust.jcommander.JCommander;
-
-import ca.ubc.cs.beta.config.JCommanderHelper;
-import ca.ubc.cs.beta.config.ScenarioConfig;
 
 public class SMACTester {
 	

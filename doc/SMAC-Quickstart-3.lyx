@@ -1,0 +1,2704 @@
+#LyX 1.6.9 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\begin_preamble
+
+\end_preamble
+\use_default_options false
+\begin_modules
+theorems-ams
+eqs-within-sections
+figs-within-sections
+\end_modules
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize 10
+\spacing single
+\use_hyperref false
+\papersize letterpaper
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+SMAC Manual, version 0.90b
+\end_layout
+
+\begin_layout Author
+Frank
+\begin_inset space ~
+\end_inset
+
+Hutter 
+\begin_inset Newline newline
+\end_inset
+
+Steve Ramage
+\end_layout
+
+\begin_layout Author
+Department of Computer Science
+\begin_inset Newline newline
+\end_inset
+
+ University of British Columbia
+\begin_inset Newline newline
+\end_inset
+
+ Vancouver, BC
+\begin_inset space \space{}
+\end_inset
+
+
+\begin_inset space \space{}
+\end_inset
+
+V6T
+\begin_inset space ~
+\end_inset
+
+1Z4, Canada.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset toc
+LatexCommand tableofcontents
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:intro"
+
+\end_inset
+
+ SMAC (Sequential Model-based Algorithm Configuration)
+\begin_inset space ~
+\end_inset
+
+[CITATION NEEDED] is an SMBO [CITATION NEEDED] based automatic configuration
+ tool for parameter optimization.
+ It works on parameterized algorithms supporting categorical and continuous
+ spaces with conditionality.
+ SMAC searches through a space of possible parameter configurations by taking
+ those which look promising, running them, updating a regression model with
+ new information, selecting a new set of promising configurations and repeating.
+ 
+\end_layout
+
+\begin_layout Standard
+Users of SMAC must provide:
+\end_layout
+
+\begin_layout Itemize
+a parametric algorithm 
+\begin_inset Formula $\mathcal{A}$
+\end_inset
+
+ (executable to be called from the command line), 
+\end_layout
+
+\begin_layout Itemize
+all parameters and their possible values 
+\begin_inset Formula $\Theta$
+\end_inset
+
+, and 
+\end_layout
+
+\begin_layout Itemize
+a set of benchmark instances, 
+\begin_inset Formula $\Pi$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Itemize
+The objective with which to measure and aggregate algorithm preformance
+ results.
+\end_layout
+
+\begin_layout Standard
+SMAC then executes algorithm 
+\begin_inset Formula $\mathcal{A}$
+\end_inset
+
+ with different combinations of parameters sampled from 
+\begin_inset Formula $\Theta$
+\end_inset
+
+ with instances sampled from 
+\begin_inset Formula $\Pi$
+\end_inset
+
+, searching for the configuration that yields overall best performance across
+ the benchmark instances under the supplied objective.
+ For more details see
+\begin_inset space ~
+\end_inset
+
+ [CITATION NEEDED].
+ If you use SMAC in your research, please cite that article.
+ It would also be nice if you sent us an email -- we are always interested
+ in additional application domains.
+\end_layout
+
+\begin_layout Subsection
+History
+\end_layout
+
+\begin_layout Standard
+SMAC originally grew out of improvements to Bartz-Beielstein et al's Sequential
+ Parameter Optimization Toolbox, called SPO+ in 2009 which was fully automated
+ and more robust than the original.
+ In 2010 development began on a time-bounded variant which reduced computational
+ overheads called TB-SPO.
+ In 2011 the first version of SMAC was written in MATLAB while relying on
+ some Java components, and in early 2012 the remainder was ported to Java.
+\end_layout
+
+\begin_layout Standard
+Some of SMAC's idiosyncracies are the result of previous work on a model-free
+ Automatic Configurator called ParamILS [CITATION NEEDED].
+\end_layout
+
+\begin_layout Section
+Configuration & Usage
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:config"
+
+\end_inset
+
+ This quick start guide is for 
+\series bold
+version 0.90b
+\series default
+ of SMAC.
+ It is important to note that this is a preliminary beta release.
+ It has not been thoroughly tested and validated yet.
+ Download the smac-0.90b.zip file, and unzip it in a new directory.
+ Smac is executed by calling 
+\emph on
+smac
+\emph default
+ and by default it will merely output the usage options.
+\end_layout
+
+\begin_layout Subsection
+Requirements
+\end_layout
+
+\begin_layout Standard
+SMAC itself requires nothing more than Java 1.6 to run.
+ It has not been tested on Windows machines, and the supplied scripts are
+ only for running under Unix, some of the examples may require other software
+ such as CPLEX, ruby or perl.
+ All required libraries are provided within the download package Some of
+ the examples supplied are compiled for usage under Linux.
+\end_layout
+
+\begin_layout Subsection
+Configuration Files
+\end_layout
+
+\begin_layout Standard
+Configuration Files are a way of saving different default values for frequent
+ use with SMAC without having to specify them on every execution.
+ Currently you cannot override values set in configuration files via the
+ command line, though this will hopefully change.
+ Additionally there are several configuration files that can be specified
+ for different purposes.
+ The general format for a configuration file is the name of the configuration
+ option (without the two dashes) an equal sign and then the value (for booleans
+ it should be true or false, lowercase).
+\end_layout
+
+\begin_layout Subsubsection
+Tuning Scenario Files
+\end_layout
+
+\begin_layout Standard
+Perhaps the most useful of the configuration files that can be specified
+\emph on
+ 
+\emph default
+are
+\emph on
+ Tuning scenario files
+\emph default
+ which contain all the information about running a target algorithm.They
+ are backwards compatible with previous versions of MATLAB SMAC and ParamILS
+ (to facilitate this some of the options names may be slightly different
+ than in section (INSERT SECTION), rest assured these all are aliases of
+ commands specified via the command line.
+\end_layout
+
+\begin_layout Standard
+They can contain the following information:
+\end_layout
+
+\begin_layout Description
+algo An algorithm executable or a call to a wrapper script around an algorithm
+ that conforms with the input/output format specified in section (INSERT
+ SECTION).
+ 
+\end_layout
+
+\begin_layout Description
+execdir Directory to execute 
+\family typewriter
+<algo>
+\family default
+ from: (e.g.
+ 
+\begin_inset Quotes eld
+\end_inset
+
+cd 
+\family typewriter
+<execdir>
+\family default
+; 
+\family typewriter
+<algo>
+\family default
+
+\begin_inset Quotes erd
+\end_inset
+
+)
+\end_layout
+
+\begin_layout Description
+deterministic Set to 0 for randomized algorithms, 1 for deterministic .
+\end_layout
+
+\begin_layout Description
+run_obj Determines how to convert the resulting output line into a scalar
+ quantifying how 
+\begin_inset Quotes eld
+\end_inset
+
+good
+\begin_inset Quotes erd
+\end_inset
+
+ a single algorithm execution is, (e.g.
+ how long it took to execute, how good of a solution it found, etc...).
+ Implemented examples for this are as follows 
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+APPROX, SPEEDUP rely on instance specific information which is not currently
+ implemented
+\end_layout
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Description
+\begin_inset Tabular
+<lyxtabular version="3" rows="6" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+RUNTIME
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The reported runtime of the algorithm.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+RUNLENGTH
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The reported runlength of the algorithm.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+APPROX
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $1-\frac{\mbox{optimal quality stored in instance specific information}}{\mbox{reported quality}}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+SPEEDUP
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\frac{\mbox{runtime stored in instance specific information}}{\mbox{reported runtime}}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+QUALITY
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The reported quality of the algorithm.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+overall_obj While 
+\family typewriter
+run_obj
+\family default
+ defines the objective function for a single algorithm run, 
+\family typewriter
+overall_obj
+\family default
+ defines how those single objectives are combined to reach a single scalar
+ value to compare two parameter configurations.
+ Implemented examples for this are as follows
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+ADJ_MEAN Not implemented currently
+\end_layout
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Description
+\begin_inset Tabular
+<lyxtabular version="3" rows="9" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+MEAN
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The mean of the values
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+MEDIAN
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The median of the values
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Q90
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The 90th percentile of the values
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+ADJ_MEAN
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $\mbox{\frac{\mbox{total run objective}}{\#\, of\, successful\, runs}}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+MEAN1000
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Unsuccessful runs are counted as 1000 
+\begin_inset Formula $\times$
+\end_inset
+
+ 
+\series bold
+cutoff_time
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+MEAN10
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Unsuccessful runs are counted as 10 
+\begin_inset Formula $\times$
+\end_inset
+
+ 
+\series bold
+cutoff_time
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+GEOMEAN
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The geometric mean (primarily used in 
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+combination with 
+\series bold
+run_obj
+\series default
+ = SPEEDUP).
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Description
+cutoff_time The time after which a single algorithm execution will be terminated
+ unsuccesfully.
+ This is an important parameter: if choosen too high, lots of time will
+ be wasted with unsuccessful runs.
+ If chosen too low the optimization is biased to perform well on easy instances
+ only.
+ 
+\end_layout
+
+\begin_layout Description
+cutoff_length The runlength after which a single algorithm execution will
+ be terminated unsuccesfully.
+ The actual semantic meaning of this value is up to the target algorithm.
+ (NOT SUPPORTED IN THIS VERSION)
+\end_layout
+
+\begin_layout Description
+tunerTimeout The amount of CPU time allowed for target algorithm execution
+ (specifically once the sum of all runtimes exceeds this value, SMAC will
+ stop configuring).
+\end_layout
+
+\begin_layout Description
+paramfile Specifies the file with the parameters of the algorithms.
+ The format of this file is covered in...
+\end_layout
+
+\begin_layout Description
+outdir Specifies the directory ParamILS should write its results to.
+ 
+\end_layout
+
+\begin_layout Description
+instance_file Specifies the file with a list of training instances.
+ Additionally this parameter can be specified as 
+\series bold
+instance_seed_file
+\series default
+.
+ The format of these files is covered in...
+\end_layout
+
+\begin_layout Description
+test_instance_file Specifies the file with a list of test instances.
+ Additionally this parameter can be specified as 
+\series bold
+test_instance_seed_file
+\series default
+.
+ The format of these files is covered in...
+\end_layout
+
+\begin_layout Subsubsection
+Instance File Format
+\end_layout
+
+\begin_layout Standard
+ParamILS and the MATLAB version of SMAC required specifying the type of
+ file as different mutually exclusive options (e.g.
+ 
+\series bold
+instance_file 
+\series default
+versus 
+\series bold
+instance_seed_file
+\series default
+).
+ This version detects the format automatically.
+ These files are CSV files with 
+\family typewriter
+\series bold
+\shape smallcaps
+
+\begin_inset Quotes eld
+\end_inset
+
+
+\family default
+\series default
+\shape default
+ as a cell delimiter, and
+\family typewriter
+\series bold
+ ,
+\family default
+\series default
+ as the cell seperator.
+ If the file has 1 column, then it is an instance file, and the seeds will
+ be randomly generated.
+ If the file has 2 columns, then the first column must be a number and this
+ represents a seed to be used with this instance.
+ The second column is the filename of the instance.
+ In the first version, each file name can be specified only once.
+ In the second version, the instances are specified on multiple lines with
+ duplicate entries resulting in those seeds being available for that instance.
+ Additionally these files are also parsed with 
+\begin_inset Quotes eld
+\end_inset
+
+ 
+\begin_inset Quotes eld
+\end_inset
+
+ (space) as a cell seperator (and no cell delimiter), this is for backwards
+ compatibility with ParamILS, note this doesn't work with spaces in filenames.
+\end_layout
+
+\begin_layout Subsection
+Configuration Options Reference
+\end_layout
+
+
+
+
+
+\begin_layout Description
+--algoExec algorithm call to execute
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--execDir Execution Directory for Algorithm
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--runObj Per Target Algorithm Run Objective Type that we are optimizing for
+\begin_inset Newline newline
+\end_inset
+ Default: RUNTIME
+\begin_inset Newline newline
+\end_inset
+ Values: RUNTIME, RUNLENGTH, APPROX, SPEEDUP, QUALITY
+\end_layout
+
+\begin_layout Description
+--overallObj Aggregate over all Run's Objective Type that we are optimizing for
+\begin_inset Newline newline
+\end_inset
+ Default: MEAN
+\begin_inset Newline newline
+\end_inset
+ Values: MEAN, MEDIAN, Q90, ADJ_MEAN, MEAN1000, MEAN10, GEOMEAN
+\end_layout
+
+\begin_layout Description
+--cutoffTime Cap Time for an Individual Run
+\begin_inset Newline newline
+\end_inset
+ Default: 300.0
+\end_layout
+
+\begin_layout Description
+--cutoffLength Cap Time for an Individual Run
+\begin_inset Newline newline
+\end_inset
+ Default: -1.0
+\end_layout
+
+\begin_layout Description
+--tunerTimeout Total CPU Time to execute for
+\begin_inset Newline newline
+\end_inset
+ Default: 2147483647
+\end_layout
+
+\begin_layout Description
+--instanceFile File containing instances in either "<instance filename>", or "<seed>,<instance filename>" format
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--instanceFeatureFile File that contains the all the instances features
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--testInstanceFile File containing instances specified one instance per line
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--scenarioFile Scenario File
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--deterministic Whether the target algorithm is deterministic (0 no, 1 yes) [An integer due to backwards compatibility]
+\begin_inset Newline newline
+\end_inset
+ Default: 0
+\end_layout
+
+\begin_layout Description
+--skipInstanceFileCheck Do not check if instances files exist on disk
+\begin_inset Newline newline
+\end_inset
+ Default: false
+\end_layout
+
+\begin_layout Description
+--outputDirectory Output Directory
+\begin_inset Newline newline
+\end_inset
+ Default: <current working directory>/smac-output
+\end_layout
+
+\begin_layout Description
+--seed Seed for Random Number Generator [0 means don't use a seed]
+\begin_inset Newline newline
+\end_inset
+ Default: 0
+\end_layout
+
+\begin_layout Description
+--experimentDir Root Directory for Experiments Folder
+\begin_inset Newline newline
+\end_inset
+ Default: <current working directory>/
+\end_layout
+
+\begin_layout Description
+--paramFile File containing Parameter Space of Execution
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--numIterations Total number of iterations to perform
+\begin_inset Newline newline
+\end_inset
+ Default: 2147483647
+\end_layout
+
+\begin_layout Description
+--runtimeLimit Total Wall clock time to execute for
+\begin_inset Newline newline
+\end_inset
+ Default: 2147483647
+\end_layout
+
+\begin_layout Description
+--totalNumRunLimit Total number of target algorithm runs to execute
+\begin_inset Newline newline
+\end_inset
+ Default: 2147483647
+\end_layout
+
+\begin_layout Description
+--numTestInstances Number of instances to test against (Will execute min of this, and number of instances in test Instance File)
+\begin_inset Newline newline
+\end_inset
+ Default: 10
+\end_layout
+
+\begin_layout Description
+--runHashCodeFile File containing a list of Run Hashes one per line (Either with just the format on each line, or with the following text per line: "Run Hash Codes: (Hash Code) After (n) runs". The number of runs in this file need not match the number of runs that we execute, this file only ensures that the sequences never diverge. Note the n is completely ignored so the order they are specified in is the order we expect the hash codes in this version
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--modelHashCodeFile File containing a list of Model Hashes one per line with the following text per line: "Preprocessed Forest Built With Hash Code: (n)" or "Random Forest Built with Hash Code: (n)" where (n) is the hashcode
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--runID String that identifies this run for logging purposes
+\begin_inset Newline newline
+\end_inset
+ Default: Run-YYYY-MM-DD--HH-mm-ss-xxx (where xxx is milli-seconds)
+\end_layout
+
+\begin_layout Description
+--numPCA Number of prinicipal components of features
+\begin_inset Newline newline
+\end_inset
+ Default: 7
+\end_layout
+
+\begin_layout Description
+--expectedImprovementFunction Expected Improvement Function to Use
+\begin_inset Newline newline
+\end_inset
+ Default: EXPONENTIAL
+\begin_inset Newline newline
+\end_inset
+ Values: EXPONENTIAL, SIMPLE, SPO, EI, EIh
+\end_layout
+
+\begin_layout Description
+--nuberOfChallengers Number of Challengers needed for Local Search
+\begin_inset Newline newline
+\end_inset
+ Default: 10
+\end_layout
+
+\begin_layout Description
+--numberOfRandomConfigsInEI Number of Random Configurations to evaluate in EI Search
+\begin_inset Newline newline
+\end_inset
+ Default: 10000
+\end_layout
+
+\begin_layout Description
+--stateSerializer Controls how the state will be saved to disk
+\begin_inset Newline newline
+\end_inset
+ Default: LEGACY
+\begin_inset Newline newline
+\end_inset
+ Values: NULL, LEGACY
+\end_layout
+
+\begin_layout Description
+--stateDeserializer Controls how the state will be saved to disk
+\begin_inset Newline newline
+\end_inset
+ Default: LEGACY
+\begin_inset Newline newline
+\end_inset
+ Values: NULL, LEGACY
+\end_layout
+
+\begin_layout Description
+--restoreStateFrom The Location (State Deserializer Dependent) of States
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--restoreIteration The Iteration to Restore
+\begin_inset Newline newline
+\end_inset
+ Default: 
+\end_layout
+
+\begin_layout Description
+--executionMode Mode of Automatic Configurator to run
+\begin_inset Newline newline
+\end_inset
+ Default: SMAC
+\begin_inset Newline newline
+\end_inset
+ Values: SMAC, ROAR
+\end_layout
+
+\begin_layout Description
+--splitMin Minimum number of elements needed to split a node 
+\begin_inset Newline newline
+\end_inset
+ Default: 10
+\end_layout
+
+\begin_layout Description
+--fullTreeBootstrap Bootstrap all data points into trees
+\begin_inset Newline newline
+\end_inset
+ Default: false
+\end_layout
+
+\begin_layout Description
+--storeDataInLeaves Store full data in leaves of trees
+\begin_inset Newline newline
+\end_inset
+ Default: false
+\end_layout
+
+\begin_layout Description
+--logModel Store data in Log Normal form
+\begin_inset Newline newline
+\end_inset
+ Default: false
+\end_layout
+
+\begin_layout Description
+--nTrees Number of Trees in Random Forest
+\begin_inset Newline newline
+\end_inset
+ Default: 10
+\end_layout
+
+\begin_layout Description
+--minVariance Minimum allowed variance
+\begin_inset Newline newline
+\end_inset
+ Default: 1.0E-14
+\end_layout
+
+\begin_layout Description
+--ratioFeatures Number of features to consider when building Regression Forest
+\begin_inset Newline newline
+\end_inset
+ Default: 0.8333333333333334
+\end_layout
+
+\begin_layout Description
+--preprocessMarginal Build Random Forest with Preprocessed Marginal
+\begin_inset Newline newline
+\end_inset
+ Default: false
+\end_layout
+
+\begin_layout Description
+--adaptiveCapping Enable Adaptive Capping
+\begin_inset Newline newline
+\end_inset
+ Default: false
+\end_layout
+
+\begin_layout Description
+--capSlack Amount to scale computed cap time of challengers by
+\begin_inset Newline newline
+\end_inset
+ Default: 1.3
+\end_layout
+
+\begin_layout Description
+--capAddSlack Amount to increase computed cap time of challengers by [ general formula:   capTime = capSlack*computedCapTime + capAddSlack ]
+\begin_inset Newline newline
+\end_inset
+ Default: 1.0
+\end_layout
+
+\begin_layout Description
+--imputationIterations Amount of times to impute censored data
+\begin_inset Newline newline
+\end_inset
+ Default: 10
+\end_layout
+
+\begin_layout Description
+--maxConcurrentAlgoExecs Maximum number of concurrent target algorithm executions
+\begin_inset Newline newline
+\end_inset
+ Default: 1
+\end_layout
+
+
+
+\begin_layout Subsection
+Usage
+\end_layout
+
+\begin_layout Standard
+To get started with an existing configuration scenerio you simply need to
+ execute smac as follows:
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file>
+\end_layout
+
+\begin_layout Standard
+This will execute SMAC with the default options on the scenario specified
+ in the file.
+ Several of the options above can have drastic changes on the performance
+ and usage of smac as follows:
+\end_layout
+
+\begin_layout Subsubsection
+ROAR Mode
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --executionMode ROAR
+\end_layout
+
+\begin_layout Standard
+This will execute SMAC but will execute it in ROAR mode (See some paper),
+ in short this is a model free based search where a random configuration
+ is raced against the incumbent.
+\end_layout
+
+\begin_layout Subsubsection
+Adaptive Capping
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --adaptiveCapping
+\end_layout
+
+\begin_layout Standard
+Adaptive Capping (See some paper) will cause SMAC to only schedule algorithm
+ runs for as long as is needed to determine whether or not an algorithm
+ is a promising configuration, as opposed to the default runtime 
+\series bold
+--cutoffTime
+\series default
+.
+ This can drastically improve tuning performance with limited time budgets.
+ Related configuration options for this are 
+\series bold
+--capSlack
+\series default
+, 
+\series bold
+--capAddSlack
+\series default
+, 
+\series bold
+--imputationIterations
+\series default
+.
+ Note: Adaptive Capping should only be used when the 
+\series bold
+--runObj 
+\series default
+is RUNTIME.
+\end_layout
+
+\begin_layout Subsubsection
+Run Hash Codes
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --runHashCodeFile <logfile>
+\end_layout
+
+\begin_layout Standard
+A Run Hash Code is a sequence of hashes that represent which runs were scheduled
+ by SMAC.
+ SMAC logs all Run Hash Codes to the log file, and this option allows reading
+ of that log file for subsequent runs to ensure that the exact same set
+ of runs is scheduled.
+ This is primarily of use for developers.
+\end_layout
+
+\begin_layout Subsubsection
+Wall Clock Limit
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --runtimeLimit <seconds>
+\end_layout
+
+\begin_layout Standard
+SMAC will abort if this amount of wall-clock time expires.
+ This does not over ride the 
+\series bold
+--tunerTimeout 
+\series default
+option and it's basically whichever comes first.
+ This is useful to limit the amount of unaccounted for overhead in an algorithm
+ run.
+\end_layout
+
+\begin_layout Subsubsection
+State Restoration
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --restoreStateFrom <dir> --restoreIteration
+ <iteration>
+\end_layout
+
+\begin_layout Standard
+SMAC will read the files in the specified directory and will change it's
+ state such that it had previously executed all the runs specified up to
+ the iteration specified and continue executing.
+ Provided other options such as 
+\series bold
+--seed 
+\series default
+and other arguments are identical you should get the exact same result out
+ provided the target algorithm runtime variance on individual instance &
+ seed pairs is small.
+ This can also be used to restore runs from MATLAB (although due to the
+ lossy nature of MATLAB files, and differences in random calls you will
+ not get the same resulting trajectory).
+ By default the possible states that are able to be restored are the start
+ of iteration numbers of the form 
+\series bold
+
+\begin_inset Formula $2^{n}$
+\end_inset
+
+ 
+\begin_inset Formula $n\in\mathbb{Z}_{\geq0}$
+\end_inset
+
+ 
+\series default
+as well as the previous 2 iterations prior to SMAC completing.
+ If the run crashed additional information is saved, but in general you
+ cannot restore to that iteration (since the crash most likely occured in
+ the middle of an iteration).
+\end_layout
+
+\begin_layout Standard
+
+\series bold
+Note: 
+\series default
+When you restore a SMAC state, you are in essence preloading a bunch of
+ runs and then running the scenario.
+ In certain cases if the scenario has changed, this may result in undefined
+ behaivor.
+ Changing something like 
+\series bold
+--tunerTimeout
+\series default
+ is usually a safe bet, however changing the 
+\series bold
+--runObj 
+\series default
+may not be, as the incumbent may not actually be the best configuration
+ under this new objective.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Checking Available Iterations To Restore
+\end_layout
+
+\begin_layout Standard
+To check the available iterations that can be restored from a saved directory
+ use:
+\end_layout
+
+\begin_layout LyX-Code
+./smac-possible-restores <dir>
+\end_layout
+
+\begin_layout Subsubsection
+Turning Off State Saving
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --stateSerializer NULL
+\end_layout
+
+\begin_layout Standard
+SMAC will not save any state information to disk.
+\end_layout
+
+\begin_layout Subsubsection
+Concurrent Algorithm Execution Requests
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --maxConcurrentAlgoExecs <num>
+\end_layout
+
+\begin_layout Standard
+In certain circumstances it may be much faster to allow more than one algorithm
+ execution at once.
+ Such as when multiple cores are available or when actual algorithm execution
+ is I/O bound (which can happen in certain circumstances).
+ As a result you can have SMAC schedule multiple runs at a time.
+ In general this will result in the same trajectory as when set to 1, with
+ the exception of when 
+\series bold
+--adaptiveCapping
+\series default
+ is set, in this case concurrent runs are scheduled with cutoff times as
+ if each were the first of the runs to be scheduled.
+\end_layout
+
+\begin_layout Subsubsection
+Named Runs 
+\end_layout
+
+\begin_layout LyX-Code
+./smac --scenarioFile <file> --runID <someID>
+\end_layout
+
+\begin_layout Standard
+All output is written to the 
+\series bold
+--outputDirectory 
+\series default
+/ 
+\series bold
+--runID
+\series default
+.
+ This runID defaults to 
+\begin_inset Quotes eld
+\end_inset
+
+Run-(Current Time)
+\begin_inset Quotes erd
+\end_inset
+
+ a more meaningful name can be set here.
+ 
+\end_layout
+
+\begin_layout Section
+Example tuning scenarios
+\end_layout
+
+\begin_layout Standard
+The zip file contains examples for three algorithms: SAPS
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset citation
+LatexCommand cite
+key "HutTomHoo02"
+
+\end_inset
+
+, a local search algorithm for SAT; Spear
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+http://www.cs.ubc.ca/
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+~{}
+\end_layout
+
+\end_inset
+
+babic/index_spear.htm, described in some more detail in
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset CommandInset citation
+LatexCommand cite
+key "HutBabHooHu07"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+, a tree search algorithm for SAT (and satisfiability modulo theories) developed
+ by Domagoj Babic; and the commercial optimization tool ILOG CPLEX
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+http://www.ilog.com/products/cplex/
+\end_layout
+
+\end_inset
+
+.
+ Executables for Saps and Spear are included in the zip file, but CPLEX
+ needs to be purchased to run the CPLEX example.
+\end_layout
+
+\begin_layout Standard
+We include two tuning scenarios for Saps, one for Spear and one for CPLEX.
+ In the Spear example, the instance collection is the same as in one of
+ the SAPS examples: the algorithm is optimized on five graph colouring problem
+ instances and tested on five other ones.
+ (Note that our examples are toy examples with very small training and test
+ data sets; we recommend substantially larger data sets for real applications!)
+ The second tuning scenario for Saps optimizes Saps performance for a single
+ instance, and tests on the same one, but of course with different seeds
+ -- this is useful to study peak performance of an algorithm.
+ For CPLEX, we include a tuning scenario for mixed integer programs from
+ combinatorial auctions (see 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "LeyPeaSho00"
+
+\end_inset
+
+ for details).
+\end_layout
+
+\begin_layout Section
+Using Instance-Specific information
+\end_layout
+
+\begin_layout Standard
+Instance Specific Information is not supported in this version
+\end_layout
+
+\begin_layout Section
+Running SMAC for your own code
+\end_layout
+
+\begin_layout Standard
+In order to employ SMAC to optimize your own code, you need to provide instance
+ lists in the same format as in the above example, provide a file listing
+ your algorithm's parameters in a predefined format, and match the required
+ input/output format.
+ These two latter points are covered in this section.
+\end_layout
+
+\begin_layout Subsection
+Algorithm parameter file
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:paramsfile"
+
+\end_inset
+
+ It is recommend you create a separate subdirectory for each algorithm you
+ want to optimize.
+ The parameters of your algorithm need to be defined in a file e.g.
+ 
+\family typewriter
+algo-params.txt
+\family default
+.
+ (Examples for such files can be found in the example directories).
+ Comments in the file begin with a #, and run to the end of the line.
+\end_layout
+
+\begin_layout Standard
+The file consists of two types of statements parameter declarations, and
+ conditional declarations:
+\end_layout
+
+\begin_layout Subsubsection*
+Parameter Declarations
+\end_layout
+
+\begin_layout Standard
+SMAC supports two types of parameters, continuous and categorical parameters
+ declared as follows:
+\end_layout
+
+\begin_layout LyX-Code
+name { value1, ..., value_n } [defaultValue]
+\end_layout
+
+\begin_layout LyX-Code
+Example:
+\end_layout
+
+\begin_layout LyX-Code
+timeout { 1,2,4,8,16,32 } [8]
+\end_layout
+
+\begin_layout Standard
+Here a categorical parameter is declared named timeout, it's values are
+ one of the values listed and and the default value is 8.
+\end_layout
+
+\begin_layout LyX-Code
+name [minValue, maxValue] [defaultValue](i)(l)
+\end_layout
+
+\begin_layout LyX-Code
+Example 1:
+\end_layout
+
+\begin_layout LyX-Code
+timeout [1,32] [8]
+\end_layout
+
+\begin_layout LyX-Code
+Example 2:
+\end_layout
+
+\begin_layout LyX-Code
+timeout [1,32] [8]l
+\end_layout
+
+\begin_layout LyX-Code
+Example 3:
+\end_layout
+
+\begin_layout LyX-Code
+timeout [1,32] [8]i
+\end_layout
+
+\begin_layout LyX-Code
+Example 4: 
+\end_layout
+
+\begin_layout LyX-Code
+timeout [1,32] [8]il
+\end_layout
+
+\begin_layout Description
+Example
+\begin_inset space ~
+\end_inset
+
+1 We have specified timeout as continuous with a default value of 4.
+ Any value is legally permitted so long as it's in the interval of [1,32].
+ When drawing a random configuration out of this space they are drawn uniformly.
+\end_layout
+
+\begin_layout Description
+Example
+\begin_inset space ~
+\end_inset
+
+2 This is the same as Example 1, except that when drawing random configurations
+ we do so on a log scale (e.g.
+ a value between [1,8] is as likely to be selected as between [8,32]).
+\end_layout
+
+\begin_layout Description
+Example
+\begin_inset space ~
+\end_inset
+
+3 In this example the only legal values are integers in the range [1,32],
+ we continue to select from the integers uniformly.
+\end_layout
+
+\begin_layout Description
+Example
+\begin_inset space ~
+\end_inset
+
+4 In this example integers in the range [1,32] are the only values permitted,
+ and when randomly selecting them we do so on a log scale.
+\end_layout
+
+\begin_layout Subsubsection*
+Conditional Parameters
+\end_layout
+
+\begin_layout Standard
+Conditional Parameters have the following syntax:
+\end_layout
+
+\begin_layout LyX-Code
+dependentName | independentName operation { value1, ...
+ , value_n}
+\end_layout
+
+\begin_layout LyX-Code
+Example Param File:
+\end_layout
+
+\begin_layout LyX-Code
+sort-algo { quick, insertion, merge, heap, stooge, bogo } [ bogo ]
+\end_layout
+
+\begin_layout LyX-Code
+quick-revert-to-insertion { 1,2,4,8,16,32 } [16]
+\end_layout
+
+\begin_layout LyX-Code
+quick-revert-to-insertion | sort-algo in { quick }
+\end_layout
+
+\begin_layout LyX-Code
+
+\end_layout
+
+\begin_layout Standard
+Currently the only supported operation is 
+\emph on
+in 
+\emph default
+, and the values are restricted to being specified as categoricals.
+ In the above example the quick-revert-to-insertion is conditional on the
+ sort-algo parameter being set to quick, and will be ignored otherwise.
+\end_layout
+
+\begin_layout Subsection
+Algorithm executable / wrapper
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:exec-spec"
+
+\end_inset
+
+ The target algorithm as specified by the --
+\series bold
+algoExec 
+\series default
+parameter must obey the following general contracts.
+ While writing your own code to achieve this is one option, there are two
+ other common methods outlined in...
+ (Another section)
+\end_layout
+
+\begin_layout Subsubsection
+Invocation
+\end_layout
+
+\begin_layout Standard
+The algorithm must be invocable using the following:
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+<algo_executable> <instance_name> <instance_specific_information> <cutoff_time>
+ <cutoff_length> <seed> <param>
+\family default
+ 
+\family typewriter
+<param>
+\family default
+ 
+\family typewriter
+<param>
+\family default
+...
+\end_layout
+
+\begin_layout Description
+algo_executable Exactly what is specified in the 
+\series bold
+--algoExec 
+\series default
+argument to SMAC.
+ 
+\end_layout
+
+\begin_layout Description
+instance_name The name of the problem instance we are executing against
+ 
+\end_layout
+
+\begin_layout Description
+instance_specific_information An arbitrary string associated with this instance
+ as specified in the 
+\series bold
+--instance_file 
+\series default
+if no information is present then a 0 is passed here.
+ 
+\end_layout
+
+\begin_layout Description
+
+\series bold
+cutoff_time
+\series default
+ The amount of time in seconds that the target algorithm is permitted to
+ run.
+ It is the responsibility of the target algorithm to ensure that this is
+ obeyed.
+ It is not necessary that that the actual algorithm execution time (wall
+ clock time) be below this value.
+ If for instance clean up is needed, or it is only possible for the algorithm
+ to abort at certain stages.
+ 
+\end_layout
+
+\begin_layout Description
+cutoff_length A domain (target algorithm) specific measure of when the algorithm
+ should consider itself done.
+\end_layout
+
+\begin_layout Description
+seed A positive integer that the algorithm should use to seed itself (for
+ reproducability), -1 is used when the algorithm is 
+\series bold
+--deterministic.
+ 
+\end_layout
+
+\begin_layout Description
+param A setting of an active parameter for the selected configuration as
+ specified in the Algorithm Parameter File.
+ SMAC will only pass parameters that are considered active, and SMAC is
+ not guaranteed to pass the parameters in any particular order.
+ The exact format for each parameter is:
+\end_layout
+
+\begin_layout LyX-Code
+-name 'value'
+\end_layout
+
+\begin_layout Standard
+All the parameters above are mandatory, even if they are inapplicable, in
+ which case a dummy value will be passed which you are free to ignore.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Output
+\end_layout
+
+\begin_layout Standard
+The Target Algorithm is free to output anything, which will be ignored but
+ must at some point output a line (only once) in the following format
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+ParamILS in not a typo.
+ While other values are possible including SMAC, HAL.
+ ParamILS is probably the most portable.
+ The Exactly Regex that is used in this version is: 
+\series bold
+(Final)?
+\backslash
+s*[Rr]esult
+\backslash
+s+(?:(for)|(of))
+\backslash
+s+(?:(HAL)|(ParamILS)|(SMAC)|(this wrapper))
+\series default
+ 
+\end_layout
+
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+
+\family typewriter
+Result for ParamILS: <solved>, <runtime>, <runlength>, <quality>, <seed>
+\end_layout
+
+\begin_layout Description
+solved Must be one of 
+\series bold
+SAT 
+\series default
+(signifying a successful run with a result of YES), 
+\series bold
+UNSAT
+\series default
+ (signifying a successful run with a result of NO), 
+\series bold
+TIMEOUT 
+\series default
+if the algorithm didn't complete, 
+\series bold
+CRASHED
+\series default
+ if something untoward happened during the algorithm run.
+ SMAC does not differentiate between 
+\series bold
+SAT
+\series default
+ and 
+\series bold
+UNSAT 
+\series default
+responses, and the primary use of these is to serve as a check that the
+ algorithm is executing correctly by allowing the algorithm to output a
+ yes / no output that can be checked.
+ This can be useful for debugging purposes.
+ 
+\end_layout
+
+\begin_layout Description
+runtime The amount of CPU time used during this algorithm run.
+ SMAC does not measure the CPU time directly, and this is the amount that
+ is used with respect to 
+\series bold
+--tunerTimeout
+\series default
+.
+ You may get unexpected performance degredation when this amount is heavily
+ under reported (this typically happens when targetting very short algorithm
+ runs with large overheads that aren't accounted for).
+ 
+\begin_inset Newline newline
+\end_inset
+
+
+\series bold
+NOTE: 
+\series default
+The 
+\series bold
+runtime 
+\series default
+should always be strictly less than the requested 
+\series bold
+cutoff_time 
+\series default
+when reporting 
+\series bold
+SAT 
+\series default
+or 
+\series bold
+UNSAT
+\series default
+.
+ It should always be the 
+\series bold
+cutoff_time 
+\series default
+when reporting 
+\series bold
+TIMEOUT
+\series default
+.
+ This is even the case if the algorithm can determine that it will 
+\series bold
+TIMEOUT 
+\series default
+without doing the actual work.
+\end_layout
+
+\begin_layout Description
+runlength A domain specific measure of how far the algorithm progressed.
+\end_layout
+
+\begin_layout Description
+quality A domain specific measure of the quality of the solution.
+\end_layout
+
+\begin_layout Description
+seed The seed value that was used in this target algorithm execution.
+ Note: This seed 
+\series bold
+MUST 
+\series default
+match the seed that the algorithm was called with.
+ This is used as fail-safe check to ensure that the output we are parsing
+ really matches the call we requested.
+\end_layout
+
+\begin_layout Standard
+Like invocation, all fields are mandatory, when not applicable 0's can be
+ substituted.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Wrappers & Native Libraries
+\end_layout
+
+\begin_layout Standard
+Beyond simplying adding the additional functionality to your code by hand,
+ there exist several other approaches from related projects.
+ 
+\end_layout
+
+\begin_layout Description
+Wrappers Executable Scripts that manage the resource limits automatically
+ and format the specified string into something usable by the actual target
+ algorithm.
+ This approach is probably the most common, but among it's draw backs are
+ the fact that they often rely on third party languages, and for smaller
+ execution times have a large amount of overhead that may not be accounted
+ for.
+ Most of the examples included in SMAC use this approach, and the wrappers
+ included can be adapted for your own project
+\end_layout
+
+\begin_layout Description
+Native
+\begin_inset space ~
+\end_inset
+
+Libraries Libraries exist (See: ...) for C and Java currently that facilitate
+ adding the functionality directly to the code, while parsing the arguments
+ into the necessary data structures is still required, they do ensure that
+ the output is written properly in most cases.
+ Draw backs include not necessarily outputting the values in certain crashes.
+\end_layout
+
+\begin_layout Section
+Interpreting SMAC's Output
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:output"
+
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+SMAC outputs a variety of information to log files, trajectory files, and
+ state files.
+ Most of the files are human readable, and this section governs where to
+ find information.
+\end_layout
+
+\begin_layout Subsection
+Logs
+\end_layout
+
+\begin_layout Standard
+SMAC's output, especially in this release is particularly verbose, and perhaps
+ noisey.
+ By default SMAC uses slf4j for logging, and specifically ships with logback.
+ In theory this allows a much richer configuration option by modifying 
+\family typewriter
+conf/logback.xml
+\family default
+ .
+ To change the output level (which supports TRACE, DEBUG, INFO, WARN, ERROR,
+ edit this file.
+ Future versions will include more simple flexibilty, but the default configurat
+ion outputs three files into the 
+\series bold
+--outputDirectory
+\series default
+.
+ 
+\end_layout
+
+\begin_layout Description
+log.txt A formatted listing of the output of SMAC with information useful
+ for debugging and tracing.
+ 
+\end_layout
+
+\begin_layout Description
+raw.txt The raw messages logged by the program, this is useful for grepping.
+\end_layout
+
+\begin_layout Description
+runhashes.txt A file that contains the Run Hash Codes generated by this run
+ (not implemented currently, and raw.txt can be used instead).
+\end_layout
+
+\begin_layout Standard
+By default the standard output of the SMAC is in between log.txt and raw.txt.
+ For the most part the same lines are logged however.
+
+\series bold
+\emph on
+ Some
+\series default
+\emph default
+ of the output from the log file was written to be identical to the MATLAB
+ version, but by and large this should not be relied upon as neither the
+ MATLAB version nor this version have any well defined guarantees on what
+ is or isn't outputted, or how.
+ Any mechanisms relying on this are more than likely very brittle, especially
+ as changes to the logback.xml file may result in changes to the formatting
+ of this file.
+\end_layout
+
+\begin_layout Subsubsection
+Interpretting the Log File
+\end_layout
+
+\begin_layout Standard
+SMAC execution basically consists of two stages, setup and then the actual
+ algorithm.
+ In the setup process alot of validation is done to hopefully catch alot
+ of errors.
+ Any warnings that are outputted in the first part of SMAC's run may deserve
+ special attention, and can in some cases be turned off if they are potentially
+ false positives.
+ SMAC also outputs it's configuration for the run at the start of every
+ log file.
+ Eventually SMAC will start running, and this occurs when you see something
+ along the lines of: 
+\end_layout
+
+\begin_layout LyX-Code
+Automatic Configuration Start Time is May 23, 2012 
+\end_layout
+
+\begin_layout Standard
+At this point SMAC has started the actual algorithm configuration as outlined
+ in (Insert REF).
+ The two most important pieces of information for the general user, are
+ probably lines like the following:
+\end_layout
+
+\begin_layout LyX-Code
+At end of iteration 2, incumbent is 25433[4.0, 2.0, 1.0, 7.0] -alpha '1.189'
+ -ps '0.033' -rho '0' -wp '0.06'
+\end_layout
+
+\begin_layout LyX-Code
+*****Runtime Statistics*****  
+\end_layout
+
+\begin_layout LyX-Code
+Iteration: 2
+\end_layout
+
+\begin_layout LyX-Code
+Wallclock Time: 8.317 s
+\end_layout
+
+\begin_layout LyX-Code
+Wallclock Time Remaining:2.147483638683E9 s
+\end_layout
+
+\begin_layout LyX-Code
+Total CPU Time: 7.679999999999996 s
+\end_layout
+
+\begin_layout LyX-Code
+CPU Time Remaining: 22.320000000000004 s
+\end_layout
+
+\begin_layout LyX-Code
+AC CPU Time: 0.75 s
+\end_layout
+
+\begin_layout LyX-Code
+AC User Time: 0.72 s
+\end_layout
+
+\begin_layout LyX-Code
+Max Memory: 5365.375 MB
+\end_layout
+
+\begin_layout LyX-Code
+Total Java Memory: 361.5 MB
+\end_layout
+
+\begin_layout LyX-Code
+Free Java Memory: 318.36956787109375 MB 
+\end_layout
+
+\begin_layout Standard
+The first line (after the closing ]) advises you what the incumbent was
+ at this point of time.
+ The next lines give you the state of SMAC.
+ Most numbers are straight forward except the AC CPU Time: and AC User Time:
+ These are the CPU and User times of SMAC itself.
+ CPU Time remaining is the the 
+\series bold
+--tunerTimeout 
+\series default
+- The Total CPU Time So far.
+\end_layout
+
+\begin_layout Subsubsection
+State Files
+\end_layout
+
+\begin_layout Standard
+The state files stored in the state/ subdirectory of the 
+\series bold
+--outputDirectory
+\series default
+ are a bit more well defined.
+ The txt and csv files are human readable.
+ The 
+\series bold
+paramstrings-itN.txt 
+\series default
+file correspond to a listing of parameter strings.
+ The number in the front corresponds to the numbers used in the 
+\series bold
+runs_and_results-itN.csv
+\series default
+ file 
+\end_layout
+
+\begin_layout Standard
+The columns of this file in order represent:
+\end_layout
+
+\begin_layout Enumerate
+The number of the row (run)
+\end_layout
+
+\begin_layout Enumerate
+The number of the configuration in the paramstrings-itN.txt file
+\end_layout
+
+\begin_layout Enumerate
+The number of the instance as specified in 
+\series bold
+--instanceFile
+\end_layout
+
+\begin_layout Enumerate
+The response value (
+\series bold
+--runObjective
+\series default
+) of the run
+\end_layout
+
+\begin_layout Enumerate
+1 if the run was censored, 0 if not.
+\end_layout
+
+\begin_layout Enumerate
+The cutoff time of the run
+\end_layout
+
+\begin_layout Enumerate
+The resulting seed of the run.
+\end_layout
+
+\begin_layout Enumerate
+The runtime of the run.
+\end_layout
+
+\begin_layout Enumerate
+The runlength of the run
+\end_layout
+
+\begin_layout Enumerate
+1 if the run was a successful run (SAT or UNSAT), 0 otherwise.
+\end_layout
+
+\begin_layout Enumerate
+The quality of the run.
+\end_layout
+
+\begin_layout Enumerate
+The iteration the run occured in.
+ 
+\end_layout
+
+\begin_layout Enumerate
+The cumulative sum of all the runs up to this point
+\end_layout
+
+\begin_layout Subsubsection
+Trajectory File
+\end_layout
+
+\begin_layout Standard
+SMAC also outputs a trajectory file, which is a CSV file that outpus the
+ following columns
+\end_layout
+
+\begin_layout Standard
+\begin_inset Tabular
+<lyxtabular version="3" rows="7" columns="2">
+<features>
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Column Name
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Description
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Total Time
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Sum of all execution times and CPU time of SMAC
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Incumbents Mean Performance
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Performance of the Incumbent under the given 
+\series bold
+--runObjective 
+\series default
+and 
+\series bold
+--overallObjective
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Incumbent's Performance 
+\begin_inset Formula $\sigma$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Standard deviation of the Incumbent under the given 
+\series bold
+--runObjective 
+\series default
+and 
+\series bold
+--overallObjective
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Incumbent ID
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The ID of the incumbent as listed in the paramstrings file when state is
+ saved.
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+acTime
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Total CPU Time of SMAC
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Param String Columns
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+The rest give the parameter strings of the incumbent)
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+Usage Differences Between This and Other Versions
+\end_layout
+
+\begin_layout Standard
+This section is primarily for users of ParamILS, but also the MATLAB version
+ of SMAC and outlines some of the differences.
+\end_layout
+
+\begin_layout Subsection
+Configuration Changes
+\end_layout
+
+\begin_layout Standard
+Everything needed to execute SMAC is specified on the Command Line.
+ Certain configuration options allow you to specify files, for instance
+ a scenario file.
+ While most existing scenario files should work without a hitch it's important
+ to note that what is actually happening is that it is just being parsed
+ into Command Line options.
+ You could in theory specify other configuration options in a scenario file,
+ and they would be set accordingly.
+\end_layout
+
+\begin_layout Subsection
+Previous Features Not Supported
+\end_layout
+
+\begin_layout Standard
+Forbidden Parameters
+\end_layout
+
+\begin_layout Section
+Known problems
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:problems"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+You cannot override options on the command line specified in files
+\end_layout
+
+\begin_layout Enumerate
+Validation of configuration options is poor and limited
+\end_layout
+
+\begin_layout Enumerate
+Instance Specific Information is not supported.
+\end_layout
+
+\begin_layout Enumerate
+Neighbourhood search of discretized continuous parameters may select identical
+ parameter configurations.
+\end_layout
+
+\begin_layout Enumerate
+Cutoff Length is not supported
+\end_layout
+
+\begin_layout Enumerate
+Standard Deviation not reported in Trajectory Files
+\end_layout
+
+\begin_layout Enumerate
+
+\series bold
+--tunerTimeout 
+\series default
+is computed simply on target algorithm runtimes, it may not agree with ParamILS
+ nor MATLAB SMAC's definition
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+%
+\backslash
+section{Extensions}
+\backslash
+label{sec:extensions}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+%I personally use ParamILS in combination with a MySQL database in which
+ I store the results of algorithm executions, such that I can quickly
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+%repeat previous runs of ParamILS.
+ However, for most end users, this would be way too much overhead, so I
+ do not support this component.
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+%If your algorithm runs are very costly, you may think about saving some
+ results, though, e.g.
+ in a text file.
+ 
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+%For big jobs, you may also think about parallelizing runs on a cluster
+ of machines.
+ For this, I have used a tool called 
+\backslash
+emph{jobserver}
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+%by Christian Bang; jobserver is freely available at 
+\backslash
+texttt{http://rubyforge.org/projects/jobserver/}.
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+
+\backslash
+bibliographystyle{plain}
+\end_layout
+
+\end_inset
+
+ 
+\size footnotesize
+
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+bibfiles "short,frankbib"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+
+\size footnotesize
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+{
+\end_layout
+
+\end_inset
+
+document
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset ERT
+status collapsed
+
+\begin_layout Plain Layout
+
+}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

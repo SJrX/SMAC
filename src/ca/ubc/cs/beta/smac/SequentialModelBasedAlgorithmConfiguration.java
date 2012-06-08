@@ -23,7 +23,6 @@ import ca.ubc.cs.beta.smac.helper.ParamWithEI;
 import ca.ubc.cs.beta.smac.history.RunHistory;
 import ca.ubc.cs.beta.smac.model.builder.AdaptiveCappingModelBuilder;
 import ca.ubc.cs.beta.smac.model.builder.BasicModelBuilder;
-import ca.ubc.cs.beta.smac.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.smac.model.builder.ModelBuilder;
 import ca.ubc.cs.beta.smac.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.smac.state.StateFactory;
