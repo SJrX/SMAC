@@ -1,7 +1,6 @@
 package ca.ubc.cs.beta.smac.executors;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
@@ -18,7 +17,6 @@ import com.beust.jcommander.ParameterException;
 import ca.ubc.cs.beta.ac.config.ProblemInstance;
 import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.config.JCommanderHelper;
-import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.config.ValidationExecutorConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
@@ -27,7 +25,6 @@ import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
-import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.validation.Validator;
 

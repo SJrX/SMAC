@@ -16,7 +16,6 @@ import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.ac.config.ProblemInstance;
 import ca.ubc.cs.beta.ac.config.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.ac.config.RunConfig;
-import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.config.ValidationOptions;
 import ca.ubc.cs.beta.config.ValidationRoundingMode;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;

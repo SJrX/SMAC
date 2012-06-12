@@ -3,43 +3,30 @@ package ca.ubc.cs.beta.smac.executors;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.ac.config.ProblemInstance;
-import ca.ubc.cs.beta.ac.config.ProblemInstanceSeedPair;
-import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.config.JCommanderHelper;
 import ca.ubc.cs.beta.config.SMACConfig;
-import ca.ubc.cs.beta.config.ValidationRoundingMode;
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
-import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
-import ca.ubc.cs.beta.probleminstance.SetInstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.OverallObjective;
 import ca.ubc.cs.beta.smac.RunObjective;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 import ca.ubc.cs.beta.smac.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.smac.state.StateDeserializer;
 import ca.ubc.cs.beta.smac.state.StateFactory;
@@ -302,7 +289,7 @@ public class AutomaticConfigurator
 			
 			
 			logger.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, !config.scenarioConfig.skipInstanceFileCheck);
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck);
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			
