@@ -12,6 +12,20 @@
     </encoder>
   </appender>
   
+  
+  <appender name="FILE-WARN" class="ch.qos.logback.core.FileAppender">
+  <file>${OUTPUTDIR}/${RUNID}/log-warn.txt</file>
+  <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+  	<level>WARN</level>
+  </filter>
+  <encoder>
+    	<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    	<!--RAW OUTPUT-->
+      <!--<pattern>%msg%n</pattern>-->
+    </encoder>
+  </appender>
+  
+  
   <appender name="FILE-RAW" class="ch.qos.logback.core.FileAppender">
   <file>${OUTPUTDIR}/${RUNID}/raw.txt</file>
   <encoder>
@@ -44,7 +58,7 @@
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
     <appender-ref ref="FILE-RAW" />
+    <appender-ref ref="FILE-WARN"/>
   </root>
-  
-  
+    
 </configuration>
