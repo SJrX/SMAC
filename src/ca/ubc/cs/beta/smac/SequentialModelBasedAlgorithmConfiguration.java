@@ -17,6 +17,7 @@ import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
+import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.helper.ParamWithEI;
@@ -56,8 +57,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private final ExpectedImprovementFunction ei;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace) {
-		super(smacConfig, instances, testInstances, algoEval,sf, configSpace);
+	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen) {
+		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestConfig.logModel;
 		this.smacConfig = smacConfig;
@@ -352,14 +353,22 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	{
 		
 		ParamWithEI incumbentEIC = startEIC;
+		int localSearchSteps = 0;
 		while(true)
 		{
 		
+			localSearchSteps++;
+			
+			
+			if(localSearchSteps % 1000 == 0)
+			{
+				log.warn("Local Search has done {} iterations, possible infinite loop" );
+			}
 			
 			ParamConfiguration c = incumbentEIC.getValue();
-			double minEI = incumbentEIC.getAssociatedValue();
+			double currentMinEI = incumbentEIC.getAssociatedValue();
 			
-			
+			//System.out.println("minEI: " + currentMinEI + " incumbent: " + c.hashCode());
 			double[][] cArray = {c.toValueArray()};
 			int LSHashCode = matlabHashCode(cArray);
 			log.trace("Local Search Start Hash Code: {}", LSHashCode);
@@ -379,7 +388,6 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			
 			
 			
-			List<ParamConfiguration> minConfigs = new ArrayList<ParamConfiguration>(c.size());
 			
 			
 			double min = eiVal[0];
@@ -393,28 +401,35 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 			
 			
-			if(min >= minEI - epsilon)
+			if(min >= currentMinEI - epsilon)
 			{
 				break;
 			} else
 			{
-	
+				List<ParamConfiguration> minConfigs = new ArrayList<ParamConfiguration>(c.size());
+				List<Integer> minIdx = new ArrayList<Integer>(c.size());
+				
+				
 				for(int i=0; i < eiVal.length; i++)
 				{
 					if(eiVal[i] <= min + epsilon)
 					{
-						minEI = eiVal[i];
+						//currentMinEI = eiVal[i];
 						minConfigs.add(neighbourhood.get(i));
+						minIdx.add(i);
 					} 
 				}
-				int nextIdx = SeedableRandomSingleton.getRandom().nextInt(minConfigs.size());
-				ParamConfiguration best = minConfigs.get(nextIdx);
+				int nextIdx = minIdx.get(SeedableRandomSingleton.getRandom().nextInt(minIdx.size()));
 				
+				
+				ParamConfiguration best = neighbourhood.get(nextIdx);
+				
+				//if(true) continue;
 				incumbentEIC = new ParamWithEI(eiVal[nextIdx], best);
 				//return localSearch(new ParamWithEI(minEI, best), fmin_sample, epsilon);
 			}
 		}
-		
+		log.debug("Local Search took {} steps", localSearchSteps);
 		return incumbentEIC;
 	}
 
