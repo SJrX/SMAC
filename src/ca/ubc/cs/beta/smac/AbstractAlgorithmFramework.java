@@ -27,8 +27,9 @@ import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 import ca.ubc.cs.beta.smac.history.DuplicateRunException;
@@ -86,7 +87,7 @@ public class AbstractAlgorithmFramework {
 	protected ParamConfiguration incumbent = null;
 	
 	
-	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace)
+	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen)
 	{
 		
 		this.instances = instances;
@@ -114,7 +115,8 @@ public class AbstractAlgorithmFramework {
 		rand = SeedableRandomSingleton.getRandom(); 
 
 		this.configSpace = configSpace;
-		runHistory = new NewRunHistory(new RandomInstanceSeedGenerator(instances,smacConfig.seed),smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.runObj);
+		
+		runHistory = new NewRunHistory(instanceSeedGen,smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.runObj);
 		//RunHistory h1 = new LegacyRunHistory(new InstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
 		//runHistory = new DebugRunHistory(h1,h2);
 		iteration = 0;
@@ -779,6 +781,20 @@ public class AbstractAlgorithmFramework {
 			log.info("Run {}: {} ",i++, rc);
 		}
 		return updateRunHistory(algoEval.evaluateRun(runConfigs));
+	}
+
+
+	public double getTunerTime() {
+
+		return runHistory.getTotalRunCost();
+	}
+
+
+	public double getEmpericalPerformance(ParamConfiguration config) {
+		// TODO Auto-generated method stub
+		Set<ProblemInstance> pis = new HashSet<ProblemInstance>();
+		pis.addAll(instances);
+		return runHistory.getEmpiricalCost(config, pis, cutoffTime);
 	}
 	
 }

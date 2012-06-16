@@ -19,8 +19,8 @@ import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.OverallObjective;
 import ca.ubc.cs.beta.smac.RunObjective;
@@ -84,11 +84,12 @@ public class AutomaticConfigurator
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
 			
-			logger.info("Parsing Parameter Space File", config.paramFile);
+			String paramFile = config.scenarioConfig.paramFile.paramFile;
+			logger.info("Parsing Parameter Space File", paramFile);
 			ParamConfigurationSpace configSpace = null;
 			
 			
-			String[] possiblePaths = { config.paramFile, config.experimentDir + File.separator + config.paramFile, config.scenarioConfig.algoExecConfig.algoExecDir + File.separator + config.paramFile }; 
+			String[] possiblePaths = { paramFile, config.experimentDir + File.separator + paramFile, config.scenarioConfig.algoExecConfig.algoExecDir + File.separator + paramFile }; 
 			for(String path : possiblePaths)
 			{
 				try {
@@ -156,10 +157,10 @@ public class AutomaticConfigurator
 			switch(config.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(config,instances, testInstances,algoEval,sf, configSpace);
+					smac = new AbstractAlgorithmFramework(config,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen);
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(config, instances, testInstances, algoEval, config.expFunc.getFunction(),sf, configSpace);
+					smac = new SequentialModelBasedAlgorithmConfiguration(config, instances, testInstances, algoEval, config.expFunc.getFunction(),sf, configSpace, instanceSeedGen);
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
@@ -177,7 +178,12 @@ public class AutomaticConfigurator
 			
 				TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
 				String outputDir = config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator;
-				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj);
+				
+				double tunerTime = smac.getTunerTime();
+				double cpuTime = 1;
+				double empericalPerformance = smac.getEmpericalPerformance(smac.getIncumbent());
+				
+				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj, tunerTime, empericalPerformance, cpuTime);
 			}
 			
 			logger.info("SMAC Completed Successfully");
@@ -283,13 +289,13 @@ public class AutomaticConfigurator
 			logger.trace("Command Line Options Parsed");
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck);
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.deterministic > 0));
 			instanceSeedGen = ilws.getSeedGen();
 			instances = ilws.getInstances();
 			
 			
 			logger.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck);
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, !config.scenarioConfig.skipInstanceFileCheck, config.seed+2,(config.scenarioConfig.deterministic > 0) );
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			

@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
+import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.history.RunHistory;
 import ca.ubc.cs.beta.smac.state.RandomPoolType;
 import ca.ubc.cs.beta.smac.state.StateSerializer;

@@ -9,8 +9,17 @@ import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Random;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
+
+import ca.ubc.cs.beta.config.JCommanderHelper;
+import ca.ubc.cs.beta.config.ScenarioConfig;
+
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
+import com.beust.jcommander.ParametersDelegate;
 
 public class SMACTester {
 	
@@ -34,7 +43,8 @@ public class SMACTester {
 	{
 		*/
 		
-		public boolean runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id )
+		
+		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id )
 		{
 			String experimentDir = (new File(scenarioFile)).getParent();
 			String runID = new File(scenarioFile).getName() + "-JUNIT";
@@ -46,6 +56,17 @@ public class SMACTester {
 			System.out.println(config);
 			if (true) return true;
 			*/
+			
+			final ScenarioConfig sc = new ScenarioConfig();
+			
+			
+			JCommander jcom = new JCommander(sc);
+			String[] args = {"--scenarioFile",scenarioFile};
+			
+			JCommanderHelper.parse(jcom, args);
+			
+			boolean deterministic = (sc.deterministic > 0);
+			
 			
 			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runID "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) + " --skipInstanceFileCheck --skipValidation ";
 			
@@ -67,7 +88,7 @@ public class SMACTester {
 			{
 				execString += " --executionMode ROAR";
 			}
-				
+			int iteration=0;
 				
 			boolean resultFound = false;
 			Queue<String> last10Lines = new LinkedList<String>();
@@ -83,13 +104,20 @@ public class SMACTester {
 					
 					
 					String it = "Iteration ";
-					int iteration=0;
+					
 					String line;
 					System.out.print("RUNNING:");
 					System.out.flush();
-		
+					String regex = "running config \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
+					Pattern pat = Pattern.compile(regex);
 					while((line = in.readLine()) != null)
 					{
+						
+						
+						
+						
+						
+						
 						//System.out.println(line);
 						last10Lines.add(line);
 						if(last10Lines.size() > 20)
@@ -98,11 +126,11 @@ public class SMACTester {
 						}
 						if(line.contains("SMAC Completed Successfully"))
 						{
-							System.out.println("SUCCESS");
+							System.out.println(" [SUCCESS]");
 							resultFound = true;
 						} if(line.contains("Exiting Application with failure"))
 						{
-							System.out.println("FAILURE DETECTED");
+							System.out.println(" [FAILURE DETECTED]");
 							for(String s : last10Lines)
 							{
 								System.out.println(s);
@@ -110,9 +138,41 @@ public class SMACTester {
 							throw new IllegalStateException("Application Exited With Failure");
 						} if(line.contains(it + iteration))
 						{
-							System.out.print(iteration  + ",");
+							System.out.print(" " + iteration  + ":");
 							System.out.flush();
 							iteration++;
+						}
+						
+						
+						Matcher m = pat.matcher(line);
+						
+						if(m.find())
+						{
+							System.out.print("R");
+							
+							int seed = Integer.valueOf(m.group(1));//System.out.println(m.group(1));
+							
+							
+							if(deterministic)
+							{
+									if(seed != -1) 
+									{
+										p.destroy();
+										in.close();
+										fail("Expected seed to be -1 on run: " + m.group(0));
+									}
+							} else
+							{
+								if(seed == -1) 
+								{
+									p.destroy();
+									in.close();
+									fail("Expected seed to be >0 on run: " + m.group(0));
+								}
+							}
+							
+							
+						
 						}
 					}
 					
@@ -144,12 +204,33 @@ public class SMACTester {
 				{
 					System.out.println(s);
 				}
+				fail("Could not find result");
 			}
-			return resultFound;
+			return iteration;
+			
 			
 			
 		}
 		
+		
+		public int restoreIteration(int v)
+		{
+			/**
+			 * See: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+			 */
+			v--;
+			v |= v >> 1;
+			v |= v >> 2;
+			v |= v >> 4;
+			v |= v >> 8;
+			v |= v >> 16;
+			v++;
+			
+			v /= 2;
+			
+			return v;
+			
+		}
 		
 		public void testSMAC(String scenarioFile)
 		{
@@ -157,27 +238,35 @@ public class SMACTester {
 			 * AC, Iteration Limit, ROAR Mode, Restore Iteration
 			 */
 			int id=0;
+			int lastIteration;
 			System.out.println("ROAR");
-			assertTrue(runSMAC(scenarioFile, false, 18, true, 0, id++));
+			lastIteration = runSMAC(scenarioFile, false, 18, true, 0, id++);
+			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			assertTrue(runSMAC(scenarioFile, false, 21, true, 4,id++));
+			runSMAC(scenarioFile, false, 21, true, lastIteration,id++);
+			
+			
 			System.out.println("ROAR+AC");
-			assertTrue(runSMAC(scenarioFile, true, 18, true, 0, id++));
+			lastIteration = runSMAC(scenarioFile, true, 18, true, 0, id++);
+			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore+AC");
-			assertTrue(runSMAC(scenarioFile, true, 21, true, 4,id++));
+			runSMAC(scenarioFile, true, 21, true, lastIteration,id++);
 			
 			
 			System.out.println("SMAC");
-			assertTrue(runSMAC(scenarioFile, false, 18, false, 0, id++));
+			lastIteration = runSMAC(scenarioFile, false, 18, false, 0, id++);
+			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			assertTrue(runSMAC(scenarioFile, false, 21, false, 4,id++));
+			runSMAC(scenarioFile, false, 21, false, lastIteration,id++);
+			
+			
 			System.out.println("SMAC+AC");
-			assertTrue(runSMAC(scenarioFile, true, 18, false, 0, id++));
+			lastIteration = runSMAC(scenarioFile, true, 18, false, 0, id++);
+			lastIteration = restoreIteration(lastIteration);
+			
 			System.out.println("Restore+AC");
-			assertTrue(runSMAC(scenarioFile, true, 21, false, 4,id++));
-			
-			
-			
+			runSMAC(scenarioFile, true, 21, false, lastIteration,id++);
+
 			
 		}
 		
@@ -213,6 +302,13 @@ public class SMACTester {
 			testSMAC(scenarioFile);
 		}
 		
+		@Test
+		public void testCPLEX()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX.txt";
+			testSMAC(scenarioFile);
+		}
+		
 		
 		
 		/*
@@ -220,3 +316,4 @@ public class SMACTester {
 	*/
 	
 }
+

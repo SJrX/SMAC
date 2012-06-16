@@ -1,8 +1,10 @@
 package ca.ubc.cs.beta.smac.validation;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,9 +21,9 @@ import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.config.ValidationOptions;
 import ca.ubc.cs.beta.config.ValidationRoundingMode;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
-import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
-import ca.ubc.cs.beta.probleminstance.SetInstanceSeedGenerator;
+import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;
+import ca.ubc.cs.beta.seedgenerator.SetInstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.OverallObjective;
 import ca.ubc.cs.beta.smac.RunObjective;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
@@ -31,11 +33,20 @@ public class Validator {
 	
 	private static Logger log = LoggerFactory.getLogger(Validator.class);
 	
+	public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
+			String outputDir,
+			RunObjective runObj,
+			OverallObjective overallObj, double tunerTime) {
+		
+		validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, overallObj,tunerTime, 0,0);
+	}
+		
+		
 	
 public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
 		String outputDir,
 		RunObjective runObj,
-		OverallObjective overallObj) {
+		OverallObjective overallObj, double tunerTime,  double empericalPerformance, double cpuTime) {
 		
 		int testInstancesCount = Math.min(config.numberOfTestInstances, testInstances.size());
 		int testSeedsPerInstance = config.numberOfTestSeedsPerInstance;
@@ -79,18 +90,24 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 			log.error("Could not write results file", e);
 		}
 		
+		
 		try
 		{
-			writeInstanceResultFile(runs, config, outputDir, cutoffTime, runObj, overallObj);
+			double testSetPerformance = writeInstanceResultFile(runs, config, outputDir, cutoffTime, runObj, overallObj);
+			
+			appendInstanceResultFile(outputDir, tunerTime, empericalPerformance, testSetPerformance, cpuTime );
 		} catch(IOException e)
 		{
 			log.error("Could not write results file:", e);
 		}
 		
+		
 		//writeInstanceResultFile(runs, config);
 		
 		
 	}
+
+
 
 
 
@@ -167,7 +184,18 @@ endloop:
 
 
 
-	private static void writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective overallObj) throws IOException 
+	/**
+	 * Writes a CSV File which has the matrix of runs 
+	 * @param runs
+	 * @param smacConfig
+	 * @param outputDir
+	 * @param cutoffTime
+	 * @param runObj
+	 * @param overallObj
+	 * @return - Overall objective over test set (For convinence)
+	 * @throws IOException
+	 */
+	private static double writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective overallObj) throws IOException 
 	{
 		Map<ProblemInstance, List<AlgorithmRun>> map = new LinkedHashMap<ProblemInstance,List<AlgorithmRun>>();
 		
@@ -245,11 +273,13 @@ endloop:
 		}
 		
 		
-		String[] args = { "Overall Objective On Test Set", String.valueOf(overallObj.aggregate(overallObjectives,cutoffTime))};
+		double overallObjective = overallObj.aggregate(overallObjectives,cutoffTime);
+		String[] args = { "Overall Objective On Test Set", String.valueOf(overallObjective)};
 		writer.writeNext(args);
 		
 		writer.close();
 		
+		return overallObjective;
 	}
 
 
@@ -286,7 +316,7 @@ endloop:
 	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir) throws IOException
 	{
 		
-		File f = new File(outputDir + "RawValidationExecutionResults.csv");
+		File f = new File(outputDir + "rawValidationExecutionResults.csv");
 		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -307,6 +337,39 @@ endloop:
 		writer.close();
 		
 	}
+	
+
+	private void appendInstanceResultFile(String outputDir, double tunerTime,
+		double empericalPerformance, double testSetPerformance, double cpuTime) throws IOException {
+		File f = new File(outputDir +  File.separator + "classicValidationResults.csv");
+	
+		if(!f.exists())
+		{
+			f.createNewFile();
+			
+		}
+		
+		
+		StringBuilder sb = new StringBuilder();
+		sb.append(tunerTime).append(",").append(empericalPerformance).append(",").append(testSetPerformance).append(",").append(cpuTime).append("\n");
+		if(f.canWrite())
+		{
+			log.error("Could not write trajectory file would have written: {}" , sb.toString());
+			
+		
+			
+		}
+		
+		
+		
+		PrintWriter output = new PrintWriter(new FileOutputStream(f,true));
+		output.append(sb);
+		
+		output.close();
+		
+}
+
+	
 
 
 	

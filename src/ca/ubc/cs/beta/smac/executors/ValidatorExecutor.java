@@ -23,8 +23,8 @@ import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
@@ -116,7 +116,7 @@ public class ValidatorExecutor {
 					}
 				}
 				log.info("Begining Validation on {}", configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX));
-				(new Validator()).validate(testInstances, configToValidate,config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj);
+				(new Validator()).validate(testInstances, configToValidate,config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj, config.tunerTime);
 				
 				log.info("Validation Completed Successfully");
 			} catch(ParameterException e)

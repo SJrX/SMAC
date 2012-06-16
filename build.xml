@@ -7,8 +7,8 @@
 	<property name="deploy.dir" value="${software.dir}/smac/"/>
 	<property name="deploy-wg.dir" value="/ubc/cs/home/s/seramage/disks/westgrid-home/apps/smac/"/>
 	<property name="version.major" value="0"/>
-	<property name="version.minor" value="91"/>
-	<property name="version.beta" value="b"/>
+	<property name="version.minor" value="92"/>
+	<property name="version.beta" value="rc"/>
 	<path id="compile.classpath">
 		<fileset dir="lib" id="lib">
 			<include name="*.jar"/>
@@ -54,10 +54,13 @@
 			</fileset>	
 			
 		</copy>
-		<chmod perm="755">
+		<chmod perm="750">
 			<fileset dir="dist/">
 				<include name="smac"/>
 				<include name="smac-possible-restores"/>
+				<include name="smac-validate"/>
+				<include name="example_saps/ubcsat"/>
+				<include name="example_spear/Spear-32_1.2.1"/>
 			</fileset>
 		</chmod>
 	</target>	
@@ -69,6 +72,23 @@
 				<globmapper from="*" to="smac-v${version.major}.${version.minor}${version.beta}.${build.number}/*"/>
 			</mappedresources>
 		</zip>
+		<tar destFile="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.tar.gz" longfile="gnu" compression="gzip">
+					<tarfileset dir="dist/" filemode="640" dirmode="750" prefix="smac-v${version.major}.${version.minor}${version.beta}.${build.number}/">
+						<include name="**/*"/>
+						<exclude name="smac"/>
+						<exclude name="smac-possible-restores"/>
+						<exclude name="smac-validate"/>
+						<exclude name="example_saps/ubcsat"/>
+						<exclude name="example_spear/Spear-32_1.2.1"/>
+					</tarfileset>
+					<tarfileset dir="dist/" filemode="750" prefix="smac-v${version.major}.${version.minor}${version.beta}.${build.number}/">
+						<include name="smac"/>
+						<include name="smac-possible-restores"/>
+						<include name="smac-validate"/>
+						<include name="example_saps/ubcsat*"/>
+						<include name="example_spear/Spear-32_1.2.1*"/>
+					</tarfileset>
+		</tar>
 	</target>
 	<target name="deploy-release" depends="archive">
 		<mkdir dir="${deploy.dir}"/>

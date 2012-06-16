@@ -8,9 +8,9 @@ import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import ca.ubc.cs.beta.models.fastrf.RegtreeBuildParams;
-import ca.ubc.cs.beta.probleminstance.InstanceSeedGenerator;
-import ca.ubc.cs.beta.probleminstance.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.helper.ArrayMathOps;
 import ec.util.MersenneTwister;
 
@@ -87,7 +87,7 @@ public class StaticMethodWrapper {
 	
 	public void setInstanceCount(int instanceCount)
 	{
-		this.instanceCount= instanceCount;
+		StaticMethodWrapper.instanceCount= instanceCount;
 	}
 	
 	public RandomForest getRandomForest(int numTrees, double[][] allTheta, double[][] allX, int[][] theta_inst_idxs, double[] y, RegtreeBuildParams params)

@@ -51,7 +51,7 @@ figs-within-sections
 \begin_body
 
 \begin_layout Title
-SMAC Manual, version 0.91b
+SMAC Manual, version 0.92b
 \end_layout
 
 \begin_layout Author
@@ -214,7 +214,7 @@ name "sec:config"
 
  This quick start guide is for 
 \series bold
-version 0.91b
+version 0.92b
 \series default
  of SMAC.
  It is important to note that this is a preliminary beta release.
@@ -2825,6 +2825,46 @@ SMAC is to be released under a dual usage license.
 
 \begin_layout Subsection
 Change Log
+\end_layout
+
+\begin_layout Standard
+Version History
+\end_layout
+
+\begin_layout Standard
+--Version 0.92b --
+\end_layout
+
+\begin_layout Standard
+Third Beta Release: June 12th 2012
+\end_layout
+
+\begin_layout Itemize
+Added support for ABORT response from wrapper
+\end_layout
+
+\begin_layout Itemize
+Fixed spurious error condition about conflicting instances being loaded
+ when test instances and training instances aren't disjoint
+\end_layout
+
+\begin_layout Itemize
+Implemented a new log file that displays only warnings or errors
+\end_layout
+
+\begin_layout Itemize
+Fixed an error message that did not display affected filenames when it should
+ have
+\end_layout
+
+\begin_layout Itemize
+Added additional internal validation for robustness
+\end_layout
+
+\begin_layout Itemize
+Added support for for restoring state files using the array format of configurat
+ion representations, as well as from files that do not have the iteration
+ in the file name.
 \end_layout
 
 \begin_layout Standard
