@@ -58,11 +58,11 @@ public class ValidatorExecutor {
 				InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 				
 	
-				log.info("Parsing Parameter Space File", config.paramFile);
+				log.info("Parsing Parameter Space File", config.scenarioConfig.paramFileDelegate.paramFile);
 				ParamConfigurationSpace configSpace = null;
 				
 				
-				String[] possiblePaths = { config.paramFile, config.experimentDir + File.separator + config.paramFile, config.scenarioConfig.algoExecConfig.algoExecDir + File.separator + config.paramFile }; 
+				String[] possiblePaths = { config.scenarioConfig.paramFileDelegate.paramFile, config.experimentDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile, config.scenarioConfig.algoExecConfig.algoExecDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile }; 
 				for(String path : possiblePaths)
 				{
 					try {
@@ -85,8 +85,13 @@ public class ValidatorExecutor {
 				
 				TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
 				
+				
 				String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
 				
+				if(config.useScenarioOutDir)
+				{
+					outputDir = config.scenarioConfig.outputDirectory + File.separator + "ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
+				}
 				File f = new File(outputDir);
 				if(!f.mkdirs())
 				{

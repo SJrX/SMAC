@@ -86,6 +86,7 @@ public class AbstractAlgorithmFramework {
 	private int iteration;
 	protected ParamConfiguration incumbent = null;
 	
+	private final int MAX_RUNS_FOR_INCUMBENT;
 	
 	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen)
 	{
@@ -120,6 +121,17 @@ public class AbstractAlgorithmFramework {
 		//RunHistory h1 = new LegacyRunHistory(new InstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
 		//runHistory = new DebugRunHistory(h1,h2);
 		iteration = 0;
+		
+		if(instanceSeedGen.getInitialSeedCount() < config.maxIncumbentRuns)
+		{
+			log.info("Due to lack of instance/seeds maximum number of runs limited to {}", instanceSeedGen.getInitialSeedCount());
+			MAX_RUNS_FOR_INCUMBENT = instanceSeedGen.getInitialSeedCount();
+		}  else
+		{
+			MAX_RUNS_FOR_INCUMBENT=smacConfig.maxIncumbentRuns;
+			log.info("Maximimum Number of Runs for the Incumbent Initialized to {}:", MAX_RUNS_FOR_INCUMBENT);
+		}
+		
 		
 		try {
 			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator +"traj-algo-" + config.runID.replaceAll("\\s+", "_") + ".txt";
@@ -453,9 +465,8 @@ public class AbstractAlgorithmFramework {
 	private void challengeIncumbent(ParamConfiguration challenger) {
 
 		log.debug("Challenging Incumbent With {} ", challenger);
-		//TODO: make maximum #runs a parameter of ROAR.
 		//=== Perform run for incumbent unless it has the maximum #runs.
-		if (runHistory.getTotalNumRunsOfConfig(incumbent) < 2000){
+		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 			log.debug("Performing additional run with the incumbent");
 			ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
 			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);

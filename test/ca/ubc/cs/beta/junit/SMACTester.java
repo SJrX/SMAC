@@ -43,8 +43,8 @@ public class SMACTester {
 	{
 		*/
 		
-		
-		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id )
+	
+		public String getExecString(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id)
 		{
 			String experimentDir = (new File(scenarioFile)).getParent();
 			String runID = new File(scenarioFile).getName() + "-JUNIT";
@@ -56,6 +56,38 @@ public class SMACTester {
 			System.out.println(config);
 			if (true) return true;
 			*/
+	
+			
+			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runID "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) + " --skipInstanceFileCheck --skipValidation ";
+			
+			
+			
+			
+			if(restoreIteration > 0)
+			{
+				execString += " --restoreStateFrom " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "state";
+				execString += " --restoreIteration " + restoreIteration+ " ";
+				execString += " --runHashCodeFile " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "runhashes.txt";
+			}
+			
+			if(adaptiveCapping)
+			{
+				execString += " --adaptiveCapping ";
+			}
+			
+			if(ROARMode)
+			{
+				execString += " --executionMode ROAR";
+			}
+			
+			return execString;
+			
+		}
+		
+		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, String messageClass, String message )
+		{
+			
+			int iteration=0;
 			
 			final ScenarioConfig sc = new ScenarioConfig();
 			
@@ -68,32 +100,14 @@ public class SMACTester {
 			boolean deterministic = (sc.deterministic > 0);
 			
 			
-			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runID "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) + " --skipInstanceFileCheck --skipValidation ";
 			
-			
-			
-			String runDir = "/ubc/cs/research/arrow/seramage/software/smac";
-			if(restoreIteration > 0)
-			{
-				execString += " --restoreStateFrom " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "state";
-				execString += " --restoreIteration " + restoreIteration+ " ";
-			}
-			
-			if(adaptiveCapping)
-			{
-				execString += " --adaptiveCapping ";
-			}
-			
-			if(ROARMode)
-			{
-				execString += " --executionMode ROAR";
-			}
-			int iteration=0;
-				
 			boolean resultFound = false;
+			String execString = getExecString(scenarioFile, adaptiveCapping, iterationLimit, ROARMode, restoreIteration, id);
+			String runDir = "/ubc/cs/research/arrow/seramage/software/smac";
 			Queue<String> last10Lines = new LinkedList<String>();
-			
+			boolean messageFound = false;
 			try {
+				
 				Process p;
 			
 					System.out.println(execString);
@@ -110,9 +124,21 @@ public class SMACTester {
 					System.out.flush();
 					String regex = "running config \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
 					Pattern pat = Pattern.compile(regex);
+					
 					while((line = in.readLine()) != null)
 					{
 						
+						if(Thread.interrupted())
+						{
+							p.destroy();
+							throw new InterruptedException();
+						}
+						
+						
+						if(line.contains(messageClass) && line.contains(message))
+						{
+							messageFound = true;
+						}
 						
 						
 						
@@ -198,19 +224,150 @@ public class SMACTester {
 			
 			System.out.println("");
 			
-			if(!resultFound)
+			if((!resultFound) || (!messageFound))
 			{
 				for(String s : last10Lines)
 				{
 					System.out.println(s);
 				}
-				fail("Could not find result");
+				assertTrue("Could not find Successful Exit Message", resultFound);
+				assertTrue("Could not find required message in output",messageFound);
+				
+				
 			}
+			
+			
 			return iteration;
 			
 			
 			
 		}
+		
+		/**
+		 * Tries to run the sceraio
+		 * @param scenarioFile - File to run
+		 * @param messageClass What to look for in the log: [Something like ERROR, INFO]
+		 * @param message Message to find in the log.
+		 */
+		public void testFailSMAC(String scenarioFile, String messageClass, String message, int iterations)
+		{
+			String execString = getExecString(scenarioFile, false, iterations, false, 0, -1);
+			
+			Queue<String> last10Lines = new LinkedList<String>();
+			try {
+			
+				Process p;
+				
+				System.out.println(execString);
+				String runDir = "/ubc/cs/research/arrow/seramage/software/smac";
+				p = Runtime.getRuntime().exec(execString, new String[0], new File(runDir));
+				BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+				
+				boolean resultFound = false;
+				
+				
+				String it = "Iteration ";
+				
+				String line;
+				System.out.print("RUNNING:");
+				System.out.flush();
+				String regex = "running config \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
+				Pattern pat = Pattern.compile(regex);
+				
+				boolean errorFound = false;
+				int iteration = 0;
+				while((line = in.readLine()) != null)
+				{
+					
+					
+					if(Thread.interrupted())
+					{
+						p.destroy();
+						throw new InterruptedException();
+					}
+					
+					if(line.contains(messageClass) && line.contains(message))
+					{
+						errorFound = true;
+					}
+					
+					
+					
+					
+					//System.out.println(line);
+					last10Lines.add(line);
+					if(last10Lines.size() > 20)
+					{
+						last10Lines.poll();
+					}
+					if(line.contains("SMAC Completed Successfully"))
+					{
+						System.out.println(" [SUCCESS]");
+						resultFound = true;
+					} if(line.contains("Exiting Application with failure"))
+					{
+						System.out.println(" [FAILURE DETECTED]");
+						for(String s : last10Lines)
+						{
+							System.out.println(s);
+						}
+					}if(line.contains(it + iteration))
+					{
+						System.out.print(" " + iteration  + ":");
+						System.out.flush();
+						iteration++;
+					}
+					
+					
+					Matcher m = pat.matcher(line);
+					
+					if(m.find())
+					{
+						System.out.print("R");
+					}
+					
+					
+					
+					
+					
+				}
+				
+				
+				BufferedReader err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+				
+				
+				while( (line = err.readLine()) != null)
+				{
+					System.out.print("\nERR>" + line);
+					System.out.flush();
+				}
+				
+				p.waitFor();
+				
+				
+				if(resultFound)
+				{
+					fail("SMAC should not have completed successfully");
+				}
+				
+				if(!errorFound)
+				{
+					fail("SMAC did not produce the error we wanted");
+				} 
+			} catch (IOException e) {
+	
+				e.printStackTrace();
+				
+			} catch(InterruptedException e)
+			{
+				Thread.currentThread().interrupt();
+			}
+			
+			
+						
+			
+		}
+		
 		
 		
 		public int restoreIteration(int v)
@@ -231,8 +388,12 @@ public class SMACTester {
 			return v;
 			
 		}
-		
 		public void testSMAC(String scenarioFile)
+		{
+			//Ugly hack, but we will pass if we find a line with a space in it ;) 
+			testSMAC(scenarioFile, " ", " ");
+		}
+		public void testSMAC(String scenarioFile, String messageClass, String message)
 		{
 			/**
 			 * AC, Iteration Limit, ROAR Mode, Restore Iteration
@@ -240,35 +401,54 @@ public class SMACTester {
 			int id=0;
 			int lastIteration;
 			System.out.println("ROAR");
-			lastIteration = runSMAC(scenarioFile, false, 18, true, 0, id++);
+			lastIteration = runSMAC(scenarioFile, false, 18, true, 0, id++, messageClass, message);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			runSMAC(scenarioFile, false, 21, true, lastIteration,id++);
+			runSMAC(scenarioFile, false, 21, true, lastIteration,id++, messageClass, message);
 			
 			
 			System.out.println("ROAR+AC");
-			lastIteration = runSMAC(scenarioFile, true, 18, true, 0, id++);
+			lastIteration = runSMAC(scenarioFile, true, 18, true, 0, id++, messageClass, message);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore+AC");
-			runSMAC(scenarioFile, true, 21, true, lastIteration,id++);
+			runSMAC(scenarioFile, true, 21, true, lastIteration,id++, messageClass, message);
 			
 			
 			System.out.println("SMAC");
-			lastIteration = runSMAC(scenarioFile, false, 18, false, 0, id++);
+			lastIteration = runSMAC(scenarioFile, false, 18, false, 0, id++, messageClass, message);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			runSMAC(scenarioFile, false, 21, false, lastIteration,id++);
+			runSMAC(scenarioFile, false, 21, false, lastIteration,id++, messageClass, message);
 			
 			
 			System.out.println("SMAC+AC");
-			lastIteration = runSMAC(scenarioFile, true, 18, false, 0, id++);
+			lastIteration = runSMAC(scenarioFile, true, 18, false, 0, id++, messageClass, message);
 			lastIteration = restoreIteration(lastIteration);
 			
 			System.out.println("Restore+AC");
-			runSMAC(scenarioFile, true, 21, false, lastIteration,id++);
+			runSMAC(scenarioFile, true, 21, false, lastIteration,id++, messageClass, message);
 
 			
 		}
+		
+	
+		
+		@Test
+		public void testSPEARSurrogateWeirdSeed()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/spear/spear-surrogate-weirdseeds.txt";
+			testFailSMAC(scenarioFile,"ERROR", "All Training Instances must have the same number of seeds in this version of SMAC",18);
+		
+			
+		}
+		
+		@Test
+		public void testCPLEXMini()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
+			testSMAC(scenarioFile, "INFO", "Due to lack of instance/seeds maximum number of runs limited to 8");
+		}
+		
 		
 		@Test
 		public void testSPEARSurrogate()
@@ -278,6 +458,9 @@ public class SMACTester {
 		
 			
 		}
+		
+		
+		
 		
 		@Test
 		public void testSATENSTEIN()

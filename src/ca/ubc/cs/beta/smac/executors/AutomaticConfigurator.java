@@ -84,7 +84,7 @@ public class AutomaticConfigurator
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
 			
-			String paramFile = config.scenarioConfig.paramFile.paramFile;
+			String paramFile = config.scenarioConfig.paramFileDelegate.paramFile;
 			logger.info("Parsing Parameter Space File", paramFile);
 			ParamConfigurationSpace configSpace = null;
 			
@@ -291,6 +291,17 @@ public class AutomaticConfigurator
 			InstanceListWithSeeds ilws;
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.deterministic > 0));
 			instanceSeedGen = ilws.getSeedGen();
+			
+			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialSeedCount());
+			if(instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
+			{
+				logger.info("Instance Seed Generator reports that all instances have the same number of available seeds");
+			} else
+			{
+				logger.error("Instance Seed Generator reports that some instances have a different number of seeds than others");
+				throw new ParameterException("All Training Instances must have the same number of seeds in this version of SMAC");
+			}
+			
 			instances = ilws.getInstances();
 			
 			
@@ -298,6 +309,15 @@ public class AutomaticConfigurator
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, !config.scenarioConfig.skipInstanceFileCheck, config.seed+2,(config.scenarioConfig.deterministic > 0) );
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
+			
+			logger.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialSeedCount());
+			if(testInstanceSeedGen.allInstancesHaveSameNumberOfSeeds())
+			{
+				logger.info("Test Seed Generator reports that all instances have the same number of available seeds");
+			} else
+			{
+				logger.info("Test Seed Generator reports that the number of seeds per instance varies.");
+			}
 			
 			return config;
 		} catch(IOException e)

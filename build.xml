@@ -4,7 +4,7 @@
 		Sequential Model-based Automatic Configurator
 	</description>
 	<property name="software.dir" value="/ubc/cs/home/s/seramage/arrowspace/software/"/>
-	<property name="deploy.dir" value="${software.dir}/smac/"/>
+	<property name="deploy.dir" value="${software.dir}smac"/>
 	<property name="deploy-wg.dir" value="/ubc/cs/home/s/seramage/disks/westgrid-home/apps/smac/"/>
 	<property name="version.major" value="0"/>
 	<property name="version.minor" value="92"/>
@@ -91,6 +91,7 @@
 		</tar>
 	</target>
 	<target name="deploy-release" depends="archive">
+		<!--
 		<mkdir dir="${deploy.dir}"/>
 		<copy todir="${deploy.dir}" force="true">
 			<fileset dir="dist/">
@@ -107,7 +108,16 @@
 						<include name="smac"/>
 						<include name="smac-possible-restores"/>
 				</fileset>
-		</chmod>
+		</chmod>-->
+		<!-- Does not preserve permissions -->
+		<!--<untar src="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.tar.gz" dest="${software.dir}" failOnEmptyArchive="true" compression="gzip"/> -->
+		<exec executable="tar" dir="${software.dir}" failonerror="true">
+			<arg value="-xzf"/>
+			<arg value="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.tar.gz"/>
+		</exec>
+		<echo>Untar Successful</echo>
+		<symlink link="${deploy.dir}" overwrite="true" resource="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}"/>
+		
 	</target>
 	<target name="deploy" depends="zip, deploy-release"/>
 	<!--
