@@ -44,7 +44,7 @@ public class SMACTester {
 		*/
 		
 	
-		public String getExecString(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id)
+		public String getExecString(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, boolean verifyHashCodes)
 		{
 			String experimentDir = (new File(scenarioFile)).getParent();
 			String runID = new File(scenarioFile).getName() + "-JUNIT";
@@ -67,7 +67,10 @@ public class SMACTester {
 			{
 				execString += " --restoreStateFrom " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "state";
 				execString += " --restoreIteration " + restoreIteration+ " ";
-				execString += " --runHashCodeFile " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "runhashes.txt";
+				if(verifyHashCodes)
+				{
+					execString += " --runHashCodeFile " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "runhashes.txt";
+				}
 			}
 			
 			if(adaptiveCapping)
@@ -84,7 +87,7 @@ public class SMACTester {
 			
 		}
 		
-		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, String messageClass, String message )
+		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, String messageClass, String message, boolean verifyHashCodes )
 		{
 			
 			int iteration=0;
@@ -102,7 +105,7 @@ public class SMACTester {
 			
 			
 			boolean resultFound = false;
-			String execString = getExecString(scenarioFile, adaptiveCapping, iterationLimit, ROARMode, restoreIteration, id);
+			String execString = getExecString(scenarioFile, adaptiveCapping, iterationLimit, ROARMode, restoreIteration, id, verifyHashCodes);
 			String runDir = "/ubc/cs/research/arrow/seramage/software/smac";
 			Queue<String> last10Lines = new LinkedList<String>();
 			boolean messageFound = false;
@@ -251,7 +254,7 @@ public class SMACTester {
 		 */
 		public void testFailSMAC(String scenarioFile, String messageClass, String message, int iterations)
 		{
-			String execString = getExecString(scenarioFile, false, iterations, false, 0, -1);
+			String execString = getExecString(scenarioFile, false, iterations, false, 0, -1, false);
 			
 			Queue<String> last10Lines = new LinkedList<String>();
 			try {
@@ -391,9 +394,9 @@ public class SMACTester {
 		public void testSMAC(String scenarioFile)
 		{
 			//Ugly hack, but we will pass if we find a line with a space in it ;) 
-			testSMAC(scenarioFile, " ", " ");
+			testSMAC(scenarioFile, " ", " ", false);
 		}
-		public void testSMAC(String scenarioFile, String messageClass, String message)
+		public void testSMAC(String scenarioFile, String messageClass, String message, boolean verifyHashCodes)
 		{
 			/**
 			 * AC, Iteration Limit, ROAR Mode, Restore Iteration
@@ -401,32 +404,32 @@ public class SMACTester {
 			int id=0;
 			int lastIteration;
 			System.out.println("ROAR");
-			lastIteration = runSMAC(scenarioFile, false, 18, true, 0, id++, messageClass, message);
+			lastIteration = runSMAC(scenarioFile, false, 18, true, 0, id++, messageClass, message, verifyHashCodes);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			runSMAC(scenarioFile, false, 21, true, lastIteration,id++, messageClass, message);
+			runSMAC(scenarioFile, false, 21, true, lastIteration,id++, messageClass, message, verifyHashCodes);
 			
 			
 			System.out.println("ROAR+AC");
-			lastIteration = runSMAC(scenarioFile, true, 18, true, 0, id++, messageClass, message);
+			lastIteration = runSMAC(scenarioFile, true, 18, true, 0, id++, messageClass, message, verifyHashCodes);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore+AC");
-			runSMAC(scenarioFile, true, 21, true, lastIteration,id++, messageClass, message);
+			runSMAC(scenarioFile, true, 21, true, lastIteration,id++, messageClass, message, verifyHashCodes);
 			
 			
 			System.out.println("SMAC");
-			lastIteration = runSMAC(scenarioFile, false, 18, false, 0, id++, messageClass, message);
+			lastIteration = runSMAC(scenarioFile, false, 18, false, 0, id++, messageClass, message, verifyHashCodes);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			runSMAC(scenarioFile, false, 21, false, lastIteration,id++, messageClass, message);
+			runSMAC(scenarioFile, false, 21, false, lastIteration,id++, messageClass, message, verifyHashCodes);
 			
 			
 			System.out.println("SMAC+AC");
-			lastIteration = runSMAC(scenarioFile, true, 18, false, 0, id++, messageClass, message);
+			lastIteration = runSMAC(scenarioFile, true, 18, false, 0, id++, messageClass, message, verifyHashCodes);
 			lastIteration = restoreIteration(lastIteration);
 			
 			System.out.println("Restore+AC");
-			runSMAC(scenarioFile, true, 21, false, lastIteration,id++, messageClass, message);
+			runSMAC(scenarioFile, true, 21, false, lastIteration,id++, messageClass, message, verifyHashCodes);
 
 			
 		}
@@ -446,7 +449,7 @@ public class SMACTester {
 		public void testCPLEXMini()
 		{
 			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
-			testSMAC(scenarioFile, "INFO", "Due to lack of instance/seeds maximum number of runs limited to 8");
+			testSMAC(scenarioFile, "INFO", "Due to lack of instance/seeds maximum number of runs limited to 8",true);
 		}
 		
 		
@@ -454,7 +457,7 @@ public class SMACTester {
 		public void testSPEARSurrogate()
 		{
 			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/spear/spear-surrogate.txt";
-			testSMAC(scenarioFile);
+			testSMAC(scenarioFile, true);
 		
 			
 		}
@@ -462,6 +465,11 @@ public class SMACTester {
 		
 		
 		
+		private void testSMAC(String scenarioFile, boolean verifyHashCodes) {
+			testSMAC(scenarioFile, " ", " ", verifyHashCodes );
+			
+		}
+
 		@Test
 		public void testSATENSTEIN()
 		{
@@ -486,10 +494,10 @@ public class SMACTester {
 		}
 		
 		@Test
-		public void testCPLEX()
+		public void testCPLEXSurrogate()
 		{
 			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX.txt";
-			testSMAC(scenarioFile);
+			testSMAC(scenarioFile,true);
 		}
 		
 		

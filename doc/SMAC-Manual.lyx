@@ -956,6 +956,14 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
+--paramFile File containing Parameter Space of Execution
+\begin_inset Newline newline
+\end_inset
+
+ Default: 
+\end_layout
+
+\begin_layout Description
 --seed Seed for Random Number Generator [0 means don't use a seed]
 \begin_inset Newline newline
 \end_inset
@@ -969,14 +977,6 @@ Configuration Options Reference
 \end_inset
 
  Default: <current working directory>/
-\end_layout
-
-\begin_layout Description
---paramFile File containing Parameter Space of Execution
-\begin_inset Newline newline
-\end_inset
-
- Default: 
 \end_layout
 
 \begin_layout Description
@@ -1238,6 +1238,14 @@ s
 \end_inset
 
  Default: false
+\end_layout
+
+\begin_layout Description
+--maxIncumbentRuns Maximum Number of Incumbent Runs allowed
+\begin_inset Newline newline
+\end_inset
+
+ Default: 2000
 \end_layout
 
 \begin_layout Description
@@ -2914,9 +2922,27 @@ Added additional internal input validation for robustness
 \end_layout
 
 \begin_layout Itemize
-Added support for for restoring state files using the array format of configurat
-ion representations, as well as from files that do not have the iteration
- in the file name.
+Added additional compatibility fixes for restoring state from MATLAB
+\end_layout
+
+\begin_layout Itemize
+Many fixes for Deterministic Algorithm Runs, including saving and restoring
+ state, and seed selection
+\end_layout
+
+\begin_layout Itemize
+Fixed issue with Local Search choosing poor paths and potentially getting
+ into an infinite loop
+\end_layout
+
+\begin_layout Itemize
+Limited the number of runs we attempt on the incumbent to the number of
+ instance seeds available
+\end_layout
+
+\begin_layout Itemize
+Forced all instances to have the same number of seeds specified (only for
+ instance file, not instance seed file) 
 \end_layout
 
 \begin_layout Standard

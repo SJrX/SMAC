@@ -8,7 +8,7 @@
 	<property name="deploy-wg.dir" value="/ubc/cs/home/s/seramage/disks/westgrid-home/apps/smac/"/>
 	<property name="version.major" value="0"/>
 	<property name="version.minor" value="92"/>
-	<property name="version.beta" value="rc"/>
+	<property name="version.beta" value="b"/>
 	<path id="compile.classpath">
 		<fileset dir="lib" id="lib">
 			<include name="*.jar"/>
@@ -66,14 +66,14 @@
 	</target>	
 	
 	<target name="zip" depends="archive">
-		<zip destFile="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.zip" >
+		<zip destFile="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}-${build.number}.zip" >
 			<mappedresources>
 			<fileset dir="dist/" includes="**/*"/>
-				<globmapper from="*" to="smac-v${version.major}.${version.minor}${version.beta}.${build.number}/*"/>
+				<globmapper from="*" to="smac-v${version.major}.${version.minor}${version.beta}-${build.number}/*"/>
 			</mappedresources>
 		</zip>
-		<tar destFile="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.tar.gz" longfile="gnu" compression="gzip">
-					<tarfileset dir="dist/" filemode="640" dirmode="750" prefix="smac-v${version.major}.${version.minor}${version.beta}.${build.number}/">
+		<tar destFile="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}-${build.number}.tar.gz" longfile="gnu" compression="gzip">
+					<tarfileset dir="dist/" filemode="640" dirmode="750" prefix="smac-v${version.major}.${version.minor}${version.beta}-${build.number}/">
 						<include name="**/*"/>
 						<exclude name="smac"/>
 						<exclude name="smac-possible-restores"/>
@@ -81,7 +81,7 @@
 						<exclude name="example_saps/ubcsat"/>
 						<exclude name="example_spear/Spear-32_1.2.1"/>
 					</tarfileset>
-					<tarfileset dir="dist/" filemode="750" prefix="smac-v${version.major}.${version.minor}${version.beta}.${build.number}/">
+					<tarfileset dir="dist/" filemode="750" prefix="smac-v${version.major}.${version.minor}${version.beta}-${build.number}/">
 						<include name="smac"/>
 						<include name="smac-possible-restores"/>
 						<include name="smac-validate"/>
@@ -113,10 +113,10 @@
 		<!--<untar src="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.tar.gz" dest="${software.dir}" failOnEmptyArchive="true" compression="gzip"/> -->
 		<exec executable="tar" dir="${software.dir}" failonerror="true">
 			<arg value="-xzf"/>
-			<arg value="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.tar.gz"/>
+			<arg value="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}-${build.number}.tar.gz"/>
 		</exec>
 		<echo>Untar Successful</echo>
-		<symlink link="${deploy.dir}" overwrite="true" resource="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}"/>
+		<symlink link="${deploy.dir}" overwrite="true" resource="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}-${build.number}"/>
 		
 	</target>
 	<target name="deploy" depends="zip, deploy-release"/>
