@@ -7,8 +7,8 @@
 	<property name="deploy.dir" value="${software.dir}smac"/>
 	<property name="deploy-wg.dir" value="/ubc/cs/home/s/seramage/disks/westgrid-home/apps/smac/"/>
 	<property name="version.major" value="0"/>
-	<property name="version.minor" value="92"/>
-	<property name="version.beta" value="b"/>
+	<property name="version.minor" value="93"/>
+	<property name="version.beta" value="rc"/>
 	<path id="compile.classpath">
 		<fileset dir="lib" id="lib">
 			<include name="*.jar"/>

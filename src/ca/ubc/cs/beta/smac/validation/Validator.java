@@ -15,12 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import ca.ubc.cs.beta.ac.config.ProblemInstance;
-import ca.ubc.cs.beta.ac.config.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.config.ValidationOptions;
 import ca.ubc.cs.beta.config.ValidationRoundingMode;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.seedgenerator.SetInstanceSeedGenerator;
@@ -352,20 +352,21 @@ endloop:
 		
 		StringBuilder sb = new StringBuilder();
 		sb.append(tunerTime).append(",").append(empericalPerformance).append(",").append(testSetPerformance).append(",").append(cpuTime).append("\n");
-		if(f.canWrite())
+		if(!f.canWrite())
 		{
 			log.error("Could not write trajectory file would have written: {}" , sb.toString());
 			
 		
 			
+		} else
+		{
+		
+		
+			PrintWriter output = new PrintWriter(new FileOutputStream(f,true));
+			output.append(sb);
+			
+			output.close();
 		}
-		
-		
-		
-		PrintWriter output = new PrintWriter(new FileOutputStream(f,true));
-		output.append(sb);
-		
-		output.close();
 		
 }
 

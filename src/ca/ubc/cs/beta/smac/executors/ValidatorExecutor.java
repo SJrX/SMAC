@@ -14,7 +14,6 @@ import org.slf4j.Marker;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
-import ca.ubc.cs.beta.ac.config.ProblemInstance;
 import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.config.JCommanderHelper;
 import ca.ubc.cs.beta.config.ValidationExecutorConfiguration;
@@ -23,6 +22,7 @@ import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;

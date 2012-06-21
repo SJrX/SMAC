@@ -20,13 +20,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.ac.config.ProblemInstance;
-import ca.ubc.cs.beta.ac.config.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;

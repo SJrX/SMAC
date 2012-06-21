@@ -77,7 +77,7 @@ public class BatchRunner {
 	 * @param instanceRunConfig
 	 * @return
 	 */
-	public List<AlgorithmRun> executeRun(AlgorithmExecutionConfig execConfig, List<RunConfig> instanceRunConfigs)
+	public List<AlgorithmRun> executeRun(AlgorithmExecutionConfig execConfig, List<RunConfig> instanceRunConfigs, String[] dynamicClassPath)
 	{
 		/**
 		 * MATLAB PORT NOTE: 
@@ -146,8 +146,16 @@ public class BatchRunner {
 			execString = "ruby scripts/al_run_configs_in_file_nodb.rb ";
 		} else
 		{
-			System.out.println("Class path for Simple Executor defined in: " + this.getClass().getCanonicalName()); 
-			execString = "java -cp /ubc/cs/home/s/seramage/workspace/JSMAC/bin/:/ubc/cs/home/s/seramage/git/fastrf/:/ubc/cs/home/s/seramage/git/surrogates/bin/:/ubc/cs/home/s/seramage/workspace/JSMAC/bin/:/ubc/cs/home/s/seramage/git/surrogates/bin/:/ubc/cs/home/s/seramage/workspace/JSMAC/lib/slf4j-api-1.6.4.jar:/ubc/cs/home/s/seramage/workspace/JSMAC/lib/logback-core-1.0.0.jar:/ubc/cs/home/s/seramage/workspace/JSMAC/lib/logback-classic-1.0.0.jar:/ubc/cs/home/s/seramage/workspace/JSMAC/lib/logback-access-1.0.0.jar:/ubc/cs/home/s/seramage/workspace/AutomaticConfiguratorUtils/bin ca.ubc.cs.beta.smac.executors.AlgorithmRunConfiguratorExecutor ";
+			StringBuilder dynamicClassPathStr = new StringBuilder();
+			for(String s : dynamicClassPath)
+			{
+				dynamicClassPathStr.append(s).append(File.pathSeparator);
+			}
+			
+			System.out.println("Class path for Simple Executor defined in: " + this.getClass().getCanonicalName());
+			
+			
+			execString = "java -cp " + dynamicClassPathStr.toString() + " ca.ubc.cs.beta.smac.executors.AlgorithmRunConfiguratorExecutor ";
 		}
 		
 		execString += tmpFile.getAbsoluteFile() + " " +  tmpFileIn.getAbsoluteFile();
@@ -168,6 +176,7 @@ public class BatchRunner {
 				//The output file has to be in the same order as the inputs
 				while((result = r.readLine()) != null)
 				{
+					System.out.println("Trying to parse " + result);
 					runs.add(new ExistingAlgorithmRun(execConfig, instanceRunConfigs.get(i), result));
 					i++;
 				}

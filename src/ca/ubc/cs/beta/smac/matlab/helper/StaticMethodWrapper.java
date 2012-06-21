@@ -1,6 +1,7 @@
 package ca.ubc.cs.beta.smac.matlab.helper;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Random;
 
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
@@ -14,7 +15,7 @@ import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.helper.ArrayMathOps;
 import ec.util.MersenneTwister;
 
-public class StaticMethodWrapper {
+public class StaticMethodWrapper implements Serializable{
 
 	private static InstanceSeedGenerator instanceSeedGenerator;
 	private static int instanceCount = 0;
@@ -23,6 +24,7 @@ public class StaticMethodWrapper {
 	
 	public ParamConfiguration getRandomConfiguration(ParamConfigurationSpace p)
 	{
+		
 		return p.getRandomConfiguration();
 	}
 	
@@ -38,7 +40,7 @@ public class StaticMethodWrapper {
 	
 	public ParamConfiguration fromString(ParamConfigurationSpace configSpace, String paramString)
 	{
-		return configSpace.getConfigurationFromString(paramString, ParamConfiguration.StringFormat.NODB_SYNTAX);
+		return configSpace.getConfigurationFromString(paramString, ParamConfiguration.StringFormat.STATEFILE_SYNTAX);
 	}
 	public void reinitSeed()
 	{
@@ -99,4 +101,6 @@ public class StaticMethodWrapper {
 	{
 		return ArrayMathOps.matlabHashCode(matrix);
 	}
+	
+	
 }

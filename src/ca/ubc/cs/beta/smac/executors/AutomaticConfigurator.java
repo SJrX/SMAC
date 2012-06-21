@@ -12,13 +12,13 @@ import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ca.ubc.cs.beta.ac.config.ProblemInstance;
 import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.config.JCommanderHelper;
 import ca.ubc.cs.beta.config.SMACConfig;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;

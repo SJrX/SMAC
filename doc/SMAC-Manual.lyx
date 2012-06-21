@@ -2909,7 +2909,7 @@ Implemented a new log file that displays only warnings or errors
 \end_layout
 
 \begin_layout Itemize
-Added support for Run History File
+Added support for Run Hash Code File
 \end_layout
 
 \begin_layout Itemize

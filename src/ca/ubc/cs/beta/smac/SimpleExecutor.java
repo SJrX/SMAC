@@ -3,10 +3,12 @@ package ca.ubc.cs.beta.smac;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
+
 import org.apache.commons.math.stat.descriptive.moment.Mean;
 import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
 
-public class SimpleExecutor {
+public class SimpleExecutor implements Serializable{
 	
 	public static double[] dbl = new double[10240];
 	public static int i=0;

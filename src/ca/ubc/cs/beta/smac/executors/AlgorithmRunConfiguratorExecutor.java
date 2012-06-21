@@ -15,13 +15,13 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 
-import ca.ubc.cs.beta.ac.config.ProblemInstance;
-import ca.ubc.cs.beta.ac.config.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.ac.config.RunConfig;
 import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
 
+import ca.ubc.cs.beta.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.smac.ac.runners.AlgorithmRunner;
 import ca.ubc.cs.beta.smac.ac.runners.AutomaticConfiguratorFactory;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
@@ -117,7 +117,7 @@ public class AlgorithmRunConfiguratorExecutor {
 				throw new IllegalArgumentException("Line " + line + " should have been of the form <instance_filename> <seed> <cutoff_time> <param_string>");
 			}
 			
-			ParamConfiguration param = paramFile.getConfigurationFromString(lineArgs[3], ParamConfiguration.StringFormat.NODB_SYNTAX);
+			ParamConfiguration param = paramFile.getConfigurationFromString(lineArgs[3], ParamConfiguration.StringFormat.STATEFILE_SYNTAX);
 			RunConfig runConfig =new RunConfig( new ProblemInstanceSeedPair(new ProblemInstance(lineArgs[0]), Long.valueOf(lineArgs[1])),Double.valueOf(lineArgs[2]),param); 
 			runConfigs.add(runConfig);
 
