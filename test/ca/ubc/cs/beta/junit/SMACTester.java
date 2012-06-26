@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.LinkedList;
@@ -12,6 +14,7 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import ca.ubc.cs.beta.config.JCommanderHelper;
@@ -43,6 +46,33 @@ public class SMACTester {
 	{
 		*/
 		
+	public static String smacDeployment = null;
+	
+	@BeforeClass
+	public static void initDeploymentToTest()
+	{
+			String s = ClassLoader.getSystemClassLoader().getResource("lastbuild-deploy.txt").getFile();
+			if(s == null || s.trim().length() == 0)
+			{
+				throw new AssertionError("Could not find deployment file lastbuild-deploy.txt on classpath");
+			}
+			File f = new File(s);
+			try {
+				BufferedReader r = new BufferedReader(new FileReader(f));
+				smacDeployment = r.readLine();
+				
+			} catch (FileNotFoundException e) {
+				throw new AssertionError("Could open the deployment file lastbuild-deploy.txt");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				throw new AssertionError(e);
+			}
+			
+			//System.out.println(s);
+			
+			/*System.out.println(f.getAbsolutePath())*/
+			
+	}
 	
 		public String getExecString(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, boolean verifyHashCodes)
 		{
@@ -58,7 +88,7 @@ public class SMACTester {
 			*/
 	
 			
-			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runID "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) + " --skipInstanceFileCheck --skipValidation ";
+			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runGroupName "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) + " --skipInstanceFileCheck --skipValidation ";
 			
 			
 			
@@ -106,7 +136,7 @@ public class SMACTester {
 			
 			boolean resultFound = false;
 			String execString = getExecString(scenarioFile, adaptiveCapping, iterationLimit, ROARMode, restoreIteration, id, verifyHashCodes);
-			String runDir = "/ubc/cs/research/arrow/seramage/software/smac";
+			String runDir = smacDeployment;
 			Queue<String> last10Lines = new LinkedList<String>();
 			boolean messageFound = false;
 			try {
@@ -262,7 +292,9 @@ public class SMACTester {
 				Process p;
 				
 				System.out.println(execString);
-				String runDir = "/ubc/cs/research/arrow/seramage/software/smac";
+
+				
+				String runDir = smacDeployment;
 				p = Runtime.getRuntime().exec(execString, new String[0], new File(runDir));
 				BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
 				
