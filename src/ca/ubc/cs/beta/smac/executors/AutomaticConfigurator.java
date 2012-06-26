@@ -6,9 +6,12 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +23,7 @@ import ca.ubc.cs.beta.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.OverallObjective;
@@ -66,7 +70,9 @@ public class AutomaticConfigurator
 			
 			logger.info(config.toString());
 			
-			
+			SeedableRandomSingleton.setSeed(config.seed);
+			Random rand = SeedableRandomSingleton.getRandom(); 
+
 			
 			/*
 			 * Build the Serializer object used in the model 
@@ -78,7 +84,7 @@ public class AutomaticConfigurator
 					restoreSF = new NullStateFactory();
 					break;
 				case LEGACY:
-					restoreSF = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator + "state" + File.separator, config.restoreStateFrom);
+					restoreSF = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "state-run" + config.seed + File.separator, config.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -98,8 +104,6 @@ public class AutomaticConfigurator
 					break;
 				} catch(IllegalStateException e)
 				{ 
-
-					
 				
 				}
 			}
@@ -145,7 +149,7 @@ public class AutomaticConfigurator
 					sf = new NullStateFactory();
 					break;
 				case LEGACY:
-					sf = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator + "state" + File.separator, config.restoreStateFrom);
+					sf = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "state-run" + config.seed + File.separator, config.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -157,10 +161,10 @@ public class AutomaticConfigurator
 			switch(config.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(config,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen);
+					smac = new AbstractAlgorithmFramework(config,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen, rand);
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(config, instances, testInstances, algoEval, config.expFunc.getFunction(),sf, configSpace, instanceSeedGen);
+					smac = new SequentialModelBasedAlgorithmConfiguration(config, instances, testInstances, algoEval, config.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
@@ -177,13 +181,13 @@ public class AutomaticConfigurator
 			{
 			
 				TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
-				String outputDir = config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator;
+				String outputDir = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator;
 				
 				double tunerTime = smac.getTunerTime();
-				double cpuTime = 1;
+				double cpuTime = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;;
 				double empericalPerformance = smac.getEmpericalPerformance(smac.getIncumbent());
 				
-				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj, tunerTime, empericalPerformance, cpuTime);
+				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj, tunerTime, empericalPerformance, cpuTime, config.seed);
 			}
 			
 			logger.info("SMAC Completed Successfully");
@@ -278,7 +282,8 @@ public class AutomaticConfigurator
 			}
 			
 			System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
-			System.setProperty("RUNID", config.runID);
+			System.setProperty("RUNGROUPDIR", config.runGroupName);
+			System.setProperty("NUMRUN", String.valueOf(config.seed));
 			
 			logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 			exception = MarkerFactory.getMarker("EXCEPTION");
@@ -292,7 +297,7 @@ public class AutomaticConfigurator
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.deterministic > 0));
 			instanceSeedGen = ilws.getSeedGen();
 			
-			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialSeedCount());
+			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
 			if(instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
 			{
 				logger.info("Instance Seed Generator reports that all instances have the same number of available seeds");
@@ -310,7 +315,7 @@ public class AutomaticConfigurator
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			
-			logger.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialSeedCount());
+			logger.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialInstanceSeedCount());
 			if(testInstanceSeedGen.allInstancesHaveSameNumberOfSeeds())
 			{
 				logger.info("Test Seed Generator reports that all instances have the same number of available seeds");

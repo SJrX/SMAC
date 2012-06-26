@@ -36,9 +36,9 @@ public class Validator {
 	public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
 			String outputDir,
 			RunObjective runObj,
-			OverallObjective overallObj, double tunerTime) {
+			OverallObjective overallObj, double tunerTime, long numRun) {
 		
-		validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, overallObj,tunerTime, 0,0);
+		validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, overallObj,tunerTime, 0,0, numRun);
 	}
 		
 		
@@ -46,7 +46,7 @@ public class Validator {
 public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
 		String outputDir,
 		RunObjective runObj,
-		OverallObjective overallObj, double tunerTime,  double empericalPerformance, double cpuTime) {
+		OverallObjective overallObj, double tunerTime,  double empericalPerformance, double cpuTime, long numRun) {
 		
 		int testInstancesCount = Math.min(config.numberOfTestInstances, testInstances.size());
 		int testSeedsPerInstance = config.numberOfTestSeedsPerInstance;
@@ -75,7 +75,7 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 		
 		try
 		{
-			writeInstanceRawResultsFile(runs, config, outputDir);
+			writeInstanceRawResultsFile(runs, config, outputDir, numRun);
 		} catch(IOException e)
 		{
 			log.error("Could not write results file", e);
@@ -84,7 +84,7 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 		
 		try
 		{
-			writeInstanceSeedResultFile(runs, config, outputDir, runObj);
+			writeInstanceSeedResultFile(runs, config, outputDir, runObj, numRun);
 		} catch(IOException e)
 		{
 			log.error("Could not write results file", e);
@@ -93,9 +93,9 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 		
 		try
 		{
-			double testSetPerformance = writeInstanceResultFile(runs, config, outputDir, cutoffTime, runObj, overallObj);
+			double testSetPerformance = writeInstanceResultFile(runs, config, outputDir, cutoffTime, runObj, overallObj, numRun);
 			
-			appendInstanceResultFile(outputDir, tunerTime, empericalPerformance, testSetPerformance, cpuTime );
+			appendInstanceResultFile(outputDir, tunerTime, empericalPerformance, testSetPerformance, cpuTime, numRun);
 		} catch(IOException e)
 		{
 			log.error("Could not write results file:", e);
@@ -195,11 +195,11 @@ endloop:
 	 * @return - Overall objective over test set (For convinence)
 	 * @throws IOException
 	 */
-	private static double writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective overallObj) throws IOException 
+	private static double writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective overallObj, long numRun) throws IOException 
 	{
 		Map<ProblemInstance, List<AlgorithmRun>> map = new LinkedHashMap<ProblemInstance,List<AlgorithmRun>>();
 		
-		File f = new File(outputDir +  File.separator + "validationResultsMatrix.csv");
+		File f = new File(outputDir +  File.separator + "validationResultsMatrix-run" + numRun + ".csv");
 		log.info("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -285,10 +285,10 @@ endloop:
 
 
 
-	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, RunObjective runObj) throws IOException
+	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, RunObjective runObj, long numRun) throws IOException
 	{
 		
-		File f = new File(outputDir + "validationResultsList.csv");
+		File f = new File(outputDir + "validationInstanceSeedResult-run" + numRun + ".csv");
 		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -313,10 +313,10 @@ endloop:
 
 
 
-	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir) throws IOException
+	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, long numRun) throws IOException
 	{
 		
-		File f = new File(outputDir + "rawValidationExecutionResults.csv");
+		File f = new File(outputDir + "rawValidationExecutionResults-run" + numRun + ".csv");
 		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -340,8 +340,8 @@ endloop:
 	
 
 	private void appendInstanceResultFile(String outputDir, double tunerTime,
-		double empericalPerformance, double testSetPerformance, double cpuTime) throws IOException {
-		File f = new File(outputDir +  File.separator + "classicValidationResults.csv");
+		double empericalPerformance, double testSetPerformance, double cpuTime, long numRun) throws IOException {
+		File f = new File(outputDir +  File.separator + "classicValidationResults-run" + numRun + ".csv");
 	
 		if(!f.exists())
 		{

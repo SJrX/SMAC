@@ -449,7 +449,7 @@ public class SMACTester {
 		public void testCPLEXMini()
 		{
 			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
-			testSMAC(scenarioFile, "INFO", "Due to lack of instance/seeds maximum number of runs limited to 8",true);
+			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true);
 		}
 		
 		

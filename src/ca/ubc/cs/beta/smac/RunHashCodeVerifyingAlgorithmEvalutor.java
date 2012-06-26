@@ -44,13 +44,13 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvalua
 		//NOTE: runs are guaranteed to be in the same order as runConfigs
 		//So we can just compute the runHash from the list iterator
 		List<AlgorithmRun> runs = super.evaluateRun(runConfigs);
-		validateRuns(runs);
+		validateRunHashCodes(runs);
 		
 		return runs;
 	
 	}
 	
-	private void validateRuns(List<AlgorithmRun> runs)
+	private void validateRunHashCodes(List<AlgorithmRun> runs)
 	{
 		for(AlgorithmRun run: runs)
 		{
@@ -78,7 +78,7 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvalua
 	public void seek(List<AlgorithmRun> runs)
 	{
 		super.seek(runs);
-		validateRuns(runs);
+		validateRunHashCodes(runs);
 		
 	}
 

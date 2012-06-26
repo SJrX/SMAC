@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +58,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private final ExpectedImprovementFunction ei;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen) {
-		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen);
+	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
+		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen, rand);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestConfig.logModel;
 		this.smacConfig = smacConfig;

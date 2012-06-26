@@ -4,7 +4,7 @@
 <!-- <define name="logFile" class="ca.ubc.cs.beta.config."-->
 
   <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-  <file>${OUTPUTDIR}/${RUNID}/log.txt</file>
+  <file>${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt</file>
   <append>false</append>
   <encoder>
     	<pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
@@ -15,7 +15,7 @@
   
   
   <appender name="FILE-WARN" class="ch.qos.logback.core.FileAppender">
-  <file>${OUTPUTDIR}/${RUNID}/log-warn.txt</file>
+  <file>${OUTPUTDIR}/${RUNGROUPDIR}/warn-run${NUMRUN}.txt</file>
   <append>false</append>
   <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
   	<level>WARN</level>
@@ -29,7 +29,7 @@
   
   
   <appender name="FILE-RAW" class="ch.qos.logback.core.FileAppender">
-  <file>${OUTPUTDIR}/${RUNID}/raw.txt</file>
+  <file>${OUTPUTDIR}/${RUNGROUPDIR}/raw-run${NUMRUN}.txt</file>
   <append>false</append>
   <encoder>
       <pattern>%msg%n</pattern>
@@ -40,7 +40,7 @@
   <appender name="RUNHASHLOG" class="ch.qos.logback.core.FileAppender">
   <filter class="ca.ubc.cs.beta.logback.RunHashMarkerFilter" />
   <append>false</append>
-  <file>${OUTPUTDIR}/${RUNID}/runhashes.txt</file>
+  <file>${OUTPUTDIR}/${RUNGROUPDIR}/runhashes-run${NUMRUN}.txt</file>
   <encoder>
       <pattern>%msg%n</pattern>
   </encoder>

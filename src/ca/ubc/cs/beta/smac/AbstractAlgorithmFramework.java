@@ -88,13 +88,14 @@ public class AbstractAlgorithmFramework {
 	
 	private final int MAX_RUNS_FOR_INCUMBENT;
 	
-	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen)
+	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
 	{
 		
 		this.instances = instances;
 		this.testInstances = testInstances;
 		this.cutoffTime = smacConfig.scenarioConfig.cutoffTime;
 		this.config = smacConfig;
+		this.rand = rand;
 		
 		this.algoEval = algoEval;
 		this.stateFactory = stateFactory;
@@ -106,15 +107,6 @@ public class AbstractAlgorithmFramework {
 		
 		log.info("Automatic Configuration Start Time is {}", df.format(d));
 		
-		//smacConfig = parseCLIOptions(args);
-		//TODO We should be handed the Random object
-		if(smacConfig.seed != 0)
-		{
-			SeedableRandomSingleton.setSeed(smacConfig.seed);
-		} 
-		
-		rand = SeedableRandomSingleton.getRandom(); 
-
 		this.configSpace = configSpace;
 		
 		runHistory = new NewRunHistory(instanceSeedGen,smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.runObj);
@@ -122,10 +114,11 @@ public class AbstractAlgorithmFramework {
 		//runHistory = new DebugRunHistory(h1,h2);
 		iteration = 0;
 		
-		if(instanceSeedGen.getInitialSeedCount() < config.maxIncumbentRuns)
+		//=== Clamp # runs for incumbent to # of available seeds.
+		if(instanceSeedGen.getInitialInstanceSeedCount() < config.maxIncumbentRuns)
 		{
-			log.info("Due to lack of instance/seeds maximum number of runs limited to {}", instanceSeedGen.getInitialSeedCount());
-			MAX_RUNS_FOR_INCUMBENT = instanceSeedGen.getInitialSeedCount();
+			log.info("Clamping number of runs to {} due to lack of instance/seeds pairs", instanceSeedGen.getInitialInstanceSeedCount());
+			MAX_RUNS_FOR_INCUMBENT = instanceSeedGen.getInitialInstanceSeedCount();
 		}  else
 		{
 			MAX_RUNS_FOR_INCUMBENT=smacConfig.maxIncumbentRuns;
@@ -134,13 +127,10 @@ public class AbstractAlgorithmFramework {
 		
 		
 		try {
-			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + config.runID + File.separator +"traj-algo-" + config.runID.replaceAll("\\s+", "_") + ".txt";
+			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator +"traj-run-" + config.seed + ".txt";
 			this.fout = new FileWriter(new File(outputFileName));
 			log.info("Trajectory File Writing To: {}", outputFileName);
-			fout.write(config.runID + "\n");
-			
-			
-			
+			fout.write(config.runGroupName + ", " + config.seed + "\n");			
 		} catch (IOException e) {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);
@@ -221,7 +211,7 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected boolean have_to_stop(int iteration)
 	{
-		if(runHistory.getTotalRunCost() > config.scenarioConfig.tunerTimeout)
+		if(getTunerTime() > config.scenarioConfig.tunerTimeout)
 		{
 			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost(), config.scenarioConfig.tunerTimeout);
 			return true;
@@ -257,7 +247,7 @@ public class AbstractAlgorithmFramework {
 			log.info("At end of iteration {}, incumbent is {} {}",arr);
 		} else
 		{
-			log.info("Incument currently is: ", incumbent, incumbent.getFormattedParamString());
+			log.info("Incument currently is: {} {} ", incumbent, incumbent.getFormattedParamString());
 		}
 		ThreadMXBean b = ManagementFactory.getThreadMXBean();
 		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
@@ -325,9 +315,9 @@ public class AbstractAlgorithmFramework {
 					ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
 					log.trace("New Problem Instance Seed Pair generated {}", pisp);
 					RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
-					evaluateRun(incumbentRunConfig);
 					//Create initial row
-					writeIncumbent(0, Double.MAX_VALUE, -1,runHistory.getThetaIdx(incumbent),0, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+					writeIncumbent(0, Double.MAX_VALUE, -1,1,0, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+					evaluateRun(incumbentRunConfig);
 					logIncumbent(iteration);
 				} else
 				{
@@ -375,7 +365,7 @@ public class AbstractAlgorithmFramework {
 					saveState("CRASH",true);
 				} catch(RuntimeException e2)
 				{
-					log.error("SMAC has encounted an exception, and encountered another exception while trying to save the local state. NOTE: THIS DID NOT CAUSE SMAC TO FAIL. The following exception/error message is the cause. This is potentially another / seperate issue, or a disk failure of some kind. When submitting bug/error reports, please include enough context for *BOTH* exceptions \n  ", e2);
+					log.error("SMAC has encounted an exception, and encountered another exception while trying to save the local state. NOTE: THIS PARTICULAR ERROR DID NOT CAUSE SMAC TO FAIL, the original culprit follows further below. (This second error is potentially another / seperate issue, or a disk failure of some kind.) When submitting bug/error reports, please include enough context for *BOTH* exceptions \n  ", e2);
 					throw e;
 				}
 				throw e;
@@ -426,8 +416,7 @@ public class AbstractAlgorithmFramework {
 
 
 
-	protected void learnModel(RunHistory runHistory,
-			ParamConfigurationSpace configSpace) {
+	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) {
 	}
 
 
@@ -448,13 +437,13 @@ public class AbstractAlgorithmFramework {
 		
 	
 		double initialTime = runHistory.getTotalRunCost();
-		log.info("Intensifying on Challengers");
+		log.info("Calling intensify with {} challenger(s)", challengers.size());
 		for(int i=0; i < challengers.size(); i++)
 		{
 			double timeUsed = runHistory.getTotalRunCost() - initialTime;
 			if( timeUsed > timeBound && i > 1)
 			{
-				log.info("Out of time for intensification timeBound {}, used: {}", timeBound, timeUsed );
+				log.info("Out of time for intensification timeBound {}; used: {}", timeBound, timeUsed );
 				break;
 			}
 			challengeIncumbent(challengers.get(i));
@@ -464,7 +453,7 @@ public class AbstractAlgorithmFramework {
 	
 	private void challengeIncumbent(ParamConfiguration challenger) {
 
-		log.debug("Challenging Incumbent With {} ", challenger);
+		log.debug("Challenging incumbent with configuration {} ", challenger);
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 			log.debug("Performing additional run with the incumbent");
@@ -481,8 +470,8 @@ public class AbstractAlgorithmFramework {
 		while(true){
 
 			/*
-			 * Get all the Instance Seed Pairs, the incumbent has run on in a Set
-			 * Remove all the instance Seed pairs the challenger has run on from the set.
+			 * Get all the <instance,seed> pairs the incumbent has run (get them in a set).
+			 * Then remove all the <instance,seed> pairs the challenger has run on from that set.
 			 */
 			Set<ProblemInstanceSeedPair> sMissing = new HashSet<ProblemInstanceSeedPair>( runHistory.getAlgorithmInstanceSeedPairsRan(incumbent) );
 			sMissing.removeAll( runHistory.getAlgorithmInstanceSeedPairsRan(challenger) );
@@ -496,13 +485,13 @@ public class AbstractAlgorithmFramework {
 			Collections.sort(aMissing);
 			
 			
-			
+			//=== Sort aMissing in the order that we want to evaluate <instance,seed> pairs.
 			int[] permutations = SeedableRandomSingleton.getPermutation(aMissing.size(), 0);
 			SeedableRandomSingleton.permuteList(aMissing, permutations);
 			aMissing = aMissing.subList(0, runsToMake);
 			
 			
-
+			//=== Only bother with this loop if tracing is enabled (facilitates stepping through the code).
 			if(log.isTraceEnabled())
 			{
 				for(ProblemInstanceSeedPair pisp : aMissing)
@@ -516,7 +505,7 @@ public class AbstractAlgorithmFramework {
 			
 			log.trace("Permuting elements according to {}", Arrays.toString(permutations));
 			
-			
+			//TODO: refactor adaptive capping.
 			double bound_inc = Double.POSITIVE_INFINITY;
 			Set<ProblemInstance> missingInstances = null;
 			Set<ProblemInstance> missingPlusCommon = null;
@@ -545,8 +534,11 @@ public class AbstractAlgorithmFramework {
 			
 			if(config.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
-				log.info("Challenger cannot beat incumbent scheduling empty run");
+				log.info("Challenger cannot beat incumbent => scheduling empty run");
 				runsToEval.add(getBoundedRunConfig(aMissing.get(0), 0, challenger));
+				if (runsToMake != 1){
+					throw new IllegalStateException("Error in empty run scheduling: empty runs should only be scheduled in first iteration of intensify.");
+				}
 			} else
 			{
 				for (int i = 0; i < runsToMake ; i++) {
@@ -652,7 +644,7 @@ public class AbstractAlgorithmFramework {
 	
 	private boolean incumbentImpossibleToBeat(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
 	{
-		return (predictedPerformance(challenger, pisp, aMissing, instanceSet, cutofftime, BEST_POSSIBLE_VALUE) > bound_inc);
+		return (lowerBoundOnEmpiricalPerformance(challenger, pisp, aMissing, instanceSet, cutofftime, BEST_POSSIBLE_VALUE) > bound_inc);
 	}
 	
 	private final double BEST_POSSIBLE_VALUE = 0;
@@ -675,7 +667,7 @@ public class AbstractAlgorithmFramework {
 			
 		
 		
-		double predictedPerformance = predictedPerformance(challenger, pisp, aMissing, missingInstances, cutofftime, mean); 
+		double predictedPerformance = lowerBoundOnEmpiricalPerformance(challenger, pisp, aMissing, missingInstances, cutofftime, mean); 
 		if(predictedPerformance < bound_inc)
 		{
 			return computeCapBinSearch(challenger, pisp, aMissing, missingInstances, cutofftime, bound_inc, mean, upperBound);
@@ -686,7 +678,7 @@ public class AbstractAlgorithmFramework {
 	}
 
 	
-	private double predictedPerformance(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double probe)
+	private double lowerBoundOnEmpiricalPerformance(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double probe)
 	{
 		
 		Map<ProblemInstance, Map<Long, Double>> hallucinatedValues = new HashMap<ProblemInstance, Map<Long, Double>>();
@@ -774,8 +766,7 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected List<AlgorithmRun> evaluateRun(RunConfig runConfig)
 	{
-		log.info("Evaluating run: {}", runConfig);
-		return updateRunHistory(algoEval.evaluateRun(runConfig));
+		return evaluateRun(Collections.singletonList(runConfig));
 	}
 	
 	/**
@@ -786,12 +777,14 @@ public class AbstractAlgorithmFramework {
 	protected List<AlgorithmRun> evaluateRun(List<RunConfig> runConfigs)
 	{
 		int i=0;
-		log.info("Evaluating {} runs", runConfigs.size());
+		log.info("Evaluating {} run(s)", runConfigs.size());
 		for(RunConfig rc : runConfigs)
 		{
 			log.info("Run {}: {} ",i++, rc);
 		}
-		return updateRunHistory(algoEval.evaluateRun(runConfigs));
+		List<AlgorithmRun> completedRuns = algoEval.evaluateRun(runConfigs);
+		updateRunHistory(completedRuns);
+		return completedRuns;
 	}
 
 

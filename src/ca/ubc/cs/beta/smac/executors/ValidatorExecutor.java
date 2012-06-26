@@ -121,7 +121,8 @@ public class ValidatorExecutor {
 					}
 				}
 				log.info("Begining Validation on {}", configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX));
-				(new Validator()).validate(testInstances, configToValidate,config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj, config.tunerTime);
+				log.warn("numRun is hardcoded to 0");
+				(new Validator()).validate(testInstances, configToValidate,config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj, config.tunerTime, 0);
 				
 				log.info("Validation Completed Successfully");
 			} catch(ParameterException e)
