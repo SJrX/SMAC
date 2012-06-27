@@ -100,7 +100,7 @@ public class AutomaticConfigurator
 			{
 				try {
 					logger.debug("Trying param file in path {} ", path);
-					configSpace = ParamFileHelper.getParamFileParser(path);
+					configSpace = ParamFileHelper.getParamFileParser(path, config.seed+1000000);
 					break;
 				} catch(IllegalStateException e)
 				{ 

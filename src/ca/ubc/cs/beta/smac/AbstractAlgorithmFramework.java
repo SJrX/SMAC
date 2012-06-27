@@ -341,14 +341,11 @@ public class AbstractAlgorithmFramework {
 					StopWatch t = new AutoStartStopWatch();
 					learnModel(runHistory, configSpace);
 					
-					
-					t.stop();
+					double learnModelTime = t.stop();
 					
 					ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 					challengers.addAll(selectConfigurations());
-					intensify(challengers,0);
-					
-					
+					intensify(challengers, learnModelTime);
 					
 					logIncumbent(iteration);
 					

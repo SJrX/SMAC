@@ -57,7 +57,6 @@
 				<exclude name="${lastdeployfile}"/>
 				<include name="doc/**"/>
 			</fileset>
-			<echo>I am probably copying the lastdeployfile as well, this should be fixed one day :)</echo>
 			<fileset refid="lib"/>
 			<!--<fileset refid="fastrf"/>-->
 			<fileset refid="aclib"/>
@@ -66,6 +65,7 @@
 			</fileset>	
 			
 		</copy>
+		<echo>I am probably copying the lastdeployfile as well, this should be fixed one day :)</echo>
 		<chmod perm="750">
 			<fileset dir="dist/">
 				<include name="smac"/>

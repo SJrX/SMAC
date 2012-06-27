@@ -67,7 +67,7 @@ public class ValidatorExecutor {
 				{
 					try {
 						log.debug("Trying param file in path {} ", path);
-						configSpace = ParamFileHelper.getParamFileParser(path);
+						configSpace = ParamFileHelper.getParamFileParser(path,1234);
 						break;
 					} catch(IllegalStateException e)
 					{ 
