@@ -7,8 +7,12 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
 import java.util.regex.Matcher;
@@ -67,7 +71,7 @@ public class AutomaticConfigurator
 			
 			logger.info("Automatic Configuration Started");
 			
-			logger.info(config.toString());
+			
 			
 			SeedableRandomSingleton.setSeed(config.seed);
 			Random rand = SeedableRandomSingleton.getRandom(); 
@@ -283,14 +287,50 @@ public class AutomaticConfigurator
 			System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
 			System.setProperty("RUNGROUPDIR", config.runGroupName);
 			System.setProperty("NUMRUN", String.valueOf(config.seed));
+			System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
 			
 			logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 			exception = MarkerFactory.getMarker("EXCEPTION");
 			stackTrace = MarkerFactory.getMarker("STACKTRACE");
 			
-			
-			
 			logger.trace("Command Line Options Parsed");
+			
+			Map<String, String> env = System.getenv();
+			
+			StringBuilder sb = new StringBuilder();
+			 for (String envName : env.keySet()) {
+				 sb.append(envName).append("=").append(env.get(envName)).append("\n");
+				 
+		           
+		        }
+			
+			
+			 logger.info("==========Enviroment Variables===========\n{}", sb.toString());
+			 Map<Object,Object > props = System.getProperties();
+			 sb = new StringBuilder();
+			 for (Entry<Object, Object> ent : props.entrySet())
+			 {
+				 
+				 sb.append(ent.getKey().toString()).append("=").append(ent.getValue().toString()).append("\n");
+				 
+		           
+		     }
+			
+			 String hostname = "[UNABLE TO DETERMINE HOSTNAME]";
+			try {
+				hostname = InetAddress.getLocalHost().getHostName();
+			} catch(UnknownHostException e)
+			{ //Don't care about this exception
+				
+			}
+			
+			logger.info("Hostname:{}\n\n", hostname);
+			logger.info("==========System Properties==============\n{}", sb.toString() );
+			 
+			
+			logger.info("==========Configuration Options==========\n{}", config.toString());
+			 
+			 
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.deterministic > 0));
