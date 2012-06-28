@@ -54,7 +54,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	/**
 	 * Last build of sanatized data
 	 */
-	private PCAModelDataSanitizer sdm;
+	private PCAModelDataSanitizer sanitizedData;
 	private final ExpectedImprovementFunction ei;
 	
 	
@@ -66,67 +66,61 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		this.ei = ei;
 	}
 
-	
+	/**
+	 * Learns a model from the data in runHistory.
+	 */
 	@Override
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) 
 	{
-		/**
-		 * These sets should be sorted by instance and paramConfig ID;
-		 */
-		
+		//=== The following two sets are required to be sorted by instance and paramConfig ID.
 		Set<ProblemInstance> all_instances = new LinkedHashSet<ProblemInstance>(instances);
-		
 		Set<ParamConfiguration> paramConfigs = runHistory.getUniqueParamConfigurations();
 		
-		int i=0; 
-		double[][] instanceFeatures = new double[all_instances.size()][];
-		
 		Set<ProblemInstance> runInstances=runHistory.getUniqueInstancesRan();
-		
 		ArrayList<Integer> runInstancesIdx = new ArrayList<Integer>(all_instances.size());
 		
+		//=== Get the instance feature matrix (X).
+		int i=0; 
+		double[][] instanceFeatureMatrix = new double[all_instances.size()][];
 		for(ProblemInstance pi : all_instances)
 		{
-			
 			if(runInstances.contains(pi))
 			{
 				runInstancesIdx.add(i);
 			}
-			instanceFeatures[i] = pi.getFeaturesDouble();
+			instanceFeatureMatrix[i] = pi.getFeaturesDouble();
 			i++;
-			
 		}
+
+		//=== Get the parameter configuration matrix (Theta).
+		double[][] thetaMatrix = new double[paramConfigs.size()][];
+		i = 0;
+		for(ParamConfiguration pc : paramConfigs)
+		{
+			thetaMatrix[i++] = pc.toValueArray();
+		}
+
+		//=== Get an array of the order in which instances were used (TODO: same for Theta, from ModelBuilder) 
 		int[] usedInstanceIdxs = new int[runInstancesIdx.size()]; 
 		for(int j=0; j <  runInstancesIdx.size(); j++)
 		{
 			usedInstanceIdxs[j] = runInstancesIdx.get(j);
 		}
 		
-				
-		double[][] paramValues = new double[paramConfigs.size()][];
-		i = 0;
-		for(ParamConfiguration pc : paramConfigs)
-		{
-			paramValues[i++] = pc.toValueArray();
-		}
-		
-		double[] runResponseValues = runHistory.getRunResponseValues();
+		double[] runResponseValues = runHistory.getRunResponseValues();	
 	
+		//=== Sanitize the data.
+		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, configSpace);
 		
-		sdm = new PCAModelDataSanitizer(instanceFeatures, paramValues, numPCA, runResponseValues, usedInstanceIdxs, logModel, configSpace);
-		
-		
-		/**
-		 * Create unique 
-		 */
-		//You can change this back to a BasicModelBuilder
+		//=== Actually build the model.
 		ModelBuilder mb;
+		//TODO: always go through AdaptiveCappingModelBuilder
 		if(config.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.overallObj.getPenaltyFactor());
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.overallObj.getPenaltyFactor());
 		} else
 		{
-			mb = new BasicModelBuilder(sdm, smacConfig.randomForestConfig, runHistory); 
+			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestConfig, runHistory); 
 		}
 		 /*= new HashCodeVerifyingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory);*/
 		forest = mb.getRandomForest();
@@ -137,12 +131,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	protected List<ParamConfiguration> selectConfigurations()
 	{
-		
-		
-		double[][] marginals = applyMarginalModel();
-		
 		List<ParamConfiguration> eichallengers = selectChallengersWithEI(smacConfig.numberOfChallengers);
-
 		
 		List<ParamConfiguration> randomChallengers = new ArrayList<ParamConfiguration>(eichallengers.size());
 		log.info("Generating {} random configurations", eichallengers.size());
@@ -151,35 +140,24 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			randomChallengers.add(configSpace.getRandomConfiguration());
 		}
 		
-		
+		//=== Interleave the EI and random challengers.
 		List<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>(eichallengers.size()*2);
-		
-		
-		
-		/**
-		 * Interleave the lists
-		 */
 		for(int i=0; i < eichallengers.size(); i++)
 		{
 			challengers.add(eichallengers.get(i));
 			challengers.add(randomChallengers.get(i));
 		}
 		
-		
-		
-
+		//=== Convert to array form for debug hash code.
 		double[][] configArrayToDebug = new double[challengers.size()][];
 		int j=0; 
 		for(ParamConfiguration c : challengers)
 		{
 			configArrayToDebug[j++] = c.toValueArray();
 		}
-		
 		log.info("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
 		
 		return challengers;
-	
-		//return super.selectConfigurations();
 	}
 	
 	public List<ParamConfiguration> selectChallengersWithEI(int numChallengers)
@@ -187,8 +165,14 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		Set<ProblemInstance> instanceSet = new HashSet<ProblemInstance>();
 		instanceSet.addAll(runHistory.getInstancesRan(incumbent));
 		
+		//=== Get predictions for all configurations we have run thus far.
+		List<ParamConfiguration> paramConfigs = runHistory.getAllParameterConfigurationsRan();
+		double[][] predictions = transpose(applyMarginalModel(paramConfigs));
+		double[] predmean = predictions[0];
+		double[] predvar = predictions[1];
+
 		double quality = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
-		
+		//=== Get the empirical cost into log space if the model gives log predictions. 
 		if (smacConfig.randomForestConfig.logModel)
 		{
 			//TODO HANDLE MIN RUNTIME THIS IS SO A BUG
@@ -197,98 +181,71 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			quality = Math.log10(quality);
 		}
 		
-		/**
-		 * Get predictions for everything we have run thus far
-		 */
-		List<ParamConfiguration> paramConfigs = runHistory.getAllParameterConfigurationsRan();
-		Map<ParamConfiguration, double[]> configPredMeanVarEIMap = new LinkedHashMap<ParamConfiguration, double[]>();
-		
-		double[][] predictions = transpose(applyMarginalModel(paramConfigs));
-		double[] predmean = predictions[0];
-		double[] predvar = predictions[1];
-		
-		
-		
-		
+		//=== Compute EI of these configurations (as given by predmean,predvar)
 		log.info("Optimizing EI at valdata.iteration {}", getIteration());
 		StopWatch watch = new AutoStartStopWatch();
 		double[] expectedImprovementOfTheta = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
 		watch.stop();
 		log.info("Compute negEI for all conf. seen at valdata.iteration {}: took {} s",getIteration(), watch.time() / 1000.0 );
+
+		//=== Put these EIs into a map for each configuration.
+		Map<ParamConfiguration, double[]> configPredMeanVarEIMap = new LinkedHashMap<ParamConfiguration, double[]>();
 		for(int i=0; i < paramConfigs.size(); i++)
 		{
 			double[] val = { predmean[i], predvar[i], expectedImprovementOfTheta[i] };
 			configPredMeanVarEIMap.put(paramConfigs.get(i), val);
 		}
 		
+		//=== Sort the configurations by EI
 		List<ParamWithEI> sortedParams = ParamWithEI.merge(expectedImprovementOfTheta, paramConfigs);
-		
-	
 		Collections.sort(sortedParams);
-		int numStartConfigs = numChallengers;
-		int numPrevConfigs = numStartConfigs;
-		
-		
-		
+
+		//=== Local search for good EI configs.
 		int numberOfSearches = Math.min(numChallengers, predmean.length);
 		List<ParamWithEI> bestResults  = new ArrayList<ParamWithEI>(numberOfSearches);
 		double min_neg = Double.MAX_VALUE;
-		/**
-		 * Local Search for best candidate
-		 */
 		for(int i=0; i < numberOfSearches; i++)
 		{
 			watch = new AutoStartStopWatch();
 			
-			//double[][] cArray = { sortedParams.get(i).getValue().toValueArray() };
-			
-			ParamWithEI bestSearch = localSearch(sortedParams.get(i), quality, Math.pow(10, -5));
-			if(bestSearch.getAssociatedValue() < min_neg)
+			ParamWithEI lsResult = localSearch(sortedParams.get(i), quality, Math.pow(10, -5));
+			if(lsResult.getAssociatedValue() < min_neg)
 			{
-				min_neg = bestSearch.getAssociatedValue();
+				min_neg = lsResult.getAssociatedValue();
 			}
 			
-			predictions = transpose(applyMarginalModel(Collections.singletonList(bestSearch.getValue())));
-			double[] val = { predictions[0][0], predictions[1][0], bestSearch.getAssociatedValue()};
+			predictions = transpose(applyMarginalModel(Collections.singletonList(lsResult.getValue())));
+			double[] val = { predictions[0][0], predictions[1][0], lsResult.getAssociatedValue()};
 			
-			bestResults.add(bestSearch);
-			configPredMeanVarEIMap.put(bestSearch.getValue(), val);
+			bestResults.add(lsResult);
+			configPredMeanVarEIMap.put(lsResult.getValue(), val);
 			watch.stop();
 			Object[] args = {i+1,watch.time()/1000,min_neg};
-			//cArray[0] = bestSearch.getValue().toValueArray();
-			//log.debug("Local Search End Hash Code: {}", matlabHashCode(cArray));
 			log.info("LS {} took {} seconds and yielded neg log EI {}",args);
-			 
-		
 		}
 		
+		//=== Get into array format for debugging.
 		double[][] configArrayToDebug = new double[bestResults.size()][];
 		int j=0; 
 		for(ParamWithEI bestResult : bestResults)
 		{
 			configArrayToDebug[j++] = bestResult.getValue().toValueArray();
 		}
-		
 		log.info("Local Search Selected Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
 		
-		/**
-		 * Generate random configurations
-		 */
-		
+		//=== Generate random configurations 
 		int numberOfRandomConfigsInEI = smacConfig.numberOfRandomConfigsInEI;
-		
 		List<ParamConfiguration> randomConfigs = new ArrayList<ParamConfiguration>(numberOfRandomConfigsInEI);
-		
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
 			randomConfigs.add(configSpace.getRandomConfiguration());
-			
 		}
+		
+		//=== Compute EI for the random configs.		
 		predictions = transpose(applyMarginalModel(randomConfigs));
 		predmean = predictions[0];
 		predvar = predictions[1]; 
 		double[] expectedImprovementOfRandoms = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
-		
 		
 		for(int i=0; i <  randomConfigs.size(); i++)
 		{
@@ -296,76 +253,67 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			configPredMeanVarEIMap.put(randomConfigs.get(i), val);
 		}
 		
-		
+		//=== Add random configs to LS configs.
 		bestResults.addAll(ParamWithEI.merge(expectedImprovementOfRandoms, randomConfigs));
-		
+
+		//== More debugging.
 		configArrayToDebug = new double[bestResults.size()][];
 		j=0; 
 		for(ParamWithEI eic : bestResults)
 		{
 			configArrayToDebug[j++] = eic.getValue().toValueArray();
 		}
-		
 		log.debug("Local Search Selected Configurations & Random Configs Hash Code: {}", matlabHashCode(configArrayToDebug));
 		
-		bestResults =permute(bestResults);
+		//=== Sort configs by EI and output top ones.
+		bestResults = permute(bestResults);
 		Collections.sort(bestResults);
-		
-		
-		
 		for(int i=0; i < numberOfSearches; i++)
 		{
-			
-			
 			double[] meanvar = configPredMeanVarEIMap.get(bestResults.get(i).getValue());
 			Object[] args = {i+1, meanvar[0], Math.sqrt(meanvar[1]), meanvar[2]}; 
 			log.info("Challenger {} predicted {} +/- {}, expected improvement {}",args);
 		}
 		
-		
-		
+		//=== Make result list of configurations. 
 		List<ParamConfiguration> results = new ArrayList<ParamConfiguration>(bestResults.size());
 		for(ParamWithEI eic : bestResults)
 		{
 			results.add(eic.getValue());
 		}
-		//
 		
+		//== More debugging.
 		configArrayToDebug = new double[results.size()][];
 		j=0; 
 		for(ParamConfiguration c : results)
 		{
 			configArrayToDebug[j++] = c.toValueArray();
 		}
-		
 		log.debug("Select Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
-
+		
 		return Collections.unmodifiableList(results);	
 	}
 	
 	/**
-	 * Performs a local search around the Parameter specified 
-	 * @param eic - Parameter Coupled with it's Expected Improvement 
-	 * @param fmin_sample - 
+	 * Performs a local search starting from the specified start configuration  
+	 * @param eic - Parameter configuration coupled with it's expected improvement 
+	 * @param fmin_sample - The best performance (f_min) to beat
 	 * @param epsilon - Minimum value of improvement required before terminating
 	 * @return best Param&EI Found
 	 */
 	private ParamWithEI localSearch(ParamWithEI startEIC, double fmin_sample, double epsilon)
 	{
-		
 		ParamWithEI incumbentEIC = startEIC;
 		int localSearchSteps = 0;
 		while(true)
 		{
-		
 			localSearchSteps++;
-			
-			
 			if(localSearchSteps % 1000 == 0)
 			{
 				log.warn("Local Search has done {} iterations, possible infinite loop" );
 			}
 			
+			//=== Get EI of current configuration.
 			ParamConfiguration c = incumbentEIC.getValue();
 			double currentMinEI = incumbentEIC.getAssociatedValue();
 			
@@ -374,23 +322,14 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			int LSHashCode = matlabHashCode(cArray);
 			log.trace("Local Search Start Hash Code: {}", LSHashCode);
 			
+			//=== Get neighbourhood of current config and compute EI for all of it.
 			List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
-			
-
-			
-			
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
-			
 			double[] means = prediction[0];
 			double[] vars = prediction[1];
+			double[] eiVal = ei.computeNegativeExpectedImprovement(fmin_sample, means, vars); 
 			
-			
-			double[] eiVal = ei.computeNegativeExpectedImprovement(fmin_sample, means,vars); 
-			
-			
-			
-			
-			
+			//=== Determine EI of best neighbour.
 			double min = eiVal[0];
 			for(int i=1; i < eiVal.length; i++)
 			{
@@ -400,63 +339,66 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				}
 			}
 		
-			
-			
+			//=== If significant improvement then move to one of the best neighbours; otherwise break.   
 			if(min >= currentMinEI - epsilon)
 			{
 				break;
 			} else
 			{
-				List<ParamConfiguration> minConfigs = new ArrayList<ParamConfiguration>(c.size());
+				//== Make list of best neighbours (best within epsilon).
 				List<Integer> minIdx = new ArrayList<Integer>(c.size());
-				
-				
 				for(int i=0; i < eiVal.length; i++)
 				{
 					if(eiVal[i] <= min + epsilon)
 					{
 						//currentMinEI = eiVal[i];
-						minConfigs.add(neighbourhood.get(i));
 						minIdx.add(i);
 					} 
 				}
+
+				//== Move to random element of the best neighbours.
 				int nextIdx = minIdx.get(SeedableRandomSingleton.getRandom().nextInt(minIdx.size()));
-				
-				
 				ParamConfiguration best = neighbourhood.get(nextIdx);
-				
-				//if(true) continue;
 				incumbentEIC = new ParamWithEI(eiVal[nextIdx], best);
-				//return localSearch(new ParamWithEI(minEI, best), fmin_sample, epsilon);
 			}
 		}
 		log.debug("Local Search took {} steps", localSearchSteps);
 		return incumbentEIC;
 	}
 
-	
+	/**
+	 * Computes a marginal prediction across all instances for the configArrays.
+	 * @param configArrays
+	 * @return
+	 */
 	protected double[][] applyMarginalModel(double[][] configArrays)
 	{
-		int[] treesToSearch = new int[forest.numTrees];
-		
+		//=== Use all trees.
+		int[] treeIdxsToUse = new int[forest.numTrees];
 		for(int i=0; i <  forest.numTrees; i++)
 		{
-			treesToSearch[i]=i;
+			treeIdxsToUse[i]=i;
 		}
 		
-		
-		
+		//=== Get the marginal (from preprocessed forest if available).
 		if(smacConfig.randomForestConfig.preprocessMarginal)
 		{
-			return RandomForest.applyMarginal(preparedForest,treesToSearch,configArrays);
+			return RandomForest.applyMarginal(preparedForest,treeIdxsToUse,configArrays);
 		} else
 		{
-			return RandomForest.applyMarginal(forest,treesToSearch,configArrays,sdm.getPCAFeatures());
+			return RandomForest.applyMarginal(forest,treeIdxsToUse,configArrays,sanitizedData.getPCAFeatures());
 		}
 		
 	}
+	
+	/**
+	 * Computes a marginal prediction across all instances for the configs. 
+	 * @param configs
+	 * @return
+	 */
 	protected double[][] applyMarginalModel(List<ParamConfiguration> configs)
 	{
+		//=== Translate into array format, and call method for that format.
 		double[][] configArrays = new double[configs.size()][];
 		int i=0; 
 		for(ParamConfiguration config: configs)
@@ -464,15 +406,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			configArrays[i] = config.toValueArray();
 			i++;
 		}
-		
-
-		return applyMarginalModel(configArrays);
-		
-	}
-	
-	protected double[][] applyMarginalModel()
-	{
-		return applyMarginalModel(runHistory.getAllConfigurationsRanInValueArrayForm());
+		return applyMarginalModel(configArrays);		
 	}
 	
 }

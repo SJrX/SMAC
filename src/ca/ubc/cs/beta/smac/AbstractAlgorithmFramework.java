@@ -83,36 +83,27 @@ public class AbstractAlgorithmFramework {
 	
 	private final FileWriter fout;
 	
-	private int iteration;
+	private int iteration = 0;
 	protected ParamConfiguration incumbent = null;
 	
 	private final int MAX_RUNS_FOR_INCUMBENT;
 	
 	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
 	{
-		
 		this.instances = instances;
 		this.testInstances = testInstances;
 		this.cutoffTime = smacConfig.scenarioConfig.cutoffTime;
 		this.config = smacConfig;
-		this.rand = rand;
-		
+		this.rand = rand;		
 		this.algoEval = algoEval;
 		this.stateFactory = stateFactory;
+		this.configSpace = configSpace;
+		this.runHistory = new NewRunHistory(instanceSeedGen,smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.runObj);
 		
 		long time = System.currentTimeMillis();
-		
 		Date d = new Date(time);
-		DateFormat df = DateFormat.getDateTimeInstance();
-		
-		log.info("Automatic Configuration Start Time is {}", df.format(d));
-		
-		this.configSpace = configSpace;
-		
-		runHistory = new NewRunHistory(instanceSeedGen,smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.runObj);
-		//RunHistory h1 = new LegacyRunHistory(new InstanceSeedGenerator(instances,smacConfig.seed),smacConfig.overallObj, smacConfig.overallObj, smacConfig.runObj);
-		//runHistory = new DebugRunHistory(h1,h2);
-		iteration = 0;
+		DateFormat df = DateFormat.getDateTimeInstance();	
+		log.info("Automatic Configuration Start Time is {}", df.format(d));				
 		
 		//=== Clamp # runs for incumbent to # of available seeds.
 		if(instanceSeedGen.getInitialInstanceSeedCount() < config.maxIncumbentRuns)
@@ -125,7 +116,7 @@ public class AbstractAlgorithmFramework {
 			log.info("Maximimum Number of Runs for the Incumbent Initialized to {}:", MAX_RUNS_FOR_INCUMBENT);
 		}
 		
-		
+		//=== Initialize trajectory file.
 		try {
 			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator +"traj-run-" + config.seed + ".txt";
 			this.fout = new FileWriter(new File(outputFileName));
