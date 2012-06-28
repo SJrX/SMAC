@@ -21,8 +21,6 @@ import ca.ubc.cs.beta.config.JCommanderHelper;
 import ca.ubc.cs.beta.config.ScenarioConfig;
 
 import com.beust.jcommander.JCommander;
-import com.beust.jcommander.Parameter;
-import com.beust.jcommander.ParametersDelegate;
 
 public class SMACTester {
 	
