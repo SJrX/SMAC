@@ -482,6 +482,17 @@ public class SMACTester {
 			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true);
 		}
 		
+		@Test
+		/**
+		 * Related
+		 */
+		public void testCPLEXRelativePath()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
+			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true);
+		}
+		
+		
 		
 		@Test
 		public void testSPEARSurrogate()

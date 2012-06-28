@@ -175,7 +175,7 @@ public class AutomaticConfigurator
 			
 			if(config.restoreIteration != null)
 			{
-				restoreState(config, restoreSF, smac, configSpace,config.scenarioConfig.overallObj,config.scenarioConfig.runObj, instances, execConfig);
+				restoreState(config, restoreSF, smac, configSpace,config.scenarioConfig.intraInstanceObj,config.scenarioConfig.interInstanceObj,config.scenarioConfig.runObj, instances, execConfig);
 			}
 			
 				
@@ -190,7 +190,7 @@ public class AutomaticConfigurator
 				double cpuTime = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;;
 				double empericalPerformance = smac.getEmpericalPerformance(smac.getIncumbent());
 				
-				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.overallObj, tunerTime, empericalPerformance, cpuTime, config.seed);
+				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.intraInstanceObj, config.scenarioConfig.interInstanceObj, tunerTime, empericalPerformance, cpuTime, config.seed);
 			}
 			
 			logger.info("SMAC Completed Successfully");
@@ -243,14 +243,14 @@ public class AutomaticConfigurator
 
 	
 
-	private static void restoreState(SMACConfig config, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective overallObj, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
+	private static void restoreState(SMACConfig config, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
 		
 		if(config.restoreIteration < 0)
 		{
 			throw new ParameterException("Iteration must be a non-negative integer");
 		}
 		
-		StateDeserializer sd = sf.getStateDeserializer("it", config.restoreIteration, configSpace, overallObj, runObj, instances, execConfig);
+		StateDeserializer sd = sf.getStateDeserializer("it", config.restoreIteration, configSpace, intraInstanceObjective, interInstanceObjective, runObj, instances, execConfig);
 		
 		smac.restoreState(sd);
 		

@@ -117,7 +117,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//TODO: always go through AdaptiveCappingModelBuilder
 		if(config.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.overallObj.getPenaltyFactor());
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
 		} else
 		{
 			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestConfig, runHistory); 
