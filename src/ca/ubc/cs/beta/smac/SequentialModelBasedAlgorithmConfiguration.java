@@ -52,7 +52,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private RandomForest preparedForest;
 	
 	/**
-	 * Last build of sanatized data
+	 * Last build of sanitized data
 	 */
 	private PCAModelDataSanitizer sanitizedData;
 	private final ExpectedImprovementFunction ei;
