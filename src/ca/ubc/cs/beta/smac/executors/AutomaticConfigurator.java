@@ -124,8 +124,6 @@ public class AutomaticConfigurator
 			}
 			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecConfig.algoExec, f2.getAbsolutePath(), configSpace, false);
 		
-			
-			
 			TargetAlgorithmEvaluator algoEval;
 			boolean concurrentRuns = (config.maxConcurrentAlgoExecs > 1);
 			if(config.runHashCodeFile != null)
@@ -145,8 +143,6 @@ public class AutomaticConfigurator
 			{
 				logger.info("Algorithm Execution will verify model Hash Codes");
 				parseModelHashCodes(config.runHashCodeFile);
-				
-			
 			}
 			
 			StateFactory sf;

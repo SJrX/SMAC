@@ -29,6 +29,7 @@ import ca.ubc.cs.beta.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 import ca.ubc.cs.beta.smac.history.DuplicateRunException;
@@ -193,35 +194,42 @@ public class AbstractAlgorithmFramework {
 		log.info("Restored to Iteration {}", iteration);
 	}
 	
-	
 	/**
 	 * Function that determines whether we should stop processing or not
 	 * @param iteration - number of iterations we have done
 	 * @return
 	 */
-	protected boolean have_to_stop(int iteration)
+	protected boolean have_to_stop(int iteration){
+		return have_to_stop(iteration, 0);
+	}
+	
+	/**
+	 * Function that determines whether we should stop processing or not
+	 * @param iteration - number of iterations we have done
+	 * @param nextRunTime - the time the next run takes
+	 * @return
+	 */
+	protected boolean have_to_stop(int iteration, double nextRunTime)
 	{
-		if(getTunerTime() > config.scenarioConfig.tunerTimeout)
+		if(getTunerTime() + nextRunTime > config.scenarioConfig.tunerTimeout)
 		{
-			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost(), config.scenarioConfig.tunerTimeout);
+			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost() + nextRunTime, config.scenarioConfig.tunerTimeout);
 			return true;
 		}
 		
-		if(iteration >= config.numIteratations)
+		if(iteration > config.numIteratations)
 		{
 			log.info("Iteration {} greater than number permitted {}", iteration, config.numIteratations);
 			return true;
 		}
 		
-		if(runHistory.getAlgorithmRunData().size() > config.totalNumRunLimit)
+		if(runHistory.getAlgorithmRunData().size() >= config.totalNumRunLimit)
 		{
 			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), config.totalNumRunLimit);
 			return true;
 		}
 		
 		return false;
-
-		
 	}
 	
 	
@@ -318,27 +326,27 @@ public class AbstractAlgorithmFramework {
 				 * Main Loop
 				 */
 				
-				
-				
-				while(!have_to_stop(iteration))
-				{
-					if(shouldSave()) saveState();
-					
-					
-					runHistory.incrementIteration();
-					iteration++;
-					log.info("Starting Iteration {}", iteration);
-					StopWatch t = new AutoStartStopWatch();
-					learnModel(runHistory, configSpace);
-					
-					double learnModelTime = t.stop();
-					
-					ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
-					challengers.addAll(selectConfigurations());
-					intensify(challengers, learnModelTime/1000);
-					
-					logIncumbent(iteration);
-					
+				try{
+					while(!have_to_stop(iteration+1))
+					{
+						if(shouldSave()) saveState();
+						
+						runHistory.incrementIteration();
+						iteration++;
+						log.info("Starting Iteration {}", iteration);
+						StopWatch t = new AutoStartStopWatch();
+						learnModel(runHistory, configSpace);
+						
+						double learnModelTime = t.stop();
+						
+						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
+						challengers.addAll(selectConfigurations());
+						intensify(challengers, learnModelTime/1000);
+						
+						logIncumbent(iteration);
+					} 
+				} catch(OutOfTimeException e){
+					// We're out of time.
 				}
 				
 				saveState("it", true);
@@ -347,8 +355,6 @@ public class AbstractAlgorithmFramework {
 			} catch(RuntimeException e)
 			{
 				try{
-					
-					
 					saveState("CRASH",true);
 				} catch(RuntimeException e2)
 				{
@@ -362,20 +368,13 @@ public class AbstractAlgorithmFramework {
 			try {
 				fout.close();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				log.error("Trying to close Trajectory File failed with exception {}", e);
 			}
-			
 		}
-		
-		
-		//log.info("Real Time: {} s, CPU Time: {}, User Time:{} ",data);
-
 	}
 	
 	protected boolean shouldSave() 
 	{
-		//Perfect power of 2
 		return true;
 	}
 
@@ -421,8 +420,6 @@ public class AbstractAlgorithmFramework {
 	 */
 	private void intensify(List<ParamConfiguration> challengers, double timeBound) 
 	{
-		
-	
 		double initialTime = runHistory.getTotalRunCost();
 		log.info("Calling intensify with {} challenger(s)", challengers.size());
 		for(int i=0; i < challengers.size(); i++)
@@ -737,6 +734,9 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : runs)
 		{
 			try {
+				if (have_to_stop(iteration, run.getRuntime())){
+					throw new OutOfTimeException();
+				}
 				runHistory.append(run);
 			} catch (DuplicateRunException e) {
 				//We are trying to log a duplicate run
