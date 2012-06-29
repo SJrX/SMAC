@@ -45,7 +45,7 @@
 	</target>
 	<target name="archive" depends="compile">
 		<jar destfile="dist/smac.jar" basedir="build/classes"/>
-		<buildnumber file="build-resources/buildnumber-${ant.project.name}"/>
+		<buildnumber file="/ubc/cs/project/arrow/seramage/software/build-numbers/buildnumber-${ant.project.name}"/>
 		<property name="outputfilename" value="smac-v${version.major}.${version.minor}${version.beta}-${build.number}"/>
 		<copy todir="dist/" force="true">
 			<fileset dir="deployables">
