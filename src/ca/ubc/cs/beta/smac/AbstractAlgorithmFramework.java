@@ -335,7 +335,7 @@ public class AbstractAlgorithmFramework {
 					
 					ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 					challengers.addAll(selectConfigurations());
-					intensify(challengers, learnModelTime);
+					intensify(challengers, learnModelTime/1000);
 					
 					logIncumbent(iteration);
 					

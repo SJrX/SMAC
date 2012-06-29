@@ -117,7 +117,12 @@ public class AutomaticConfigurator
 				throw new ParameterException("Could not find param file");
 			}
 			
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecConfig.algoExec, config.scenarioConfig.algoExecConfig.algoExecDir, configSpace, false);
+			String algoExecDir = config.scenarioConfig.algoExecConfig.algoExecDir;
+			File f2 = new File(algoExecDir);
+			if (!f2.isAbsolute()){
+				f2 = new File(config.experimentDir + File.separator + algoExecDir);
+			}
+			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecConfig.algoExec, f2.getAbsolutePath(), configSpace, false);
 		
 			
 			
