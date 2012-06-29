@@ -24,7 +24,7 @@ public class NullStateFactory implements StateFactory {
 	@Override
 	public StateDeserializer getStateDeserializer(String id,
 			int restoreIteration, ParamConfigurationSpace configSpace,
-			OverallObjective overallObj, RunObjective runObj,
+			OverallObjective overallObj,OverallObjective o2,  RunObjective runObj,
 			List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig)
 			throws StateSerializationException {
 		throw new UnsupportedOperationException("Can not deseialize a null state");

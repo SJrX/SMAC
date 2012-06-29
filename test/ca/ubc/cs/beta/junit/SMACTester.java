@@ -72,7 +72,7 @@ public class SMACTester {
 			
 	}
 	
-		public String getExecString(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, boolean verifyHashCodes)
+		public String getExecString(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, boolean verifyHashCodes, boolean checkInstances)
 		{
 			String experimentDir = (new File(scenarioFile)).getParent();
 			String runID = new File(scenarioFile).getName() + "-JUNIT";
@@ -85,8 +85,9 @@ public class SMACTester {
 			if (true) return true;
 			*/
 	
+			String instanceCheck = (checkInstances) ? " " : " --skipInstanceFileCheck ";
 			
-			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runGroupName "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) + " --skipInstanceFileCheck --skipValidation ";
+			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runGroupName "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) +  instanceCheck+  " --skipValidation ";
 			
 			
 			
@@ -115,7 +116,7 @@ public class SMACTester {
 			
 		}
 		
-		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, String messageClass, String message, boolean verifyHashCodes )
+		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, String messageClass, String message, boolean verifyHashCodes, boolean checkInstances )
 		{
 			
 			int iteration=0;
@@ -133,7 +134,7 @@ public class SMACTester {
 			
 			
 			boolean resultFound = false;
-			String execString = getExecString(scenarioFile, adaptiveCapping, iterationLimit, ROARMode, restoreIteration, id, verifyHashCodes);
+			String execString = getExecString(scenarioFile, adaptiveCapping, iterationLimit, ROARMode, restoreIteration, id, verifyHashCodes, checkInstances);
 			String runDir = smacDeployment;
 			Queue<String> last10Lines = new LinkedList<String>();
 			boolean messageFound = false;
@@ -282,7 +283,7 @@ public class SMACTester {
 		 */
 		public void testFailSMAC(String scenarioFile, String messageClass, String message, int iterations)
 		{
-			String execString = getExecString(scenarioFile, false, iterations, false, 0, -1, false);
+			String execString = getExecString(scenarioFile, false, iterations, false, 0, -1, false, false);
 			
 			Queue<String> last10Lines = new LinkedList<String>();
 			try {
@@ -428,38 +429,42 @@ public class SMACTester {
 		}
 		public void testSMAC(String scenarioFile, String messageClass, String message, boolean verifyHashCodes)
 		{
+			testSMAC(scenarioFile, messageClass, message, verifyHashCodes, false);
+		}
+		public void testSMAC(String scenarioFile, String messageClass, String message, boolean verifyHashCodes, boolean checkInstances)
+		{
 			/**
 			 * AC, Iteration Limit, ROAR Mode, Restore Iteration
 			 */
 			int id=0;
 			int lastIteration;
 			System.out.println("ROAR");
-			lastIteration = runSMAC(scenarioFile, false, 18, true, 0, id++, messageClass, message, verifyHashCodes);
+			lastIteration = runSMAC(scenarioFile, false, 18, true, 0, id++, messageClass, message, verifyHashCodes, checkInstances);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			runSMAC(scenarioFile, false, 21, true, lastIteration,id++, messageClass, message, verifyHashCodes);
+			runSMAC(scenarioFile, false, 21, true, lastIteration,id++, messageClass, message, verifyHashCodes, checkInstances);
 			
 			
 			System.out.println("ROAR+AC");
-			lastIteration = runSMAC(scenarioFile, true, 18, true, 0, id++, messageClass, message, verifyHashCodes);
+			lastIteration = runSMAC(scenarioFile, true, 18, true, 0, id++, messageClass, message, verifyHashCodes, checkInstances);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore+AC");
-			runSMAC(scenarioFile, true, 21, true, lastIteration,id++, messageClass, message, verifyHashCodes);
+			runSMAC(scenarioFile, true, 21, true, lastIteration,id++, messageClass, message, verifyHashCodes, checkInstances);
 			
 			
 			System.out.println("SMAC");
-			lastIteration = runSMAC(scenarioFile, false, 18, false, 0, id++, messageClass, message, verifyHashCodes);
+			lastIteration = runSMAC(scenarioFile, false, 18, false, 0, id++, messageClass, message, verifyHashCodes, checkInstances);
 			lastIteration = restoreIteration(lastIteration);
 			System.out.println("Restore");
-			runSMAC(scenarioFile, false, 21, false, lastIteration,id++, messageClass, message, verifyHashCodes);
+			runSMAC(scenarioFile, false, 21, false, lastIteration,id++, messageClass, message, verifyHashCodes, checkInstances);
 			
 			
 			System.out.println("SMAC+AC");
-			lastIteration = runSMAC(scenarioFile, true, 18, false, 0, id++, messageClass, message, verifyHashCodes);
+			lastIteration = runSMAC(scenarioFile, true, 18, false, 0, id++, messageClass, message, verifyHashCodes, checkInstances);
 			lastIteration = restoreIteration(lastIteration);
 			
 			System.out.println("Restore+AC");
-			runSMAC(scenarioFile, true, 21, false, lastIteration,id++, messageClass, message, verifyHashCodes);
+			runSMAC(scenarioFile, true, 21, false, lastIteration,id++, messageClass, message, verifyHashCodes, checkInstances);
 
 			
 		}
@@ -481,6 +486,17 @@ public class SMACTester {
 			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
 			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true);
 		}
+		
+		@Test
+		/**
+		 * Related to Bug 1346 
+		 */
+		public void testCPLEXRelativePath()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini-relativeInstances.txt";
+			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true, true);
+		}
+		
 		
 		
 		@Test

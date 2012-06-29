@@ -98,7 +98,7 @@ public class AbstractAlgorithmFramework {
 		this.algoEval = algoEval;
 		this.stateFactory = stateFactory;
 		this.configSpace = configSpace;
-		this.runHistory = new NewRunHistory(instanceSeedGen,smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.overallObj, smacConfig.scenarioConfig.runObj);
+		this.runHistory = new NewRunHistory(instanceSeedGen,smacConfig.scenarioConfig.intraInstanceObj, smacConfig.scenarioConfig.interInstanceObj, smacConfig.scenarioConfig.runObj);
 		
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);

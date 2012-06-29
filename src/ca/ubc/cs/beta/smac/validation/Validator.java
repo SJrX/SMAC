@@ -36,9 +36,9 @@ public class Validator {
 	public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
 			String outputDir,
 			RunObjective runObj,
-			OverallObjective overallObj, double tunerTime, long numRun) {
+			OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, double tunerTime, long numRun) {
 		
-		validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, overallObj,tunerTime, 0,0, numRun);
+		validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, intraInstanceObjective, interInstanceObjective,tunerTime, 0,0, numRun);
 	}
 		
 		
@@ -46,7 +46,7 @@ public class Validator {
 public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
 		String outputDir,
 		RunObjective runObj,
-		OverallObjective overallObj, double tunerTime,  double empericalPerformance, double cpuTime, long numRun) {
+		OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, double tunerTime,  double empericalPerformance, double cpuTime, long numRun) {
 		
 		int testInstancesCount = Math.min(config.numberOfTestInstances, testInstances.size());
 		int testSeedsPerInstance = config.numberOfTestSeedsPerInstance;
@@ -93,7 +93,7 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 		
 		try
 		{
-			double testSetPerformance = writeInstanceResultFile(runs, config, outputDir, cutoffTime, runObj, overallObj, numRun);
+			double testSetPerformance = writeInstanceResultFile(runs, config, outputDir, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, numRun);
 			
 			appendInstanceResultFile(outputDir, tunerTime, empericalPerformance, testSetPerformance, cpuTime, numRun);
 		} catch(IOException e)
@@ -195,15 +195,13 @@ endloop:
 	 * @return - Overall objective over test set (For convinence)
 	 * @throws IOException
 	 */
-	private static double writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective overallObj, long numRun) throws IOException 
+	private static double writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, long numRun) throws IOException 
 	{
 		Map<ProblemInstance, List<AlgorithmRun>> map = new LinkedHashMap<ProblemInstance,List<AlgorithmRun>>();
 		
 		File f = new File(outputDir +  File.separator + "validationResultsMatrix-run" + numRun + ".csv");
 		log.info("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
-		
-		
 		
 		
 		int maxRunLength =0;
@@ -258,7 +256,7 @@ endloop:
 				results.add(runObj.getObjective(myRuns.get(i)));
 			}
 			
-			double overallResult = overallObj.aggregate(results, cutoffTime);
+			double overallResult = intraInstanceObjective.aggregate(results, cutoffTime);
 			outputLine.add(String.valueOf(overallResult));
 			
 			overallObjectives.add(overallResult);
@@ -273,7 +271,7 @@ endloop:
 		}
 		
 		
-		double overallObjective = overallObj.aggregate(overallObjectives,cutoffTime);
+		double overallObjective = interInstanceObjective.aggregate(overallObjectives,cutoffTime);
 		String[] args = { "Overall Objective On Test Set", String.valueOf(overallObjective)};
 		writer.writeNext(args);
 		
