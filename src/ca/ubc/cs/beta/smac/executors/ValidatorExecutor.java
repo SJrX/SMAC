@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +27,10 @@ import ca.ubc.cs.beta.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.smac.helper.AssociatedValue;
 import ca.ubc.cs.beta.smac.validation.Validator;
+import ca.ubc.cs.beta.trajectory.TrajectoryFileParser;
+import ca.ubc.cs.beta.trajectory.TrajectoryFileParser.TrajectoryFileEntry;
 
 public class ValidatorExecutor {
 
@@ -51,6 +55,43 @@ public class ValidatorExecutor {
 				
 				JCommanderHelper.parse(com, args);
 				
+				if(config.incumbent != null && config.trajectoryFile != null)
+				{
+					throw new ParameterException("You cannot specify both a configuration and a trajectory file");
+				}
+				
+				ParamConfiguration configToValidate; 
+				
+				
+				if(config.trajectoryFile != null)
+				{
+					log.info("Using Trajectory File {} " + config.trajectoryFile.getAbsolutePath());
+					if(config.tunerTime == -1)
+					{
+						config.tunerTime = config.scenarioConfig.tunerTimeout;
+						log.info("Using Scenario Tuner Time {} seconds", config.tunerTime );
+						
+						
+					}
+					
+					
+					
+				} else
+				{
+					if(config.tunerTime == -1)
+					{
+						config.tunerTime = 0;
+					}
+					
+					if(config.empericalPerformance == -1)
+					{
+						config.empericalPerformance = 0;
+						
+					}
+						log.info("Using configuration specified on Command Line");
+				}
+				
+			
 		
 				log.info("Parsing test instances from {}", config.scenarioConfig.instanceFile );
 				InstanceListWithSeeds ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir,config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed, Integer.MAX_VALUE);
@@ -76,6 +117,61 @@ public class ValidatorExecutor {
 					
 					}
 				}
+				
+				double nearestTunerTime = 0;
+				
+				if(config.trajectoryFile != null)
+				{
+					ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = TrajectoryFileParser.parseTrajectoryFile(config.trajectoryFile, configSpace);
+					
+					TrajectoryFileEntry tfe = skipList.floorEntry(config.tunerTime).getValue();
+					nearestTunerTime = skipList.floorEntry(config.tunerTime).getKey();
+					if(config.empericalPerformance == -1 )
+					{
+						config.empericalPerformance = tfe.getEmpericalPerformance();
+					}
+						
+					
+					
+					if(config.tunerOverheadTime == -1)
+					{
+						config.tunerOverheadTime = tfe.getACOverhead();
+					}
+					
+					configToValidate = tfe.getConfiguration();
+					
+					
+				} else
+				{
+					if (config.tunerOverheadTime == -1)
+					{
+						config.tunerOverheadTime = 0;	
+					}
+					
+					if(config.incumbent == null)
+					{
+						log.info("Validating Default Configuration");
+						configToValidate = configSpace.getDefaultConfiguration();
+					} else
+					{
+						log.info("Parsing Supplied Configuration");
+						try {
+							configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.NODB_SYNTAX);
+						} catch(RuntimeException e)
+						{
+							try {
+								log.info("Being nice and checking if this is a STATEFILE encoded configuration");
+								configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.STATEFILE_SYNTAX);
+							} catch(RuntimeException e2)
+							{
+								throw e;
+							}
+							
+						}
+					}
+					
+				}
+				
 				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecConfig.algoExec, config.scenarioConfig.algoExecConfig.algoExecDir, configSpace, false);
 				
 				
@@ -97,32 +193,26 @@ public class ValidatorExecutor {
 				{
 					throw new ParameterException("Couldn't make output Directory:" + outputDir);
 				}
-				ParamConfiguration configToValidate; 
 				
-				if(config.incumbent == null)
-				{
-					log.info("Validating Default Configuration");
-					configToValidate = configSpace.getDefaultConfiguration();
-				} else
-				{
-					log.info("Parsing Supplied Configuration");
-					try {
-						configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.NODB_SYNTAX);
-					} catch(RuntimeException e)
-					{
-						try {
-							log.info("Being nice and checking if this is a STATEFILE encoded configuration");
-							configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.STATEFILE_SYNTAX);
-						} catch(RuntimeException e2)
-						{
-							throw e;
-						}
-						
-					}
-				}
-				log.info("Begining Validation on {}", configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX));
-				log.warn("numRun is hardcoded to 0");
-				(new Validator()).validate(testInstances, configToValidate,config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.intraInstanceObj, config.scenarioConfig.interInstanceObj, config.tunerTime, 0);
+				Object[] arr = {config.tunerTime,nearestTunerTime, config.empericalPerformance, config.tunerOverheadTime, config.seed, configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX)};
+				
+				
+				log.info("Begining Validation on tuner time: {} (trajectory file time: {}) emperical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
+		
+				(new Validator()).validate(testInstances,
+						configToValidate,
+						config.validationOptions,
+						config.scenarioConfig.cutoffTime,
+						testInstanceSeedGen,
+						validatingTae,
+						outputDir,
+						config.scenarioConfig.runObj,
+						config.scenarioConfig.intraInstanceObj,
+						config.scenarioConfig.interInstanceObj,
+						config.tunerTime,
+						config.empericalPerformance,
+						config.tunerOverheadTime,
+						config.seed);
 				
 				log.info("Validation Completed Successfully");
 			} catch(ParameterException e)
@@ -138,6 +228,11 @@ public class ValidatorExecutor {
 				
 				log.error(exception, "Message: {}",t.getMessage());
 
+				
+				if(t instanceof NullPointerException)
+				{
+					log.error("This error is most likely caused by an improper input file format, make sure the files are non empty / in the right format");
+				}
 				if(!(t instanceof ParameterException))
 				{
 					log.error(exception, "Exception:{}", t.getClass().getCanonicalName());
