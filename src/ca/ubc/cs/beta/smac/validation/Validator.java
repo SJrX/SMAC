@@ -15,19 +15,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVWriter;
-import ca.ubc.cs.beta.ac.config.RunConfig;
-import ca.ubc.cs.beta.config.ValidationOptions;
-import ca.ubc.cs.beta.config.ValidationRoundingMode;
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.probleminstance.ProblemInstanceSeedPair;
-import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;
-import ca.ubc.cs.beta.seedgenerator.SetInstanceSeedGenerator;
-import ca.ubc.cs.beta.smac.OverallObjective;
-import ca.ubc.cs.beta.smac.RunObjective;
-import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
+import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
+import ca.ubc.cs.beta.aclib.objectives.RunObjective;
+import ca.ubc.cs.beta.aclib.options.ValidationOptions;
+import ca.ubc.cs.beta.aclib.options.ValidationRoundingMode;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
+import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.seedgenerator.RandomInstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.seedgenerator.SetInstanceSeedGenerator;
 
 public class Validator {
 	
@@ -207,7 +207,7 @@ endloop:
 		int maxRunLength =0;
 		for(AlgorithmRun run : runs)
 		{
-			ProblemInstance pi = run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getInstance();
+			ProblemInstance pi = run.getRunConfig().getProblemInstanceSeedPair().getInstance();
 			if(map.get(pi) == null)
 			{
 				map.put(pi, new ArrayList<AlgorithmRun>());
@@ -300,7 +300,7 @@ endloop:
 		for(AlgorithmRun run : runs)
 		{
 			
-			String[] args = { String.valueOf(run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getSeed()),run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getInstance().getInstanceName(), String.valueOf(runObj.getObjective(run)) };
+			String[] args = { String.valueOf(run.getRunConfig().getProblemInstanceSeedPair().getSeed()),run.getRunConfig().getProblemInstanceSeedPair().getInstance().getInstanceName(), String.valueOf(runObj.getObjective(run)) };
 			writer.writeNext(args);
 		}
 		
@@ -328,7 +328,7 @@ endloop:
 		for(AlgorithmRun run : runs)
 		{
 			
-			String[] args = { String.valueOf(run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getSeed()),run.getInstanceRunConfig().getAlgorithmInstanceSeedPair().getInstance().getInstanceName(), run.rawResultLine(), run.getResultLine() };
+			String[] args = { String.valueOf(run.getRunConfig().getProblemInstanceSeedPair().getSeed()),run.getRunConfig().getProblemInstanceSeedPair().getInstance().getInstanceName(), run.rawResultLine(), run.getResultLine() };
 			writer.writeNext(args);
 		}
 		

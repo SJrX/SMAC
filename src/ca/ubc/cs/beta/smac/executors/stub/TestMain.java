@@ -1,7 +1,7 @@
 package ca.ubc.cs.beta.smac.executors.stub;
 
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 
 public class TestMain {
 

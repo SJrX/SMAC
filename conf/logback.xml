@@ -15,7 +15,7 @@
   
   
   <appender name="FILE-WARN" class="ch.qos.logback.core.FileAppender">
-  <file>${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}-warn.txt</file>
+  <file>${OUTPUTDIR}/${RUNGROUPDIR}/log-warn${NUMRUN}.txt</file>
   <append>false</append>
   <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
   	<level>WARN</level>
@@ -29,7 +29,7 @@
   
   
   <appender name="FILE-ERR" class="ch.qos.logback.core.FileAppender">
-  <file>${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}-err.txt</file>
+  <file>${OUTPUTDIR}/${RUNGROUPDIR}/log-err${NUMRUN}.txt</file>
   <append>false</append>
   <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
   	<level>ERROR</level>

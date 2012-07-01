@@ -15,22 +15,22 @@ import org.slf4j.Marker;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
-import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.config.JCommanderHelper;
-import ca.ubc.cs.beta.config.ValidationExecutorConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.configspace.ParamFileHelper;
-import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
-import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.smac.helper.AssociatedValue;
+import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.misc.associatedvalue.AssociatedValue;
+import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions;
+import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
-import ca.ubc.cs.beta.trajectory.TrajectoryFileParser;
-import ca.ubc.cs.beta.trajectory.TrajectoryFileParser.TrajectoryFileEntry;
 
 public class ValidatorExecutor {
 
@@ -43,7 +43,7 @@ public class ValidatorExecutor {
 		
 		
 		
-		ValidationExecutorConfiguration config = new ValidationExecutorConfiguration();
+		ValidationExecutorOptions config = new ValidationExecutorOptions();
 		
 		
 		
@@ -103,7 +103,7 @@ public class ValidatorExecutor {
 				ParamConfigurationSpace configSpace = null;
 				
 				
-				String[] possiblePaths = { config.scenarioConfig.paramFileDelegate.paramFile, config.experimentDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile, config.scenarioConfig.algoExecConfig.algoExecDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile }; 
+				String[] possiblePaths = { config.scenarioConfig.paramFileDelegate.paramFile, config.experimentDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile, config.scenarioConfig.algoExecOptions.algoExecDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile }; 
 				for(String path : possiblePaths)
 				{
 					try {
@@ -172,7 +172,7 @@ public class ValidatorExecutor {
 					
 				}
 				
-				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecConfig.algoExec, config.scenarioConfig.algoExecConfig.algoExecDir, configSpace, false);
+				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecOptions.algoExec, config.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false);
 				
 				
 				

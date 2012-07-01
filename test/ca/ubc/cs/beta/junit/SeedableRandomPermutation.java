@@ -10,7 +10,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import ca.ubc.cs.beta.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 
 public class SeedableRandomPermutation {
 

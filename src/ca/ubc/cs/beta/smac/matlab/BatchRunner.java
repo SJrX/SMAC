@@ -9,12 +9,12 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.ubc.cs.beta.ac.config.RunConfig;
-import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aclib.algorithmrun.ExistingAlgorithmRun;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
 import ca.ubc.cs.beta.smac.SimpleExecutor;
 import ca.ubc.cs.beta.smac.ac.exceptions.TargetAlgorithmExecutionException;
-import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
-import ca.ubc.cs.beta.smac.ac.runs.ExistingAlgorithmRun;
 
 /**
  * This class roughly corresponds to the get_single_results.m.
@@ -114,14 +114,14 @@ public class BatchRunner {
 		
 		for(RunConfig instanceRunConfig: instanceRunConfigs)
 		{
-			if(instanceRunConfig.getAlgorithmInstanceSeedPair().getInstance().getInstanceName().indexOf(" ") != -1)
+			if(instanceRunConfig.getProblemInstanceSeedPair().getInstance().getInstanceName().indexOf(" ") != -1)
 			{
 				throw new TargetAlgorithmExecutionException("Instance name contains a space which breaks the file format we are being asked to write to");
 			}
 			
-			out.print(instanceRunConfig.getAlgorithmInstanceSeedPair().getInstance().getInstanceName());
+			out.print(instanceRunConfig.getProblemInstanceSeedPair().getInstance().getInstanceName());
 			out.print(" ");
-			out.print(instanceRunConfig.getAlgorithmInstanceSeedPair().getSeed());
+			out.print(instanceRunConfig.getProblemInstanceSeedPair().getSeed());
 			out.print(" ");
 			out.print(instanceRunConfig.getCutoffTime());
 			out.print(" ");

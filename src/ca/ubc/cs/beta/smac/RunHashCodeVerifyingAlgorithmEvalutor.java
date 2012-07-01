@@ -9,11 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import ca.ubc.cs.beta.ac.config.RunConfig;
-import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
-import ca.ubc.cs.beta.smac.exceptions.TrajectoryDivergenceException;
+import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
 
 public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvaluator {
 

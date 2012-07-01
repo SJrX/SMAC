@@ -13,25 +13,25 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.config.SMACConfig;
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
+import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
+import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
+import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
+import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
+import ca.ubc.cs.beta.aclib.model.builder.BasicModelBuilder;
+import ca.ubc.cs.beta.aclib.model.builder.ModelBuilder;
+import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
+import ca.ubc.cs.beta.aclib.options.SMACOptions;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
-import ca.ubc.cs.beta.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.random.SeedableRandomSingleton;
-import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.smac.helper.ParamWithEI;
-import ca.ubc.cs.beta.smac.history.RunHistory;
-import ca.ubc.cs.beta.smac.model.builder.AdaptiveCappingModelBuilder;
-import ca.ubc.cs.beta.smac.model.builder.BasicModelBuilder;
-import ca.ubc.cs.beta.smac.model.builder.ModelBuilder;
-import ca.ubc.cs.beta.smac.model.data.PCAModelDataSanitizer;
-import ca.ubc.cs.beta.smac.state.StateFactory;
-import ca.ubc.cs.beta.smac.util.AutoStartStopWatch;
-import ca.ubc.cs.beta.smac.util.StopWatch;
-import ei.ExpectedImprovementFunction;
-import static ca.ubc.cs.beta.smac.helper.ArrayMathOps.*;
+import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
 
 public class SequentialModelBasedAlgorithmConfiguration extends
 		AbstractAlgorithmFramework {
@@ -39,7 +39,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private final int numPCA;
 	private final boolean logModel;
 	private final Logger log = LoggerFactory.getLogger(this.getClass());
-	private final SMACConfig smacConfig;
+	private final SMACOptions smacConfig;
 	
 	/**
 	 * Most recent forest built
@@ -58,10 +58,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private final ExpectedImprovementFunction ei;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACConfig smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
 		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen, rand);
 		numPCA = smacConfig.numPCA;
-		logModel = smacConfig.randomForestConfig.logModel;
+		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
 		this.ei = ei;
 	}
@@ -117,10 +117,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//TODO: always go through AdaptiveCappingModelBuilder
 		if(config.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestConfig, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
 		} else
 		{
-			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestConfig, runHistory); 
+			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory); 
 		}
 		 /*= new HashCodeVerifyingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory);*/
 		forest = mb.getRandomForest();
@@ -173,7 +173,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 
 		double quality = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
 		//=== Get the empirical cost into log space if the model gives log predictions. 
-		if (smacConfig.randomForestConfig.logModel)
+		if (smacConfig.randomForestOptions.logModel)
 		{
 			//TODO HANDLE MIN RUNTIME THIS IS SO A BUG
 			//THIS IS SO A BUG
@@ -381,7 +381,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		//=== Get the marginal (from preprocessed forest if available).
-		if(smacConfig.randomForestConfig.preprocessMarginal)
+		if(smacConfig.randomForestOptions.preprocessMarginal)
 		{
 			return RandomForest.applyMarginal(preparedForest,treeIdxsToUse,configArrays);
 		} else

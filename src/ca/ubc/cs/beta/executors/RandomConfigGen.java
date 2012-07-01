@@ -7,16 +7,16 @@ import java.io.IOException;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
-import ca.ubc.cs.beta.config.RandomConfigParameters;
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.options.ConfigurationGenerationOptions;
 
 public class RandomConfigGen {
 	
 	public static void main(String[] args)
 	{
-		RandomConfigParameters rcp = new RandomConfigParameters();
+		ConfigurationGenerationOptions rcp = new ConfigurationGenerationOptions();
 		JCommander com = new JCommander(rcp);
 		
 		try {

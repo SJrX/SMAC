@@ -4,15 +4,15 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.Random;
 
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps;
+import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import ca.ubc.cs.beta.models.fastrf.RegtreeBuildParams;
-import ca.ubc.cs.beta.random.SeedableRandomSingleton;
-import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.seedgenerator.RandomInstanceSeedGenerator;
-import ca.ubc.cs.beta.smac.helper.ArrayMathOps;
 import ec.util.MersenneTwister;
 
 public class StaticMethodWrapper implements Serializable{
@@ -24,7 +24,7 @@ public class StaticMethodWrapper implements Serializable{
 	
 	public ParamConfiguration getRandomConfiguration(ParamConfigurationSpace p)
 	{
-		
+	
 		return p.getRandomConfiguration();
 	}
 	
@@ -102,5 +102,9 @@ public class StaticMethodWrapper implements Serializable{
 		return ArrayMathOps.matlabHashCode(matrix);
 	}
 	
+	public String toString()
+	{
+		return "Hello, is it me you're looking for?";
+	}
 	
 }

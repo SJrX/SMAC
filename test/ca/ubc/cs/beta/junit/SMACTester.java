@@ -17,8 +17,8 @@ import java.util.regex.Pattern;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ca.ubc.cs.beta.config.JCommanderHelper;
-import ca.ubc.cs.beta.config.ScenarioConfig;
+import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 
 import com.beust.jcommander.JCommander;
 
@@ -121,7 +121,7 @@ public class SMACTester {
 			
 			int iteration=0;
 			
-			final ScenarioConfig sc = new ScenarioConfig();
+			final ScenarioOptions sc = new ScenarioOptions();
 			
 			
 			JCommander jcom = new JCommander(sc);

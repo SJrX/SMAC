@@ -135,6 +135,21 @@
 		<echo>Untar Successful to ${software.dir}/${outputfilename}</echo>
 	</target>
 	<target name="deploy" depends="zip, deploy-release"/>
+	<target name="matlab-deploy" depends="archive" description="Updates the directory stored in matlab.dir property with a new copy of jars">
+		<fail message="No matlab.lib property exists in ${private.buildfile}, not sure where to deploy to">
+				<condition>
+					<not>
+							<isset property="matlab.dir"/>
+					</not>
+				</condition>
+			</fail>
+		<copy todir="${matlab.dir}" force="true">
+			<fileset dir="dist/">
+				<include name="*.jar"/>
+			</fileset>
+		</copy>
+	</target>
+
 	<!--
 	<target name="deploy-wg" depends="archive">
 			

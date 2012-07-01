@@ -1,7 +1,7 @@
 package ca.ubc.cs.beta.smac.matlab;
 
-import ca.ubc.cs.beta.smac.PCA;
-import ca.ubc.cs.beta.smac.model.data.PCAModelDataSanitizer;
+import ca.ubc.cs.beta.aclib.misc.math.MessyMathHelperClass;
+import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 
 public class MatlabModelDataSanitizer extends PCAModelDataSanitizer {
 
@@ -32,7 +32,7 @@ public class MatlabModelDataSanitizer extends PCAModelDataSanitizer {
 	{
 		int[][] data = new int[1][];
 		data[0] = getDataRichIndexes();
-		new PCA();
+		new MessyMathHelperClass();
 		return data;
 		
 	}

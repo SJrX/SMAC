@@ -5,11 +5,11 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.smac.history.RunHistory;
-import ca.ubc.cs.beta.smac.state.RandomPoolType;
-import ca.ubc.cs.beta.smac.state.StateSerializer;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.state.RandomPoolType;
+import ca.ubc.cs.beta.aclib.state.StateSerializer;
 
 public class NullStateSerializer implements StateSerializer{
 	

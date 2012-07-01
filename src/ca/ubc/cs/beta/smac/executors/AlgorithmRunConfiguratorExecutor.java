@@ -15,16 +15,16 @@ import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 
-import ca.ubc.cs.beta.ac.config.RunConfig;
-import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aclib.algorithmrunner.AlgorithmRunner;
+import ca.ubc.cs.beta.aclib.algorithmrunner.AutomaticConfiguratorFactory;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
 
-import ca.ubc.cs.beta.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.probleminstance.ProblemInstanceSeedPair;
-import ca.ubc.cs.beta.smac.ac.runners.AlgorithmRunner;
-import ca.ubc.cs.beta.smac.ac.runners.AutomaticConfiguratorFactory;
-import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
 
 /**
  * This class is roughly a translation of al_run_configs_in_file.rb

@@ -18,26 +18,26 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ca.ubc.cs.beta.config.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.config.JCommanderHelper;
-import ca.ubc.cs.beta.config.SMACConfig;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.configspace.ParamFileHelper;
-import ca.ubc.cs.beta.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.probleminstance.ProblemInstanceHelper;
-import ca.ubc.cs.beta.random.SeedableRandomSingleton;
-import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
+import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
+import ca.ubc.cs.beta.aclib.objectives.RunObjective;
+import ca.ubc.cs.beta.aclib.options.SMACOptions;
+import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.state.StateDeserializer;
+import ca.ubc.cs.beta.aclib.state.StateFactory;
+import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
-import ca.ubc.cs.beta.smac.OverallObjective;
-import ca.ubc.cs.beta.smac.RunObjective;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
-import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.smac.model.builder.HashCodeVerifyingModelBuilder;
-import ca.ubc.cs.beta.smac.state.StateDeserializer;
-import ca.ubc.cs.beta.smac.state.StateFactory;
-import ca.ubc.cs.beta.smac.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.smac.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
@@ -66,7 +66,7 @@ public class AutomaticConfigurator
 		 * IF YOU LOG PRIOR TO IT ACTIVATING, IT WILL BE IGNORED 
 		 */
 		try {
-			SMACConfig config = parseCLIOptions(args);
+			SMACOptions config = parseCLIOptions(args);
 			
 			
 			logger.info("Automatic Configuration Started");
@@ -98,7 +98,7 @@ public class AutomaticConfigurator
 			ParamConfigurationSpace configSpace = null;
 			
 			
-			String[] possiblePaths = { paramFile, config.experimentDir + File.separator + paramFile, config.scenarioConfig.algoExecConfig.algoExecDir + File.separator + paramFile }; 
+			String[] possiblePaths = { paramFile, config.experimentDir + File.separator + paramFile, config.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
 			for(String path : possiblePaths)
 			{
 				try {
@@ -117,12 +117,12 @@ public class AutomaticConfigurator
 				throw new ParameterException("Could not find param file");
 			}
 			
-			String algoExecDir = config.scenarioConfig.algoExecConfig.algoExecDir;
+			String algoExecDir = config.scenarioConfig.algoExecOptions.algoExecDir;
 			File f2 = new File(algoExecDir);
 			if (!f2.isAbsolute()){
 				f2 = new File(config.experimentDir + File.separator + algoExecDir);
 			}
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecConfig.algoExec, f2.getAbsolutePath(), configSpace, false);
+			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false);
 		
 			TargetAlgorithmEvaluator algoEval;
 			boolean concurrentRuns = (config.maxConcurrentAlgoExecs > 1);
@@ -244,7 +244,7 @@ public class AutomaticConfigurator
 
 	
 
-	private static void restoreState(SMACConfig config, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
+	private static void restoreState(SMACOptions config, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
 		
 		if(config.restoreIteration < 0)
 		{
@@ -267,10 +267,10 @@ public class AutomaticConfigurator
 	 * @param args
 	 * @return
 	 */
-	private static SMACConfig parseCLIOptions(String[] args) throws ParameterException, IOException
+	private static SMACOptions parseCLIOptions(String[] args) throws ParameterException, IOException
 	{
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
-		SMACConfig config = new SMACConfig();
+		SMACOptions config = new SMACOptions();
 		JCommander com = new JCommander(config);
 		com.setProgramName("smac");
 		try {

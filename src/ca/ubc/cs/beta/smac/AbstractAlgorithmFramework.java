@@ -20,27 +20,27 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.ac.config.RunConfig;
-import ca.ubc.cs.beta.config.SMACConfig;
-import ca.ubc.cs.beta.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.probleminstance.ProblemInstanceSeedPair;
-import ca.ubc.cs.beta.random.SeedableRandomSingleton;
-import ca.ubc.cs.beta.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
+import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
+import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
+import ca.ubc.cs.beta.aclib.options.SMACOptions;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
+import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.state.RandomPoolType;
+import ca.ubc.cs.beta.aclib.state.StateDeserializer;
+import ca.ubc.cs.beta.aclib.state.StateFactory;
+import ca.ubc.cs.beta.aclib.state.StateSerializer;
 import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
-import ca.ubc.cs.beta.smac.ac.runners.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.smac.ac.runs.AlgorithmRun;
-import ca.ubc.cs.beta.smac.history.DuplicateRunException;
-import ca.ubc.cs.beta.smac.history.NewRunHistory;
-import ca.ubc.cs.beta.smac.history.RunHistory;
-import ca.ubc.cs.beta.smac.state.RandomPoolType;
-import ca.ubc.cs.beta.smac.state.StateDeserializer;
-import ca.ubc.cs.beta.smac.state.StateFactory;
-import ca.ubc.cs.beta.smac.state.StateSerializer;
-import ca.ubc.cs.beta.smac.util.AutoStartStopWatch;
-import ca.ubc.cs.beta.smac.util.StopWatch;
 
 public class AbstractAlgorithmFramework {
 
@@ -75,7 +75,7 @@ public class AbstractAlgorithmFramework {
 	 * Stores our configuration
 	 */
 	@Deprecated
-	protected final SMACConfig config;
+	protected final SMACOptions config;
 	
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 		
@@ -88,7 +88,7 @@ public class AbstractAlgorithmFramework {
 	
 	private final int MAX_RUNS_FOR_INCUMBENT;
 	
-	public AbstractAlgorithmFramework(SMACConfig smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
+	public AbstractAlgorithmFramework(SMACOptions smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
 	{
 		this.instances = instances;
 		this.testInstances = testInstances;

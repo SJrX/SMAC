@@ -1,7 +1,7 @@
 package ca.ubc.cs.beta.executors;
 
-import ca.ubc.cs.beta.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 
 public class ConfigGen {
 
