@@ -6,6 +6,7 @@
 	<property name="private.buildfile" value="build-resources/private/user-antbuild.properties"/>
 	<property file="${private.buildfile}"/>
 	<property file="build-resources/antbuild.properties"/>
+	<property name="version.file.dev" value="version/${version.file}"/>
 	<fail message="No Software Directory specified, a private build file should exist in ${private.buildfile} this should specify at the very least 'software.dir'">
 		<condition>
 			<not>
@@ -44,9 +45,14 @@
 		</javac>
 	</target>
 	<target name="archive" depends="compile">
-		<jar destfile="dist/smac.jar" basedir="build/classes"/>
+		
 		<buildnumber file="/ubc/cs/project/arrow/seramage/software/build-numbers/buildnumber-${ant.project.name}"/>
-		<property name="outputfilename" value="smac-v${version.major}.${version.minor}${version.beta}-${build.number}"/>
+		<property name="version.string" value="v${version.major}.${version.minor}${version.beta}-${build.number}"/>
+		<property name="outputfilename" value="smac-${version.string}"/>
+		<property name="version.devstring" value="v${version.major}.${version.minor}dev-${build.number}"/>
+		<echo file="${version.file.dev}">${version.devstring}</echo>
+		<echo file="build/classes/${version.file}">${version.string}</echo>
+		<jar destfile="dist/smac.jar" basedir="build/classes"/>
 		<copy todir="dist/" force="true">
 			<fileset dir="deployables">
 				<include name="*"/>

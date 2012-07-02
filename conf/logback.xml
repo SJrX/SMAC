@@ -54,7 +54,7 @@
  
  
   <appender name="RUNHASHLOG" class="ch.qos.logback.core.FileAppender">
-  <filter class="ca.ubc.cs.beta.logback.RunHashMarkerFilter" />
+  <filter class="ca.ubc.cs.beta.aclib.misc.logback.RunHashMarkerFilter" />
   <append>false</append>
   <file>${OUTPUTDIR}/${RUNGROUPDIR}/runhashes-run${NUMRUN}.txt</file>
   <encoder>

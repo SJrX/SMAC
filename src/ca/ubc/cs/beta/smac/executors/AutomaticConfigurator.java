@@ -24,6 +24,7 @@ import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
@@ -70,7 +71,6 @@ public class AutomaticConfigurator
 			
 			
 			logger.info("Automatic Configuration Started");
-			
 			
 			
 			SeedableRandomSingleton.setSeed(config.seed);
@@ -293,6 +293,9 @@ public class AutomaticConfigurator
 			logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 			exception = MarkerFactory.getMarker("EXCEPTION");
 			stackTrace = MarkerFactory.getMarker("STACKTRACE");
+			
+			VersionTracker.loadVersionFromClassPath("SMAC", "smac-version.txt");
+			VersionTracker.logVersions();
 			
 			logger.trace("Command Line Options Parsed");
 			
