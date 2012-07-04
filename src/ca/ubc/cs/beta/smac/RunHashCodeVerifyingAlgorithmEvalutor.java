@@ -10,12 +10,13 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aclib.algorithmrunner.AbstractTargetAlgorithmEvaluatorDecorator;
 import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
 
-public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvaluator {
+public class RunHashCodeVerifyingAlgorithmEvalutor extends AbstractTargetAlgorithmEvaluatorDecorator {
 
 	private final Queue<Integer> runHashQueue;
 	private int hashCodesOfRuns = 0;
@@ -24,18 +25,16 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends TargetAlgorithmEvalua
 	private final Marker runHash = MarkerFactory.getMarker("RUN_HASH");
 	
 	
-	public RunHashCodeVerifyingAlgorithmEvalutor(
-			AlgorithmExecutionConfig execConfig, Queue<Integer> runHashes, boolean concurrentRuns) {
-		super(execConfig, concurrentRuns);
+	public RunHashCodeVerifyingAlgorithmEvalutor(TargetAlgorithmEvaluator tae, Queue<Integer> runHashes) {
+		super(tae);
 		
 		
 		this.runHashQueue = runHashes;
 		log.debug("Created with {} hash codes to verify", runHashQueue.size());
 	}
 	
-	public RunHashCodeVerifyingAlgorithmEvalutor(
-			AlgorithmExecutionConfig execConfig, boolean concurrentRuns) {
-		this(execConfig, new LinkedList<Integer>(), concurrentRuns);
+	public RunHashCodeVerifyingAlgorithmEvalutor(TargetAlgorithmEvaluator tae) {
+		this(tae, new LinkedList<Integer>());
 	}
 
 	@Override

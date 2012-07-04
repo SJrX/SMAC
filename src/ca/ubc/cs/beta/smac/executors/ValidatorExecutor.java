@@ -15,14 +15,14 @@ import org.slf4j.Marker;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
+import ca.ubc.cs.beta.aclib.algorithmrunner.CommandLineTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.misc.associatedvalue.AssociatedValue;
-import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+
 import ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -41,11 +41,7 @@ public class ValidatorExecutor {
 	public static void main(String[] args)
 	{
 		
-		
-		
 		ValidationExecutorOptions config = new ValidationExecutorOptions();
-		
-		
 		
 		JCommander com = new JCommander(config);
 		com.setProgramName("validate");
@@ -53,7 +49,7 @@ public class ValidatorExecutor {
 			try {
 				
 				
-				JCommanderHelper.parse(com, args);
+				com.parse( args);
 				
 				if(config.incumbent != null && config.trajectoryFile != null)
 				{
@@ -179,7 +175,7 @@ public class ValidatorExecutor {
 				
 				boolean concurrentRuns = (config.maxConcurrentAlgoExecs > 1);
 				
-				TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
+				TargetAlgorithmEvaluator validatingTae = new CommandLineTargetAlgorithmEvaluator(execConfig, concurrentRuns);
 				
 				
 				String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;

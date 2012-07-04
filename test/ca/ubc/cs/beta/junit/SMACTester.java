@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+
 import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 
 import com.beust.jcommander.JCommander;
@@ -127,7 +127,7 @@ public class SMACTester {
 			JCommander jcom = new JCommander(sc);
 			String[] args = {"--scenarioFile",scenarioFile};
 			
-			JCommanderHelper.parse(jcom, args);
+			jcom.parse(args);
 			
 			boolean deterministic = (sc.deterministic > 0);
 			

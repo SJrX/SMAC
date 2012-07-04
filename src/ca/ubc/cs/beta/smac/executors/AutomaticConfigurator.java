@@ -18,11 +18,12 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.ubc.cs.beta.aclib.algorithmrunner.CommandLineTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
@@ -67,13 +68,13 @@ public class AutomaticConfigurator
 		 * IF YOU LOG PRIOR TO IT ACTIVATING, IT WILL BE IGNORED 
 		 */
 		try {
-			SMACOptions config = parseCLIOptions(args);
+			SMACOptions options = parseCLIOptions(args);
 			
 			
 			logger.info("Automatic Configuration Started");
 			
 			
-			SeedableRandomSingleton.setSeed(config.seed);
+			SeedableRandomSingleton.setSeed(options.seed);
 			Random rand = SeedableRandomSingleton.getRandom(); 
 
 			
@@ -81,29 +82,29 @@ public class AutomaticConfigurator
 			 * Build the Serializer object used in the model 
 			 */
 			StateFactory restoreSF;
-			switch(config.statedeSerializer)
+			switch(options.statedeSerializer)
 			{
 				case NULL:
 					restoreSF = new NullStateFactory();
 					break;
 				case LEGACY:
-					restoreSF = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "state-run" + config.seed + File.separator, config.restoreStateFrom);
+					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seed + File.separator, options.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
 			
-			String paramFile = config.scenarioConfig.paramFileDelegate.paramFile;
+			String paramFile = options.scenarioConfig.paramFileDelegate.paramFile;
 			logger.info("Parsing Parameter Space File", paramFile);
 			ParamConfigurationSpace configSpace = null;
 			
 			
-			String[] possiblePaths = { paramFile, config.experimentDir + File.separator + paramFile, config.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
+			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
 			for(String path : possiblePaths)
 			{
 				try {
 					logger.debug("Trying param file in path {} ", path);
-					configSpace = ParamFileHelper.getParamFileParser(path, config.seed+1000000);
+					configSpace = ParamFileHelper.getParamFileParser(path, options.seed+1000000);
 					break;
 				} catch(IllegalStateException e)
 				{ 
@@ -117,81 +118,65 @@ public class AutomaticConfigurator
 				throw new ParameterException("Could not find param file");
 			}
 			
-			String algoExecDir = config.scenarioConfig.algoExecOptions.algoExecDir;
+			String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
 			File f2 = new File(algoExecDir);
 			if (!f2.isAbsolute()){
-				f2 = new File(config.experimentDir + File.separator + algoExecDir);
+				f2 = new File(options.experimentDir + File.separator + algoExecDir);
 			}
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false);
+			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false);
 		
-			TargetAlgorithmEvaluator algoEval;
-			boolean concurrentRuns = (config.maxConcurrentAlgoExecs > 1);
-			if(config.runHashCodeFile != null)
-			{
-				logger.info("Algorithm Execution will verify run Hash Codes");
-				Queue<Integer> runHashCodes = parseRunHashCodes(config.runHashCodeFile);
-				algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(execConfig, runHashCodes, concurrentRuns);
-				 
-			} else
-			{
-				logger.info("Algorithm Execution will NOT verify run Hash Codes");
-				//TODO Seperate the generation of Run Hash Codes from verifying them
-				algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(execConfig, concurrentRuns);
-			}
-
-			if(config.modelHashCodeFile != null)
-			{
-				logger.info("Algorithm Execution will verify model Hash Codes");
-				parseModelHashCodes(config.runHashCodeFile);
-			}
+			
+			
 			
 			StateFactory sf;
 			
-			switch(config.stateSerializer)
+			switch(options.stateSerializer)
 			{
 				case NULL:
 					sf = new NullStateFactory();
 					break;
 				case LEGACY:
-					sf = new LegacyStateFactory(config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "state-run" + config.seed + File.separator, config.restoreStateFrom);
+					sf = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seed + File.separator, options.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
 			
 			
-			
+			TargetAlgorithmEvaluator algoEval = getTargetAlgorithmEvaluator(options, execConfig);
 			AbstractAlgorithmFramework smac;
-			switch(config.execMode)
+			switch(options.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(config,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen, rand);
+					smac = new AbstractAlgorithmFramework(options,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen, rand);
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(config, instances, testInstances, algoEval, config.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, testInstances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
 			}
 			
-			if(config.restoreIteration != null)
+			if(options.restoreIteration != null)
 			{
-				restoreState(config, restoreSF, smac, configSpace,config.scenarioConfig.intraInstanceObj,config.scenarioConfig.interInstanceObj,config.scenarioConfig.runObj, instances, execConfig);
+				restoreState(options, restoreSF, smac, configSpace,options.scenarioConfig.intraInstanceObj,options.scenarioConfig.interInstanceObj,options.scenarioConfig.runObj, instances, execConfig);
 			}
 			
 				
 			smac.run();
-			if(!config.skipValidation)
+			if(!options.skipValidation)
 			{
-			
-				TargetAlgorithmEvaluator validatingTae = new TargetAlgorithmEvaluator(execConfig, concurrentRuns);
-				String outputDir = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator;
+				boolean concurrentRuns = (options.maxConcurrentAlgoExecs > 1);
+				
+				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other validation crap that is probably not applicable here
+				TargetAlgorithmEvaluator validatingTae = new CommandLineTargetAlgorithmEvaluator(execConfig, concurrentRuns);
+				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 				
 				double tunerTime = smac.getTunerTime();
 				double cpuTime = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;;
 				double empericalPerformance = smac.getEmpericalPerformance(smac.getIncumbent());
 				
-				(new Validator()).validate(testInstances, smac.getIncumbent(),config.validationOptions,config.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, config.scenarioConfig.runObj, config.scenarioConfig.intraInstanceObj, config.scenarioConfig.interInstanceObj, tunerTime, empericalPerformance, cpuTime, config.seed);
+				(new Validator()).validate(testInstances, smac.getIncumbent(),options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tunerTime, empericalPerformance, cpuTime, options.seed);
 			}
 			
 			logger.info("SMAC Completed Successfully");
@@ -200,7 +185,8 @@ public class AutomaticConfigurator
 			return;
 		} catch(Throwable t)
 		{
-			
+			System.out.flush();
+			System.err.flush();
 				if(logger != null)
 				{
 					
@@ -225,6 +211,7 @@ public class AutomaticConfigurator
 				{
 					if(t instanceof ParameterException )
 					{
+						
 						System.err.println(t.getMessage());
 					} else
 					{
@@ -242,16 +229,40 @@ public class AutomaticConfigurator
 
 
 
-	
-
-	private static void restoreState(SMACOptions config, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
+	private static TargetAlgorithmEvaluator getTargetAlgorithmEvaluator(SMACOptions options, AlgorithmExecutionConfig execConfig)
+	{
+		boolean concurrentRuns = (options.maxConcurrentAlgoExecs > 1);
+		TargetAlgorithmEvaluator algoEval = new CommandLineTargetAlgorithmEvaluator(execConfig, concurrentRuns);
 		
-		if(config.restoreIteration < 0)
+		if(options.runHashCodeFile != null)
+		{
+			logger.info("Algorithm Execution will verify run Hash Codes");
+			Queue<Integer> runHashCodes = parseRunHashCodes(options.runHashCodeFile);
+			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval, runHashCodes);
+			 
+		} else
+		{
+			logger.info("Algorithm Execution will NOT verify run Hash Codes");
+			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval);
+		}
+
+		if(options.modelHashCodeFile != null)
+		{
+			logger.info("Algorithm Execution will verify model Hash Codes");
+			parseModelHashCodes(options.runHashCodeFile);
+		}
+		
+		return algoEval;
+	}
+
+	private static void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
+		
+		if(options.restoreIteration < 0)
 		{
 			throw new ParameterException("Iteration must be a non-negative integer");
 		}
 		
-		StateDeserializer sd = sf.getStateDeserializer("it", config.restoreIteration, configSpace, intraInstanceObjective, interInstanceObjective, runObj, instances, execConfig);
+		StateDeserializer sd = sf.getStateDeserializer("it", options.restoreIteration, configSpace, intraInstanceObjective, interInstanceObjective, runObj, instances, execConfig);
 		
 		smac.restoreState(sd);
 		
@@ -276,8 +287,8 @@ public class AutomaticConfigurator
 		try {
 			
 			
-			JCommanderHelper.parse(com, args);
-			//com.parse(args);
+			//JCommanderHelper.parse(com, args);
+			com.parse(args);
 			
 			File outputDir = new File(config.scenarioConfig.outputDirectory);
 			if(!outputDir.exists())

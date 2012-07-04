@@ -8,12 +8,12 @@
 	<classpathentry kind="lib" path="/SurrogateModeller/lib/opencsv-2.3.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math-2.2/commons-math-2.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math-2.2/commons-math-2.2.jar"/>
-	<classpathentry kind="lib" path="/SurrogateModeller/lib/jcommander.jar"/>
 	<classpathentry kind="lib" path="lib/logback-access-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/logback-core-1.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.6.4.jar"/>
 	<classpathentry kind="lib" path="lib/Jama-1.0.2.jar" sourcepath="/ubc/cs/home/s/seramage/Jama"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar" sourcepath="lib/commons-collections-3.2.1-sources.jar"/>
+	<classpathentry kind="lib" path="/home/sjr/git/AutomaticConfiguratorLibrary/lib/jcommander.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" path="/RandomForests"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/AutomaticConfiguratorLibrary"/>
