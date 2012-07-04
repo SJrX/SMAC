@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
@@ -329,25 +330,34 @@ public class AutomaticConfigurator
 			
 			
 			//JCommanderHelper.parse(com, args);
-			com.parse(args);
-			
-			File outputDir = new File(config.scenarioConfig.outputDirectory);
-			if(!outputDir.exists())
+			try {
+				com.parse(args);
+				
+				File outputDir = new File(config.scenarioConfig.outputDirectory);
+				if(!outputDir.exists())
+				{
+					outputDir.mkdir();
+				}
+				
+				System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
+				System.setProperty("RUNGROUPDIR", config.runGroupName);
+				System.setProperty("NUMRUN", String.valueOf(config.seed));
+				System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
+				
+			} finally
 			{
-				outputDir.mkdir();
+				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
+				exception = MarkerFactory.getMarker("EXCEPTION");
+				stackTrace = MarkerFactory.getMarker("STACKTRACE");
+				VersionTracker.loadVersionFromClassPath("SMAC", "smac-version.txt");
+				VersionTracker.logVersions();
+				
+				
 			}
 			
-			System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
-			System.setProperty("RUNGROUPDIR", config.runGroupName);
-			System.setProperty("NUMRUN", String.valueOf(config.seed));
-			System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
 			
-			logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
-			exception = MarkerFactory.getMarker("EXCEPTION");
-			stackTrace = MarkerFactory.getMarker("STACKTRACE");
 			
-			VersionTracker.loadVersionFromClassPath("SMAC", "smac-version.txt");
-			VersionTracker.logVersions();
+			
 			
 			logger.trace("Command Line Options Parsed");
 			
@@ -376,7 +386,7 @@ public class AutomaticConfigurator
 			try {
 				hostname = InetAddress.getLocalHost().getHostName();
 			} catch(UnknownHostException e)
-			{ //Don't care about this exception
+			{ //If this fails it's okay we just use it to output to the log
 				
 			}
 			
@@ -419,14 +429,18 @@ public class AutomaticConfigurator
 				logger.info("Test Seed Generator reports that the number of seeds per instance varies.");
 			}
 			
+			
+			logCallString(args);
 			return config;
 		} catch(IOException e)
 		{
+			com.setColumnSize(getConsoleSize());
 			com.usage();
 			throw e;
 			
 		} catch(ParameterException e)
 		{
+			com.setColumnSize(getConsoleSize());
 			com.usage();
 			throw e;
 		}
@@ -435,7 +449,39 @@ public class AutomaticConfigurator
 
 	
 	
-	
+	/**
+	 * Makes a best at our column size 
+	 * @return
+	 */
+	private static int getConsoleSize() {
+		//Tried using tputs but apparently java destroys it and always gets an 80, I'll have to do some more trickery
+		
+		//Anyway lets make it wider atleast
+		return 160;
+	}
+
+
+	private static void logCallString(String[] args) {
+		StringBuilder sb = new StringBuilder("java -cp ");
+		sb.append(System.getProperty("java.class.path")).append(" ");
+		sb.append(AutomaticConfigurator.class.getCanonicalName()).append(" ");
+		for(String arg : args)
+		{
+			if(arg.contains(" "))
+			{
+				arg = arg.replaceAll(" ", "\\ ");
+			}
+			sb.append("\"").append(arg).append("\" ");
+		}
+		
+		logger.info("Call String:");
+		logger.info("{}", sb.toString());
+	}
+
+
+
+
+
 	private static Pattern runHashCodePattern = Pattern.compile("^Run Hash Codes:\\d+( After \\d+ runs)?\\z");
 	
 	private static Pattern modelHashCodePattern = Pattern.compile("^(Preprocessed|Random) Forest Built with Hash Code:\\s*\\d+?\\z");
