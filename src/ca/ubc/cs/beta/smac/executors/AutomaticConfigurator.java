@@ -22,6 +22,8 @@ import ca.ubc.cs.beta.aclib.algorithmrunner.CommandLineTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
+import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
@@ -60,7 +62,28 @@ public class AutomaticConfigurator
 	private static Marker stackTrace;
 	private static InstanceSeedGenerator instanceSeedGen;
 	private static InstanceSeedGenerator testInstanceSeedGen;
+	
+	
+	/**
+	 * Executes SMAC then exits the JVM {@see System.exit()}
+	 *  
+	 * @param args string arguments
+	 */
 	public static void main(String[] args)
+	{
+		int returnValue = oldMain(args);
+		logger.info("Returning with value: {}",returnValue);
+		
+		System.exit(returnValue);
+	}
+	
+	
+	/**
+	 * Executes SMAC according to the given arguments
+	 * @param args 	string input arguments
+	 * @return return value for operating system
+	 */
+	public static int oldMain(String[] args)
 	{
 		/*
 		 * WARNING: DO NOT LOG ANYTHING UNTIL AFTER WE HAVE PARSED THE CLI OPTIONS
@@ -182,7 +205,7 @@ public class AutomaticConfigurator
 			logger.info("SMAC Completed Successfully");
 			
 			
-			return;
+			return SMACReturnValues.SUCCESS;
 		} catch(Throwable t)
 		{
 			System.out.flush();
@@ -219,8 +242,26 @@ public class AutomaticConfigurator
 					}
 					
 				}
-					
+		
 			
+			
+				
+				if(t instanceof ParameterException)
+				{
+					return SMACReturnValues.PARAMETER_EXCEPTION;
+				}
+				
+				if(t instanceof StateSerializationException)
+				{
+					return SMACReturnValues.SERIALIZATION_EXCEPTION;
+				}
+				
+				if(t instanceof TrajectoryDivergenceException)
+				{
+					return SMACReturnValues.TRAJECTORY_DIVERGENCE;
+				}
+				
+				return SMACReturnValues.OTHER_EXCEPTION;
 		}
 		
 		
