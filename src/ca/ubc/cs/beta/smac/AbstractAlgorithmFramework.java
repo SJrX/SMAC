@@ -593,7 +593,14 @@ public class AbstractAlgorithmFramework {
 				break;
 			} else if (sMissing.isEmpty())
 			{	
-				changeIncumbentTo(challenger);
+				if(chalCost < incCost - Math.pow(10,-6))
+				{
+					changeIncumbentTo(challenger);
+				} else
+				{
+					log.info("Challenger has all the runs of the incumbent, but did not (significantly beat it");
+				}
+				
 				break;
 			} else
 			{
