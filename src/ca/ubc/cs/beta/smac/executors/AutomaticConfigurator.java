@@ -339,17 +339,19 @@ public class AutomaticConfigurator
 					outputDir.mkdir();
 				}
 				
+				
+				
+			} finally
+			{
 				System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
 				System.setProperty("RUNGROUPDIR", config.runGroupName);
 				System.setProperty("NUMRUN", String.valueOf(config.seed));
 				System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
-				
-			} finally
-			{
 				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
-				VersionTracker.loadVersionFromClassPath("SMAC", "smac-version.txt");
+				
+				//VersionTracker.loadVersionFromClassPath("SMAC", "smac-version.txt");
 				VersionTracker.logVersions();
 				
 				
