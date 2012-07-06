@@ -40,7 +40,7 @@
 		<delete dir="dist"/>
 	</target>
 	<target name="compile" depends="init">
-		<javac srcdir="src" destdir="build/classes">
+		<javac srcdir="src" destdir="build/classes" debug="true">
 		<classpath refid="compile.classpath"/>
 		</javac>
 	</target>
@@ -142,7 +142,7 @@
 	</target>
 	<target name="deploy" depends="zip, deploy-release"/>
 	<target name="matlab-deploy" depends="archive" description="Updates the directory stored in matlab.dir property with a new copy of jars">
-		<fail message="No matlab.lib property exists in ${private.buildfile}, not sure where to deploy to">
+		<fail message="No matlab.dir property exists in ${private.buildfile}, not sure where to deploy to">
 				<condition>
 					<not>
 							<isset property="matlab.dir"/>

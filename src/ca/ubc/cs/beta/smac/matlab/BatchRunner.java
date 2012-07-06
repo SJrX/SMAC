@@ -6,6 +6,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,6 +16,9 @@ import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.algorithmrun.ExistingAlgorithmRun;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.factory.TargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.smac.SimpleExecutor;
 import ca.ubc.cs.beta.smac.ac.exceptions.TargetAlgorithmExecutionException;
 
@@ -68,6 +74,47 @@ public class BatchRunner {
 		return runs;
 	}
 	
+	private static TargetAlgorithmEvaluator tae = null;
+	public List<AlgorithmRun> executeSurrogateRun(AlgorithmExecutionConfig execConfig, List<RunConfig> runConfigs, String[] dynamicClassPath)
+	{
+		
+		if(tae == null)
+		{
+			ArrayList<URL> urls = new ArrayList<URL>();
+			for(String dynamiccp : dynamicClassPath)
+			{
+				try {
+					urls.add(new File(dynamiccp).toURI().toURL());
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			
+			ClassLoader cl = new URLClassLoader(urls.toArray(new URL[0]));
+			
+	
+			TargetAlgorithmEvaluatorFactory taeFact;
+			try {
+				taeFact = (TargetAlgorithmEvaluatorFactory) Class.forName("ca.ubc.cs.beta.models.surrogate.algorithmrun.SurrogateTargetAlgorithmEvaluatorFactory").newInstance();
+				tae = taeFact.getTargetAlgorithmEvaluator(execConfig, 1);
+				return tae.evaluateRun(runConfigs);
+			} catch(RuntimeException e)
+			{
+				throw e;
+			} catch (Exception e) {
+				
+				
+				throw new RuntimeException(e);
+			} 
+		} else
+		{
+			return tae.evaluateRun(runConfigs);
+		}
+		
+		
+	}
+	
 	/**
 	 * This class corresponds roughly to startManyRuns in Batch
 	 * 
@@ -78,7 +125,12 @@ public class BatchRunner {
 	 * @return
 	 */
 	public List<AlgorithmRun> executeRun(AlgorithmExecutionConfig execConfig, List<RunConfig> instanceRunConfigs, String[] dynamicClassPath)
-	{
+	{	
+		
+		if(execConfig.getAlgorithmExecutable().contains("ruby surrogate_wrapper.rb"))
+		{
+			return executeSurrogateRun(execConfig, instanceRunConfigs, dynamicClassPath);
+		}
 		/**
 		 * MATLAB PORT NOTE: 
 		 * The abstractions above are vastly different than the MATLAB version.

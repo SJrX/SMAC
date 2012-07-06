@@ -129,7 +129,7 @@ public class SMACTester {
 			
 			jcom.parse(args);
 			
-			boolean deterministic = (sc.deterministic > 0);
+			boolean deterministic = (sc.algoExecOptions.deterministic > 0);
 			
 			
 			

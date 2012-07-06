@@ -13,7 +13,6 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
@@ -30,6 +29,7 @@ import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
 

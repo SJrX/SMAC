@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
-import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
@@ -40,6 +39,7 @@ import ca.ubc.cs.beta.aclib.state.RandomPoolType;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.StateSerializer;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
 
 public class AbstractAlgorithmFramework {
@@ -347,7 +347,9 @@ public class AbstractAlgorithmFramework {
 					} 
 				} catch(OutOfTimeException e){
 					// We're out of time.
+					logIncumbent(iteration);
 				}
+				
 				
 				saveState("it", true);
 				log.info("SMAC Completed");

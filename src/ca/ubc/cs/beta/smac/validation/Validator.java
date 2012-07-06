@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
-import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
@@ -28,6 +27,7 @@ import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.seedgenerator.SetInstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 
 public class Validator {
 	

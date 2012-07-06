@@ -15,8 +15,6 @@ import org.slf4j.Marker;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
-import ca.ubc.cs.beta.aclib.algorithmrunner.CommandLineTargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
@@ -28,6 +26,8 @@ import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.CommandLineTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
@@ -41,9 +41,9 @@ public class ValidatorExecutor {
 	public static void main(String[] args)
 	{
 		
-		ValidationExecutorOptions config = new ValidationExecutorOptions();
+		ValidationExecutorOptions options = new ValidationExecutorOptions();
 		
-		JCommander com = new JCommander(config);
+		JCommander com = new JCommander(options);
 		com.setProgramName("validate");
 		try {
 			try {
@@ -51,7 +51,7 @@ public class ValidatorExecutor {
 				
 				com.parse( args);
 				
-				if(config.incumbent != null && config.trajectoryFile != null)
+				if(options.incumbent != null && options.trajectoryFile != null)
 				{
 					throw new ParameterException("You cannot specify both a configuration and a trajectory file");
 				}
@@ -59,13 +59,13 @@ public class ValidatorExecutor {
 				ParamConfiguration configToValidate; 
 				
 				
-				if(config.trajectoryFile != null)
+				if(options.trajectoryFile != null)
 				{
-					log.info("Using Trajectory File {} " + config.trajectoryFile.getAbsolutePath());
-					if(config.tunerTime == -1)
+					log.info("Using Trajectory File {} " + options.trajectoryFile.getAbsolutePath());
+					if(options.tunerTime == -1)
 					{
-						config.tunerTime = config.scenarioConfig.tunerTimeout;
-						log.info("Using Scenario Tuner Time {} seconds", config.tunerTime );
+						options.tunerTime = options.scenarioConfig.tunerTimeout;
+						log.info("Using Scenario Tuner Time {} seconds", options.tunerTime );
 						
 						
 					}
@@ -74,14 +74,14 @@ public class ValidatorExecutor {
 					
 				} else
 				{
-					if(config.tunerTime == -1)
+					if(options.tunerTime == -1)
 					{
-						config.tunerTime = 0;
+						options.tunerTime = 0;
 					}
 					
-					if(config.empericalPerformance == -1)
+					if(options.empericalPerformance == -1)
 					{
-						config.empericalPerformance = 0;
+						options.empericalPerformance = 0;
 						
 					}
 						log.info("Using configuration specified on Command Line");
@@ -89,17 +89,17 @@ public class ValidatorExecutor {
 				
 			
 		
-				log.info("Parsing test instances from {}", config.scenarioConfig.instanceFile );
-				InstanceListWithSeeds ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir,config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed, Integer.MAX_VALUE);
+				log.info("Parsing test instances from {}", options.scenarioConfig.instanceFile );
+				InstanceListWithSeeds ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, !options.scenarioConfig.skipInstanceFileCheck, options.seed, Integer.MAX_VALUE);
 				List<ProblemInstance> testInstances = ilws.getInstances();
 				InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 				
 	
-				log.info("Parsing Parameter Space File", config.scenarioConfig.paramFileDelegate.paramFile);
+				log.info("Parsing Parameter Space File", options.scenarioConfig.paramFileDelegate.paramFile);
 				ParamConfigurationSpace configSpace = null;
 				
 				
-				String[] possiblePaths = { config.scenarioConfig.paramFileDelegate.paramFile, config.experimentDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile, config.scenarioConfig.algoExecOptions.algoExecDir + File.separator + config.scenarioConfig.paramFileDelegate.paramFile }; 
+				String[] possiblePaths = { options.scenarioConfig.paramFileDelegate.paramFile, options.experimentDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile }; 
 				for(String path : possiblePaths)
 				{
 					try {
@@ -116,22 +116,22 @@ public class ValidatorExecutor {
 				
 				double nearestTunerTime = 0;
 				
-				if(config.trajectoryFile != null)
+				if(options.trajectoryFile != null)
 				{
-					ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = TrajectoryFileParser.parseTrajectoryFile(config.trajectoryFile, configSpace);
+					ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = TrajectoryFileParser.parseTrajectoryFile(options.trajectoryFile, configSpace);
 					
-					TrajectoryFileEntry tfe = skipList.floorEntry(config.tunerTime).getValue();
-					nearestTunerTime = skipList.floorEntry(config.tunerTime).getKey();
-					if(config.empericalPerformance == -1 )
+					TrajectoryFileEntry tfe = skipList.floorEntry(options.tunerTime).getValue();
+					nearestTunerTime = skipList.floorEntry(options.tunerTime).getKey();
+					if(options.empericalPerformance == -1 )
 					{
-						config.empericalPerformance = tfe.getEmpericalPerformance();
+						options.empericalPerformance = tfe.getEmpericalPerformance();
 					}
 						
 					
 					
-					if(config.tunerOverheadTime == -1)
+					if(options.tunerOverheadTime == -1)
 					{
-						config.tunerOverheadTime = tfe.getACOverhead();
+						options.tunerOverheadTime = tfe.getACOverhead();
 					}
 					
 					configToValidate = tfe.getConfiguration();
@@ -139,12 +139,12 @@ public class ValidatorExecutor {
 					
 				} else
 				{
-					if (config.tunerOverheadTime == -1)
+					if (options.tunerOverheadTime == -1)
 					{
-						config.tunerOverheadTime = 0;	
+						options.tunerOverheadTime = 0;	
 					}
 					
-					if(config.incumbent == null)
+					if(options.incumbent == null)
 					{
 						log.info("Validating Default Configuration");
 						configToValidate = configSpace.getDefaultConfiguration();
@@ -152,12 +152,12 @@ public class ValidatorExecutor {
 					{
 						log.info("Parsing Supplied Configuration");
 						try {
-							configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.NODB_SYNTAX);
+							configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_SYNTAX);
 						} catch(RuntimeException e)
 						{
 							try {
 								log.info("Being nice and checking if this is a STATEFILE encoded configuration");
-								configToValidate = configSpace.getConfigurationFromString(config.incumbent, StringFormat.STATEFILE_SYNTAX);
+								configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.STATEFILE_SYNTAX);
 							} catch(RuntimeException e2)
 							{
 								throw e;
@@ -168,21 +168,21 @@ public class ValidatorExecutor {
 					
 				}
 				
-				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(config.scenarioConfig.algoExecOptions.algoExec, config.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false);
+				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic > 0);
 				
 				
 				
 				
-				boolean concurrentRuns = (config.maxConcurrentAlgoExecs > 1);
+				boolean concurrentRuns = (options.maxConcurrentAlgoExecs > 1);
 				
 				TargetAlgorithmEvaluator validatingTae = new CommandLineTargetAlgorithmEvaluator(execConfig, concurrentRuns);
 				
 				
 				String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
 				
-				if(config.useScenarioOutDir)
+				if(options.useScenarioOutDir)
 				{
-					outputDir = config.scenarioConfig.outputDirectory + File.separator + "ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
+					outputDir = options.scenarioConfig.outputDirectory + File.separator + "ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
 				}
 				File f = new File(outputDir);
 				if(!f.mkdirs())
@@ -190,25 +190,25 @@ public class ValidatorExecutor {
 					throw new ParameterException("Couldn't make output Directory:" + outputDir);
 				}
 				
-				Object[] arr = {config.tunerTime,nearestTunerTime, config.empericalPerformance, config.tunerOverheadTime, config.seed, configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX)};
+				Object[] arr = {options.tunerTime,nearestTunerTime, options.empericalPerformance, options.tunerOverheadTime, options.seed, configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX)};
 				
 				
 				log.info("Begining Validation on tuner time: {} (trajectory file time: {}) emperical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
 		
 				(new Validator()).validate(testInstances,
 						configToValidate,
-						config.validationOptions,
-						config.scenarioConfig.cutoffTime,
+						options.validationOptions,
+						options.scenarioConfig.cutoffTime,
 						testInstanceSeedGen,
 						validatingTae,
 						outputDir,
-						config.scenarioConfig.runObj,
-						config.scenarioConfig.intraInstanceObj,
-						config.scenarioConfig.interInstanceObj,
-						config.tunerTime,
-						config.empericalPerformance,
-						config.tunerOverheadTime,
-						config.seed);
+						options.scenarioConfig.runObj,
+						options.scenarioConfig.intraInstanceObj,
+						options.scenarioConfig.interInstanceObj,
+						options.tunerTime,
+						options.empericalPerformance,
+						options.tunerOverheadTime,
+						options.seed);
 				
 				log.info("Validation Completed Successfully");
 			} catch(ParameterException e)

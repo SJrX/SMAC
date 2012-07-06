@@ -4,12 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +22,6 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ca.ubc.cs.beta.aclib.algorithmrunner.CommandLineTargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.algorithmrunner.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
@@ -40,6 +41,10 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.CommandLineTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.DebugTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
@@ -95,7 +100,7 @@ public class AutomaticConfigurator
 			SMACOptions options = parseCLIOptions(args);
 			
 			
-			logger.info("Automatic Configuration Started");
+			logger.info("Automatic Configurator Started");
 			
 			
 			SeedableRandomSingleton.setSeed(options.seed);
@@ -147,7 +152,7 @@ public class AutomaticConfigurator
 			if (!f2.isAbsolute()){
 				f2 = new File(options.experimentDir + File.separator + algoExecDir);
 			}
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false);
+			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic > 0);
 		
 			
 			
@@ -273,9 +278,13 @@ public class AutomaticConfigurator
 
 	private static TargetAlgorithmEvaluator getTargetAlgorithmEvaluator(SMACOptions options, AlgorithmExecutionConfig execConfig)
 	{
-		boolean concurrentRuns = (options.maxConcurrentAlgoExecs > 1);
-		TargetAlgorithmEvaluator algoEval = new CommandLineTargetAlgorithmEvaluator(execConfig, concurrentRuns);
 		
+		ClassLoader cl = getClassLoader(options);
+		//TargetAlgorithmEvaluator cli = TargetAlgorithmEvaluatorLoader.getTargetAlgorithmEvaluator(execConfig, options.maxConcurrentAlgoExecs, "CLI",cl);
+		//TargetAlgorithmEvaluator surrogate = TargetAlgorithmEvaluatorLoader.getTargetAlgorithmEvaluator(execConfig, options.maxConcurrentAlgoExecs, options.scenarioConfig.algoExecOptions.targetAlgorithmEvaluator,cl);
+		
+		 
+		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorLoader.getTargetAlgorithmEvaluator(execConfig, options.maxConcurrentAlgoExecs, options.scenarioConfig.algoExecOptions.targetAlgorithmEvaluator,cl);
 		if(options.runHashCodeFile != null)
 		{
 			logger.info("Algorithm Execution will verify run Hash Codes");
@@ -297,6 +306,45 @@ public class AutomaticConfigurator
 		return algoEval;
 	}
 
+	/**
+	 * Retrieves a modified class loader to do dynamically search for jars
+	 * @return
+	 */
+	private static ClassLoader getClassLoader(SMACOptions options)
+	{
+		String pathtoSearch = options.scenarioConfig.algoExecOptions.taeSearchPath;
+		String[] paths = pathtoSearch.split(File.pathSeparator);
+		
+		ArrayList<URL> urls = new ArrayList<URL>(paths.length);
+				
+		for(String path : paths)
+		{
+			
+			File f = new File(path);
+			
+			try {
+				urls.add(f.toURI().toURL());
+				
+			} catch (MalformedURLException e) {
+				logger.info("Could not parse path {}, got {}", path, e );
+			}
+			
+			
+		}
+		
+		
+		URL[] urlsArr = urls.toArray(new URL[0]);
+		
+		
+		URLClassLoader ucl = new URLClassLoader(urlsArr);
+		
+		return ucl;
+		
+		
+		
+	}
+	
+	
 	private static void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
 		
 		if(options.restoreIteration < 0)
@@ -401,7 +449,7 @@ public class AutomaticConfigurator
 			 
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.deterministic > 0));
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.algoExecOptions.deterministic > 0));
 			instanceSeedGen = ilws.getSeedGen();
 			
 			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
@@ -418,7 +466,7 @@ public class AutomaticConfigurator
 			
 			
 			logger.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, !config.scenarioConfig.skipInstanceFileCheck, config.seed+2,(config.scenarioConfig.deterministic > 0) );
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, !config.scenarioConfig.skipInstanceFileCheck, config.seed+2,(config.scenarioConfig.algoExecOptions.deterministic > 0) );
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			
@@ -433,6 +481,21 @@ public class AutomaticConfigurator
 			
 			
 			logCallString(args);
+			
+			
+			
+			
+				
+			ClassLoader cl = getClassLoader(config);
+			
+			List<String> names = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators(cl);
+			
+			for(String name : names)
+			{
+				logger.debug("Target Algorithm Evaluator Available {} ", name);
+			}
+			
+			
 			return config;
 		} catch(IOException e)
 		{
