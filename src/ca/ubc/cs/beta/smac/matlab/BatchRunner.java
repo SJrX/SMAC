@@ -11,6 +11,14 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.core.Context;
+import ch.qos.logback.core.util.StatusPrinter;
 
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.algorithmrun.ExistingAlgorithmRun;
@@ -75,9 +83,49 @@ public class BatchRunner {
 	}
 	
 	private static TargetAlgorithmEvaluator tae = null;
+	private static Logger log = null;
+	
 	public List<AlgorithmRun> executeSurrogateRun(AlgorithmExecutionConfig execConfig, List<RunConfig> runConfigs, String[] dynamicClassPath)
 	{
 		
+		
+		 
+		if(log == null)
+		{
+			/*
+				Context lc = (Context) LoggerFactory.getILoggerFactory();
+			    // print logback's internal status
+			    StatusPrinter.print(lc);
+			    */
+			    log = LoggerFactory.getLogger(getClass());
+			
+			    
+			 
+			 Map<Object,Object > props = System.getProperties();
+			 StringBuilder sb = new StringBuilder();
+			 for (Entry<Object, Object> ent : props.entrySet())
+			 {
+				 
+				 sb.append(ent.getKey().toString()).append("=").append(ent.getValue().toString()).append("\n");
+				 
+		           
+		     }
+			 
+			 log.info("[System Properties] \n{}\n",sb.toString());
+			 
+			
+			 Map<String, String> env = System.getenv();
+				
+			sb = new StringBuilder();
+				 for (String envName : env.keySet()) {
+					 sb.append(envName).append("=").append(env.get(envName)).append("\n");
+					 
+			           
+			        }
+				
+				
+			 log.info("[Enviroment Properties] \n{}\n", sb.toString());
+		} 
 		if(tae == null)
 		{
 			ArrayList<URL> urls = new ArrayList<URL>();
@@ -98,6 +146,8 @@ public class BatchRunner {
 			try {
 				taeFact = (TargetAlgorithmEvaluatorFactory) Class.forName("ca.ubc.cs.beta.models.surrogate.algorithmrun.SurrogateTargetAlgorithmEvaluatorFactory").newInstance();
 				tae = taeFact.getTargetAlgorithmEvaluator(execConfig, 1);
+				
+				
 				return tae.evaluateRun(runConfigs);
 			} catch(RuntimeException e)
 			{

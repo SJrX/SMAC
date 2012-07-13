@@ -198,7 +198,7 @@ public class AutomaticConfigurator
 				boolean concurrentRuns = (options.maxConcurrentAlgoExecs > 1);
 				
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other validation crap that is probably not applicable here
-				TargetAlgorithmEvaluator validatingTae = new CommandLineTargetAlgorithmEvaluator(execConfig, concurrentRuns);
+				TargetAlgorithmEvaluator validatingTae = algoEval;
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 				
 				double tunerTime = smac.getTunerTime();

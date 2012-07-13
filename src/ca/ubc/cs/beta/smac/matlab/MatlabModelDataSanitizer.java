@@ -9,7 +9,6 @@ public class MatlabModelDataSanitizer extends PCAModelDataSanitizer {
 			double[][] paramValues, int numPCA, double[] responseValues,int[] usedInstanceIdxs,
 			boolean logModel) {
 		super(instanceFeatures, paramValues, numPCA, responseValues, usedInstanceIdxs, logModel);
-		// TODO Auto-generated constructor stub
 	}
 
 	/**

@@ -1,14 +1,21 @@
 package ca.ubc.cs.beta.smac.matlab.helper;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedExponentialImprovement;
 import ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
@@ -102,9 +109,77 @@ public class StaticMethodWrapper implements Serializable{
 		return ArrayMathOps.matlabHashCode(matrix);
 	}
 	
-	public String toString()
+	public int matlabHashSingular(double[] matrix)
 	{
-		return "Hello, is it me you're looking for?";
+		//System.out.println(Arrays.toString(matrix));
+		double[][] obj = { matrix };
+		return matlabHashCode(obj);
 	}
 	
+	
+	public String toString()
+	{
+		StringBuilder sb = new StringBuilder();
+		for( Method m : StaticMethodWrapper.class.getMethods())
+		{
+			sb.append(m.getName()).append("=>(");
+			for(Class<?> classes : m.getParameterTypes())
+			{
+				sb.append(classes.getName());
+				sb.append(",");
+			}
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
+	private static ExpectedExponentialImprovement eei = new ExpectedExponentialImprovement();
+	
+	public double expImp(double f_min, double mean, double var)
+	{
+		double[] predmean = { mean };
+		double[] predvar = { var };
+		double value = eei.computeNegativeExpectedImprovement(f_min, predmean, predvar)[0];
+		
+		 
+		 return value;
+	}
+
+	public double[] expImp(double f_min, double[] mean, double[] var)
+	{
+		return eei.computeNegativeExpectedImprovement(f_min, mean, var);
+	}
+	public double[][] getNeighbours(ParamConfigurationSpace configSpace, double[] x)
+	{
+		ParamConfiguration config = configSpace.getConfigurationFromValueArray(x);
+		List<ParamConfiguration> neighbours = config.getNeighbourhood();
+		
+		double[][] results = new double[neighbours.size()][];
+		for(int i=0; i < results.length; i++)
+		{
+			results[i] = neighbours.get(i).toValueArray();
+		}
+				
+		return results;
+	}
+	
+	public double[][] getFeatures(String instanceFile, String experimentDir, String featureFileName)
+	{
+		
+		try {
+			InstanceListWithSeeds ilws = ProblemInstanceHelper.getInstances(instanceFile, experimentDir, featureFileName, false);
+			
+			double[][] features = new double[ilws.getInstances().size()][];
+			for(int i=0; i < ilws.getInstances().size(); i++)
+			{
+				features[i] = ilws.getInstances().get(i).getFeaturesDouble();
+			}
+			
+			return features;
+		} catch (IOException e) {
+
+			throw new RuntimeException(e);
+		}
+		
+		
+	}
 }

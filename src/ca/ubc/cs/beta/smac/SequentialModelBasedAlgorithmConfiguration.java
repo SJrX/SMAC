@@ -17,11 +17,13 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
+import ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.BasicModelBuilder;
+import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.ModelBuilder;
 import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
@@ -31,6 +33,7 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
+import ca.ubc.cs.beta.smac.matlab.helper.StaticMethodWrapper;
 import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
 
 public class SequentialModelBasedAlgorithmConfiguration extends
@@ -107,7 +110,18 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			usedInstanceIdxs[j] = runInstancesIdx.get(j);
 		}
 		
-		double[] runResponseValues = runHistory.getRunResponseValues();	
+		double[] runResponseValues = runHistory.getRunResponseValues();
+		
+		
+		
+		for(int j=0; j < runResponseValues.length; j++)
+		{ //=== Not sure if I Should be penalizing runs prior to the model
+			// but matlab sure does
+			if(runResponseValues[j] >= config.scenarioConfig.cutoffTime)
+			{	
+				runResponseValues[j] = runResponseValues[j] * config.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+			}
+		}
 	
 		//=== Sanitize the data.
 		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, configSpace);
@@ -120,9 +134,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
 		} else
 		{
-			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory); 
+			mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
+			//mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory); 
 		}
-		 /*= new HashCodeVerifyingModelBuilder(sdm,smacConfig.randomForestConfig, runHistory);*/
+		 /*= */
 		forest = mb.getRandomForest();
 		preparedForest = mb.getPreparedRandomForest();
 	
@@ -184,20 +199,24 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//=== Compute EI of these configurations (as given by predmean,predvar)
 		log.info("Optimizing EI at valdata.iteration {}", getIteration());
 		StopWatch watch = new AutoStartStopWatch();
-		double[] expectedImprovementOfTheta = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
+		double[] negativeExpectedImprovementOfTheta = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
+		
+		
+		
+		
 		watch.stop();
-		log.info("Compute negEI for all conf. seen at valdata.iteration {}: took {} s",getIteration(), watch.time() / 1000.0 );
+		log.info("Compute negEI for all conf. seen at valdata.iteration {}: took {} s",getIteration(), ((double) watch.time()) / 1000.0 );
 
 		//=== Put these EIs into a map for each configuration.
 		Map<ParamConfiguration, double[]> configPredMeanVarEIMap = new LinkedHashMap<ParamConfiguration, double[]>();
 		for(int i=0; i < paramConfigs.size(); i++)
 		{
-			double[] val = { predmean[i], predvar[i], expectedImprovementOfTheta[i] };
+			double[] val = { predmean[i], predvar[i], negativeExpectedImprovementOfTheta[i] };
 			configPredMeanVarEIMap.put(paramConfigs.get(i), val);
 		}
 		
 		//=== Sort the configurations by EI
-		List<ParamWithEI> sortedParams = ParamWithEI.merge(expectedImprovementOfTheta, paramConfigs);
+		List<ParamWithEI> sortedParams = ParamWithEI.merge(negativeExpectedImprovementOfTheta, paramConfigs);
 		Collections.sort(sortedParams);
 
 		//=== Local search for good EI configs.
@@ -209,18 +228,28 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			watch = new AutoStartStopWatch();
 			
 			ParamWithEI lsResult = localSearch(sortedParams.get(i), quality, Math.pow(10, -5));
+			
+
 			if(lsResult.getAssociatedValue() < min_neg)
 			{
 				min_neg = lsResult.getAssociatedValue();
 			}
 			
+			
 			predictions = transpose(applyMarginalModel(Collections.singletonList(lsResult.getValue())));
 			double[] val = { predictions[0][0], predictions[1][0], lsResult.getAssociatedValue()};
+			
+			//=== The Matlab code does not actually give us the real neg EI, we recompute it here because it just gives us
+			//the best one it found, and we are within epsilon away from that
+			//If you are reading this, someone somewhere is very sad that the code still does this ;)
+			//double realnegEI = ei.computeNegativeExpectedImprovement(quality, predictions[0], predictions[1])[0];
+			
+			//lsResult = new ParamWithEI(realnegEI, lsResult.getValue());
 			
 			bestResults.add(lsResult);
 			configPredMeanVarEIMap.put(lsResult.getValue(), val);
 			watch.stop();
-			Object[] args = {i+1,watch.time()/1000,min_neg};
+			Object[] args = {i+1,((double) watch.time()/1000.0),min_neg};
 			log.info("LS {} took {} seconds and yielded neg log EI {}",args);
 		}
 		
@@ -232,15 +261,25 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			configArrayToDebug[j++] = bestResult.getValue().toValueArray();
 		}
 		log.info("Local Search Selected Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
-		
+		int nextRandom = SeedableRandomSingleton.getRandom().nextInt();
+		log.info("Next Int {}", nextRandom);
 		//=== Generate random configurations 
 		int numberOfRandomConfigsInEI = smacConfig.numberOfRandomConfigsInEI;
+		log.warn("Hard coded number of configurations for random to 10");
+		numberOfRandomConfigsInEI = 10;
 		List<ParamConfiguration> randomConfigs = new ArrayList<ParamConfiguration>(numberOfRandomConfigsInEI);
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
 			randomConfigs.add(configSpace.getRandomConfiguration());
 		}
 		
+		
+		double[][] randomConfigToDebug = new double[randomConfigs.size()][];
+		for(int i=0; i < randomConfigs.size(); i++)
+		{
+			randomConfigToDebug[i] = randomConfigs.get(i).toValueArray();
+		}
+		log.info("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
 		//=== Compute EI for the random configs.		
 		predictions = transpose(applyMarginalModel(randomConfigs));
 		predmean = predictions[0];
@@ -263,7 +302,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			configArrayToDebug[j++] = eic.getValue().toValueArray();
 		}
-		log.debug("Local Search Selected Configurations & Random Configs Hash Code: {}", matlabHashCode(configArrayToDebug));
+		//log.debug("Local Search Selected Configurations & Random Configs Hash Code: {}", matlabHashCode(configArrayToDebug));
 		
 		//=== Sort configs by EI and output top ones.
 		bestResults = permute(bestResults);
@@ -289,10 +328,12 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			configArrayToDebug[j++] = c.toValueArray();
 		}
-		log.debug("Select Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
+		log.debug("Re-sorted Local Search Selected Configurations & Randm Configs Hash Code {}", matlabHashCode(configArrayToDebug));
 		
 		return Collections.unmodifiableList(results);	
 	}
+	
+	StaticMethodWrapper smw = new StaticMethodWrapper();
 	
 	/**
 	 * Performs a local search starting from the specified start configuration  
@@ -304,13 +345,15 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private ParamWithEI localSearch(ParamWithEI startEIC, double fmin_sample, double epsilon)
 	{
 		ParamWithEI incumbentEIC = startEIC;
+		
 		int localSearchSteps = 0;
+		
 		while(true)
 		{
 			localSearchSteps++;
 			if(localSearchSteps % 1000 == 0)
 			{
-				log.warn("Local Search has done {} iterations, possible infinite loop" );
+				log.warn("Local Search has done {} iterations, possible infinite loop", localSearchSteps );
 			}
 			
 			//=== Get EI of current configuration.
@@ -320,7 +363,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			//System.out.println("minEI: " + currentMinEI + " incumbent: " + c.hashCode());
 			double[][] cArray = {c.toValueArray()};
 			int LSHashCode = matlabHashCode(cArray);
-			log.trace("Local Search Start Hash Code: {}", LSHashCode);
+			log.debug("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current config and compute EI for all of it.
 			List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
@@ -360,9 +403,26 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				int nextIdx = minIdx.get(SeedableRandomSingleton.getRandom().nextInt(minIdx.size()));
 				ParamConfiguration best = neighbourhood.get(nextIdx);
 				incumbentEIC = new ParamWithEI(eiVal[nextIdx], best);
+				
+				//==== Matlab code always uses the min even if we didn't select it.
+				//incumbentEIC = new ParamWithEI(min, best);
+				
+				double[][] next = { best.toValueArray() };
+				double[][] predictions = transpose(applyMarginalModel(next));
+				double[] mean = predictions[0];
+				double[] var = predictions[1];
+				
+				eiVal = ei.computeNegativeExpectedImprovement(fmin_sample, mean, var);
+				Object[] args = {eiVal[0], mean[0], var[0]};
+				log.trace("Expected improvement for next step is {} mean={}, var={}",args);
+				
+				
+				
 			}
 		}
+		log.debug("Local Search End Hash Code: {}",smw.matlabHashSingular(incumbentEIC.getValue().toValueArray()));
 		log.debug("Local Search took {} steps", localSearchSteps);
+		
 		return incumbentEIC;
 	}
 
