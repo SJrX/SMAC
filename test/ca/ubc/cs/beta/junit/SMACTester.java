@@ -77,11 +77,11 @@ public class SMACTester {
 			String experimentDir = (new File(scenarioFile)).getParent();
 			String runID = new File(scenarioFile).getName() + "-JUNIT";
 			
-			/*ScenarioConfig config = new ScenarioConfig();
+			/*ScenarioConfig options = new ScenarioConfig();
 			String[] args = {"--scenarioFile", scenarioFile};
-			JCommanderHelper.parse(new JCommander(config), args);
+			JCommanderHelper.parse(new JCommander(options), args);
 			
-			System.out.println(config);
+			System.out.println(options);
 			if (true) return true;
 			*/
 	
@@ -154,7 +154,7 @@ public class SMACTester {
 					String line;
 					System.out.print("RUNNING:");
 					System.out.flush();
-					String regex = "running config \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
+					String regex = "running options \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
 					Pattern pat = Pattern.compile(regex);
 					
 					while((line = in.readLine()) != null)
@@ -305,7 +305,7 @@ public class SMACTester {
 				String line;
 				System.out.print("RUNNING:");
 				System.out.flush();
-				String regex = "running config \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
+				String regex = "running options \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
 				Pattern pat = Pattern.compile(regex);
 				
 				boolean errorFound = false;

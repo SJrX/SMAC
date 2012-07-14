@@ -75,7 +75,7 @@ public class AbstractAlgorithmFramework {
 	 * Stores our configuration
 	 */
 	@Deprecated
-	protected final SMACOptions config;
+	protected final SMACOptions options;
 	
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());
 		
@@ -88,17 +88,17 @@ public class AbstractAlgorithmFramework {
 	
 	private final int MAX_RUNS_FOR_INCUMBENT;
 	
-	public AbstractAlgorithmFramework(SMACOptions smacConfig, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
 	{
 		this.instances = instances;
 		this.testInstances = testInstances;
-		this.cutoffTime = smacConfig.scenarioConfig.cutoffTime;
-		this.config = smacConfig;
+		this.cutoffTime = smacOptions.scenarioConfig.cutoffTime;
+		this.options = smacOptions;
 		this.rand = rand;		
 		this.algoEval = algoEval;
 		this.stateFactory = stateFactory;
 		this.configSpace = configSpace;
-		this.runHistory = new NewRunHistory(instanceSeedGen,smacConfig.scenarioConfig.intraInstanceObj, smacConfig.scenarioConfig.interInstanceObj, smacConfig.scenarioConfig.runObj);
+		this.runHistory = new NewRunHistory(instanceSeedGen,smacOptions.scenarioConfig.intraInstanceObj, smacOptions.scenarioConfig.interInstanceObj, smacOptions.scenarioConfig.runObj);
 		
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);
@@ -106,22 +106,22 @@ public class AbstractAlgorithmFramework {
 		log.info("Automatic Configuration Start Time is {}", df.format(d));				
 		
 		//=== Clamp # runs for incumbent to # of available seeds.
-		if(instanceSeedGen.getInitialInstanceSeedCount() < config.maxIncumbentRuns)
+		if(instanceSeedGen.getInitialInstanceSeedCount() < options.maxIncumbentRuns)
 		{
 			log.info("Clamping number of runs to {} due to lack of instance/seeds pairs", instanceSeedGen.getInitialInstanceSeedCount());
 			MAX_RUNS_FOR_INCUMBENT = instanceSeedGen.getInitialInstanceSeedCount();
 		}  else
 		{
-			MAX_RUNS_FOR_INCUMBENT=smacConfig.maxIncumbentRuns;
+			MAX_RUNS_FOR_INCUMBENT=smacOptions.maxIncumbentRuns;
 			log.info("Maximimum Number of Runs for the Incumbent Initialized to {}:", MAX_RUNS_FOR_INCUMBENT);
 		}
 		
 		//=== Initialize trajectory file.
 		try {
-			String outputFileName = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator +"traj-run-" + config.seed + ".txt";
+			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seed + ".txt";
 			this.fout = new FileWriter(new File(outputFileName));
 			log.info("Trajectory File Writing To: {}", outputFileName);
-			fout.write(config.runGroupName + ", " + config.seed + "\n");			
+			fout.write(options.runGroupName + ", " + options.seed + "\n");			
 		} catch (IOException e) {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);
@@ -211,21 +211,21 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected boolean have_to_stop(int iteration, double nextRunTime)
 	{
-		if(getTunerTime() + nextRunTime > config.scenarioConfig.tunerTimeout)
+		if(getTunerTime() + nextRunTime > options.scenarioConfig.tunerTimeout)
 		{
-			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost() + nextRunTime, config.scenarioConfig.tunerTimeout);
+			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost() + nextRunTime, options.scenarioConfig.tunerTimeout);
 			return true;
 		}
 		
-		if(iteration > config.numIteratations)
+		if(iteration > options.numIteratations)
 		{
-			log.info("Iteration {} greater than number permitted {}", iteration, config.numIteratations);
+			log.info("Iteration {} greater than number permitted {}", iteration, options.numIteratations);
 			return true;
 		}
 		
-		if(runHistory.getAlgorithmRunData().size() >= config.totalNumRunLimit)
+		if(runHistory.getAlgorithmRunData().size() >= options.totalNumRunLimit)
 		{
-			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), config.totalNumRunLimit);
+			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), options.totalNumRunLimit);
 			return true;
 		}
 		
@@ -252,7 +252,7 @@ public class AbstractAlgorithmFramework {
 		double cpuTime = runHistory.getTotalRunCost();
 		
 		double acTime = b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;
-		Object[] arr2 = { iteration, wallTime , config.runtimeLimit - wallTime , cpuTime,config.scenarioConfig.tunerTimeout - cpuTime,   b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000, b.getCurrentThreadUserTime() / 1000.0 / 1000 / 1000 , Runtime.getRuntime().maxMemory() / 1024.0 / 1024, Runtime.getRuntime().totalMemory() / 1024.0 / 1024, Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
+		Object[] arr2 = { iteration, wallTime , options.runtimeLimit - wallTime , cpuTime,options.scenarioConfig.tunerTimeout - cpuTime,   b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000, b.getCurrentThreadUserTime() / 1000.0 / 1000 / 1000 , Runtime.getRuntime().maxMemory() / 1024.0 / 1024, Runtime.getRuntime().totalMemory() / 1024.0 / 1024, Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
 		
 		
 
@@ -337,11 +337,13 @@ public class AbstractAlgorithmFramework {
 						StopWatch t = new AutoStartStopWatch();
 						learnModel(runHistory, configSpace);
 						
-						double learnModelTime = t.stop();
+						double learnModelTime = t.stop()/1000;
 						
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 						challengers.addAll(selectConfigurations());
-						intensify(challengers, learnModelTime/1000);
+						
+						double intensifyTime = Math.ceil( learnModelTime) * (options.intensificationPercentage / (1-options.intensificationPercentage));
+						intensify(challengers, intensifyTime);
 						
 						logIncumbent(iteration);
 					} 
@@ -495,7 +497,7 @@ public class AbstractAlgorithmFramework {
 			double bound_inc = Double.POSITIVE_INFINITY;
 			Set<ProblemInstance> missingInstances = null;
 			Set<ProblemInstance> missingPlusCommon = null;
-			if(config.adaptiveCapping)
+			if(options.adaptiveCapping)
 			{
 				missingInstances = new HashSet<ProblemInstance>();
 				
@@ -516,9 +518,9 @@ public class AbstractAlgorithmFramework {
 			
 			log.info("Performing up to {} runs for challenger up to a total bound of {} ", N, bound_inc);
 			
-			List<RunConfig> runsToEval = new ArrayList<RunConfig>(config.maxConcurrentAlgoExecs); 
+			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.maxConcurrentAlgoExecs); 
 			
-			if(config.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
+			if(options.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
 				log.info("Challenger cannot beat incumbent => scheduling empty run");
 				runsToEval.add(getBoundedRunConfig(aMissing.get(0), 0, challenger));
@@ -533,7 +535,7 @@ public class AbstractAlgorithmFramework {
 					
 					RunConfig runConfig;
 					ProblemInstanceSeedPair pisp = aMissing.get(0);
-					if(config.adaptiveCapping)
+					if(options.adaptiveCapping)
 					{
 						
 						
@@ -559,7 +561,7 @@ public class AbstractAlgorithmFramework {
 					
 					sMissing.remove(pisp);
 					aMissing.remove(0);
-					if(runsToEval.size() == config.maxConcurrentAlgoExecs )
+					if(runsToEval.size() == options.maxConcurrentAlgoExecs )
 					{
 						evaluateRun(runsToEval);
 						runsToEval.clear();
@@ -650,7 +652,7 @@ public class AbstractAlgorithmFramework {
 		if(upperBound - lowerBound < Math.pow(10,-6))
 		{
 			double capTime = upperBound + Math.pow(10, -3);
-			return capTime * config.capSlack + config.capAddSlack;
+			return capTime * options.capSlack + options.capAddSlack;
 		}
 		
 		

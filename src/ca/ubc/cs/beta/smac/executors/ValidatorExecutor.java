@@ -256,6 +256,6 @@ public class ValidatorExecutor {
 				
 			}
 		}
-		/*(new Validator()).validate(testInstances, smac.getIncumbent(),config, testInstanceSeedGen, validatingTae);*/
+		/*(new Validator()).validate(testInstances, smac.getIncumbent(),options, testInstanceSeedGen, validatingTae);*/
 	}
 }

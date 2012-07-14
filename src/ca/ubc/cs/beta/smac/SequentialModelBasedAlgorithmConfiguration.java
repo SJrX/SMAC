@@ -117,9 +117,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		for(int j=0; j < runResponseValues.length; j++)
 		{ //=== Not sure if I Should be penalizing runs prior to the model
 			// but matlab sure does
-			if(runResponseValues[j] >= config.scenarioConfig.cutoffTime)
+			if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
 			{	
-				runResponseValues[j] = runResponseValues[j] * config.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+				runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
 			}
 		}
 	
@@ -129,7 +129,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//=== Actually build the model.
 		ModelBuilder mb;
 		//TODO: always go through AdaptiveCappingModelBuilder
-		if(config.adaptiveCapping)
+		if(options.adaptiveCapping)
 		{
 			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
 		} else
@@ -365,7 +365,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			int LSHashCode = matlabHashCode(cArray);
 			log.debug("Local Search HashCode: {}", LSHashCode);
 			
-			//=== Get neighbourhood of current config and compute EI for all of it.
+			//=== Get neighbourhood of current options and compute EI for all of it.
 			List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];

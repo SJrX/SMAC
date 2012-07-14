@@ -102,7 +102,7 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 		}
 		
 		
-		//writeInstanceResultFile(runs, config);
+		//writeInstanceResultFile(runs, options);
 		
 		
 	}

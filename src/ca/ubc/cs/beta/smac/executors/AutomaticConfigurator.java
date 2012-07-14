@@ -364,7 +364,7 @@ public class AutomaticConfigurator
 
 
 	/**
-	 * Parsers Command Line Arguments and returns a config object
+	 * Parsers Command Line Arguments and returns a options object
 	 * @param args
 	 * @return
 	 */
