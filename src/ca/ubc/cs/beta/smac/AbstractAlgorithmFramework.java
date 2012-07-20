@@ -337,12 +337,14 @@ public class AbstractAlgorithmFramework {
 						StopWatch t = new AutoStartStopWatch();
 						learnModel(runHistory, configSpace);
 						
-						double learnModelTime = t.stop()/1000;
+						
 						
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 						challengers.addAll(selectConfigurations());
 						
-						double intensifyTime = Math.ceil( learnModelTime) * (options.intensificationPercentage / (1-options.intensificationPercentage));
+
+						double learnModelTime = t.stop()/1000.0;
+						double intensifyTime = Math.ceil( learnModelTime) * (options.intensificationPercentage / (1.0-options.intensificationPercentage));
 						intensify(challengers, intensifyTime);
 						
 						logIncumbent(iteration);
@@ -776,10 +778,14 @@ public class AbstractAlgorithmFramework {
 	{
 		int i=0;
 		log.info("Evaluating {} run(s)", runConfigs.size());
-		for(RunConfig rc : runConfigs)
+		if(log.isDebugEnabled())
 		{
-			log.info("Run {}: {} ",i++, rc);
+			for(RunConfig rc : runConfigs)
+			{
+				log.debug("Run {}: {} ",i++, rc);
+			}
 		}
+		
 		List<AlgorithmRun> completedRuns = algoEval.evaluateRun(runConfigs);
 		updateRunHistory(completedRuns);
 		return completedRuns;
