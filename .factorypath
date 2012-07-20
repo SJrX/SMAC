@@ -1,3 +1,3 @@
 <factorypath>
-    <factorypathentry kind="EXTJAR" id="/home/sjr/git/AutomaticConfiguratorLibrary/lib/spi-0.2.4.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="WKSPJAR" id="/AutomaticConfiguratorLibrary/lib/spi-0.2.4.jar" enabled="true" runInBatchMode="false"/>
 </factorypath>
