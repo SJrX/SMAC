@@ -33,6 +33,7 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
+import ca.ubc.cs.beta.models.fastrf.RoundingMode;
 import ca.ubc.cs.beta.smac.matlab.helper.StaticMethodWrapper;
 import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
 
@@ -304,13 +305,34 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		//log.debug("Local Search Selected Configurations & Random Configs Hash Code: {}", matlabHashCode(configArrayToDebug));
 		
+		
+		
+		if(RoundingMode.ROUND_NUMBERS_FOR_MATLAB_SYNC)
+		{
+			List<ParamWithEI> realBestResults = new ArrayList<ParamWithEI>(bestResults.size());
+			//=== Round the ei value for MATLAB synchronization purposes
+			for(ParamWithEI pwei : bestResults)
+			{
+				double ei = Math.round(pwei.getAssociatedValue() * 1000000000) / 1000000000.0;
+				realBestResults.add(new ParamWithEI( ei,pwei.getValue()));
+			}
+			bestResults = realBestResults;
+		}
+		
+		
 		//=== Sort configs by EI and output top ones.
+		
 		bestResults = permute(bestResults);
 		Collections.sort(bestResults);
+		
+		
+		
+	
+		
 		for(int i=0; i < numberOfSearches; i++)
 		{
 			double[] meanvar = configPredMeanVarEIMap.get(bestResults.get(i).getValue());
-			Object[] args = {i+1, meanvar[0], Math.sqrt(meanvar[1]), meanvar[2]}; 
+			Object[] args = {i+1, meanvar[0], Math.sqrt(meanvar[1]), -meanvar[2]}; 
 			log.info("Challenger {} predicted {} +/- {}, expected improvement {}",args);
 		}
 		
