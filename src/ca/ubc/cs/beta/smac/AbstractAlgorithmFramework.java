@@ -336,15 +336,16 @@ public class AbstractAlgorithmFramework {
 						log.info("Starting Iteration {}", iteration);
 						StopWatch t = new AutoStartStopWatch();
 						learnModel(runHistory, configSpace);
-						
-						
+						log.info("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 						challengers.addAll(selectConfigurations());
 						
 
 						double learnModelTime = t.stop()/1000.0;
+						
 						double intensifyTime = Math.ceil( learnModelTime) * (options.intensificationPercentage / (1.0-options.intensificationPercentage));
+						
 						intensify(challengers, intensifyTime);
 						
 						logIncumbent(iteration);
@@ -422,7 +423,7 @@ public class AbstractAlgorithmFramework {
 	/**
 	 * Intensification
 	 * @param challengers - List of challengers we should check against
-	 * @param timeBound  - Amount of time we are allowed to run against
+	 * @param timeBound  - Amount of time we are allowed to run against (seconds)
 	 */
 	private void intensify(List<ParamConfiguration> challengers, double timeBound) 
 	{
@@ -433,8 +434,11 @@ public class AbstractAlgorithmFramework {
 			double timeUsed = runHistory.getTotalRunCost() - initialTime;
 			if( timeUsed > timeBound && i > 1)
 			{
-				log.info("Out of time for intensification timeBound {}; used: {}", timeBound, timeUsed );
+				log.info("Out of time for intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed );
 				break;
+			} else
+			{
+				log.info("Intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed);
 			}
 			challengeIncumbent(challengers.get(i));
 		}

@@ -135,8 +135,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
 		} else
 		{
-			mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
-			//mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory); 
+			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
+			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory); 
 		}
 		 /*= */
 		forest = mb.getRandomForest();
@@ -147,14 +147,20 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	protected List<ParamConfiguration> selectConfigurations()
 	{
+		AutoStartStopWatch t = new AutoStartStopWatch();
 		List<ParamConfiguration> eichallengers = selectChallengersWithEI(smacConfig.numberOfChallengers);
 		
+		log.info("EI Challengers selected {} took {} (s)", eichallengers.size(), t.stop() / 1000.0);
+		
 		List<ParamConfiguration> randomChallengers = new ArrayList<ParamConfiguration>(eichallengers.size());
+		
 		log.info("Generating {} random configurations", eichallengers.size());
+		 t = new AutoStartStopWatch();
 		for(int i=0; i < eichallengers.size(); i++)
 		{
 			randomChallengers.add(configSpace.getRandomConfiguration());
 		}
+		log.info("Generating random configurations took {} (s)", t.stop()/1000.0 );
 		
 		//=== Interleave the EI and random challengers.
 		List<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>(eichallengers.size()*2);
@@ -171,7 +177,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			configArrayToDebug[j++] = c.toValueArray();
 		}
-		log.info("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
+		log.debug("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
 		
 		return challengers;
 	}
@@ -261,37 +267,58 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			configArrayToDebug[j++] = bestResult.getValue().toValueArray();
 		}
-		log.info("Local Search Selected Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
+		if(log.isDebugEnabled())
+		{
+			log.debug("Local Search Selected Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
+		}
 		int nextRandom = SeedableRandomSingleton.getRandom().nextInt();
-		log.info("Next Int {}", nextRandom);
-		//=== Generate random configurations 
+		log.debug("Next Int {}", nextRandom);
+		//=== Generate random configurations
 		int numberOfRandomConfigsInEI = smacConfig.numberOfRandomConfigsInEI;
-		log.warn("Hard coded number of configurations for random to 10");
-		numberOfRandomConfigsInEI = 10;
+		if(RoundingMode.ROUND_NUMBERS_FOR_MATLAB_SYNC)
+		{
+			log.warn("Hard coded number of configurations for random to 10");
+			numberOfRandomConfigsInEI = 10;
+		}
+		
+		
+		
+		AutoStartStopWatch t = new AutoStartStopWatch();
 		List<ParamConfiguration> randomConfigs = new ArrayList<ParamConfiguration>(numberOfRandomConfigsInEI);
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
 			randomConfigs.add(configSpace.getRandomConfiguration());
 		}
+		log.info("Generating Random Configurations took {} (s)", t.stop() / 1000.0);
 		
-		
+		t = new AutoStartStopWatch();
 		double[][] randomConfigToDebug = new double[randomConfigs.size()][];
 		for(int i=0; i < randomConfigs.size(); i++)
 		{
 			randomConfigToDebug[i] = randomConfigs.get(i).toValueArray();
 		}
-		log.info("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
+		if(log.isDebugEnabled())
+		{
+			log.debug("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
+		}
 		//=== Compute EI for the random configs.		
 		predictions = transpose(applyMarginalModel(randomConfigs));
 		predmean = predictions[0];
-		predvar = predictions[1]; 
-		double[] expectedImprovementOfRandoms = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
+		predvar = predictions[1];
 		
+		log.debug("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
+		t = new AutoStartStopWatch();
+		double[] expectedImprovementOfRandoms = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
+		log.debug("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
+		t = new AutoStartStopWatch();
 		for(int i=0; i <  randomConfigs.size(); i++)
 		{
 			double[] val = { predmean[i], predvar[i], expectedImprovementOfRandoms[i] };
 			configPredMeanVarEIMap.put(randomConfigs.get(i), val);
 		}
+		
+		log.debug("Map Insertion for Random Configurations took {} (s)", t.stop() / 1000.0);
+		
 		
 		//=== Add random configs to LS configs.
 		bestResults.addAll(ParamWithEI.merge(expectedImprovementOfRandoms, randomConfigs));
