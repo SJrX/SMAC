@@ -237,15 +237,20 @@ public class AbstractAlgorithmFramework {
 	{
 		logIncumbent(-1);
 	}
+	/**
+	 * Logs the incumbent 
+	 * @param iteration
+	 */
 	public void logIncumbent(int iteration)
 	{
+		
 		if (iteration > 0)
 		{
-			Object[] arr = {iteration,  incumbent, incumbent.getFormattedParamString()};		
-			log.info("At end of iteration {}, incumbent is {} {}",arr);
+			Object[] arr = {iteration,  incumbent, runHistory.getThetaIdx(incumbent)};		
+			log.info("At end of iteration {}, incumbent is {} RunHistory ID:  {}",arr);
 		} else
 		{
-			log.info("Incument currently is: {} {} ", incumbent, incumbent.getFormattedParamString());
+			log.info("Incument currently is: {} RunHistory ID: {} ", incumbent, runHistory.getThetaIdx(incumbent));
 		}
 		ThreadMXBean b = ManagementFactory.getThreadMXBean();
 		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
