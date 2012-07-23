@@ -447,7 +447,9 @@ public class AbstractAlgorithmFramework {
 	
 	private void challengeIncumbent(ParamConfiguration challenger) {
 
-		log.debug("Challenging incumbent with configuration {} ", challenger);
+		
+		
+		logConfiguration("Challenger", challenger);
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 			log.debug("Performing additional run with the incumbent");
@@ -594,7 +596,7 @@ public class AbstractAlgorithmFramework {
 			double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
 			
 
-			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), challenger.getFriendlyID(), chalCost, incumbent.getFriendlyID(), incCost  };
+			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), challenger.getFriendlyIDHex(), chalCost, incumbent.getFriendlyIDHex(), incCost  };
 			log.info("Based on {} common runs on (up to) {} instances, challenger {} has a lower bound {} and incumbent {} has obj {}",args);
 			
 			//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.		
@@ -624,6 +626,21 @@ public class AbstractAlgorithmFramework {
 	}
 	
 	
+
+	private void logConfiguration(String type, ParamConfiguration challenger) {
+		
+		
+		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
+		
+		RunConfig config = new RunConfig(pisp, cutoffTime, challenger);
+		
+		String cmd = algoEval.getManualCallString(config);
+		Object[] args = { type, challenger, cmd };
+		log.info("Sample Call for {} configuration ID {}\n{} ",args);
+		
+	}
+
+
 
 	private static Object currentIncumbentCost;
 
