@@ -61,6 +61,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private PCAModelDataSanitizer sanitizedData;
 	private final ExpectedImprovementFunction ei;
 	
+	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
+	
 	
 	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
 		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen, rand);
@@ -177,7 +179,12 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			configArrayToDebug[j++] = c.toValueArray();
 		}
-		log.debug("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
+		
+		if(SELECT_CONFIGURATION_SYNC_DEBUGGING)
+		{
+			log.debug("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
+		}
+		
 		
 		return challengers;
 	}
@@ -267,12 +274,20 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			configArrayToDebug[j++] = bestResult.getValue().toValueArray();
 		}
-		if(log.isDebugEnabled())
+		
+		
+		if(SELECT_CONFIGURATION_SYNC_DEBUGGING && log.isDebugEnabled())
 		{
 			log.debug("Local Search Selected Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
 		}
+		
 		int nextRandom = SeedableRandomSingleton.getRandom().nextInt();
-		log.debug("Next Int {}", nextRandom);
+		
+		if(SELECT_CONFIGURATION_SYNC_DEBUGGING)
+		{
+			log.debug("Next Int {}", nextRandom);
+		}
+		
 		//=== Generate random configurations
 		int numberOfRandomConfigsInEI = smacConfig.numberOfRandomConfigsInEI;
 		if(RoundingMode.ROUND_NUMBERS_FOR_MATLAB_SYNC)
@@ -297,7 +312,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			randomConfigToDebug[i] = randomConfigs.get(i).toValueArray();
 		}
-		if(log.isDebugEnabled())
+		if(SELECT_CONFIGURATION_SYNC_DEBUGGING &&  log.isDebugEnabled())
 		{
 			log.debug("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
 		}
@@ -377,7 +392,11 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			configArrayToDebug[j++] = c.toValueArray();
 		}
-		log.debug("Re-sorted Local Search Selected Configurations & Randm Configs Hash Code {}", matlabHashCode(configArrayToDebug));
+		if(SELECT_CONFIGURATION_SYNC_DEBUGGING)
+		{
+			log.debug("Re-sorted Local Search Selected Configurations & Random Configs Hash Code {}", matlabHashCode(configArrayToDebug));
+		}
+		
 		
 		return Collections.unmodifiableList(results);	
 	}
@@ -412,7 +431,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			//System.out.println("minEI: " + currentMinEI + " incumbent: " + c.hashCode());
 			double[][] cArray = {c.toValueArray()};
 			int LSHashCode = matlabHashCode(cArray);
-			log.debug("Local Search HashCode: {}", LSHashCode);
+			
+			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current options and compute EI for all of it.
 			List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
@@ -469,7 +489,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				
 			}
 		}
-		log.debug("Local Search End Hash Code: {}",smw.matlabHashSingular(incumbentEIC.getValue().toValueArray()));
+		if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search End Hash Code: {}",smw.matlabHashSingular(incumbentEIC.getValue().toValueArray()));
 		log.debug("Local Search took {} steps", localSearchSteps);
 		
 		return incumbentEIC;
