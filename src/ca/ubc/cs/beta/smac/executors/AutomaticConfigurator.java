@@ -44,6 +44,7 @@ import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.CommandLineTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.DebugTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
@@ -297,6 +298,12 @@ public class AutomaticConfigurator
 			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval);
 		}
 
+		
+		if(options.abortOnCrash)
+		{
+			algoEval = new AbortOnCrashTargetAlgorithmEvaluator(algoEval);
+		}
+		
 		if(options.modelHashCodeFile != null)
 		{
 			logger.info("Algorithm Execution will verify model Hash Codes");
