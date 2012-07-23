@@ -45,6 +45,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.CommandLineTargetAlgorithmE
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.DebugTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnCrashTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnFirstRunCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
@@ -302,6 +303,17 @@ public class AutomaticConfigurator
 		if(options.abortOnCrash)
 		{
 			algoEval = new AbortOnCrashTargetAlgorithmEvaluator(algoEval);
+		}
+		
+		
+		if(options.abortOnFirstRunCrash)
+		{
+			algoEval = new AbortOnFirstRunCrashTargetAlgorithmEvaluator(algoEval);
+			
+			if(options.abortOnCrash)
+			{
+				logger.warn("Configured to treat all crashes as aborts, it is redundant to also treat the first as an abort");
+			}
 		}
 		
 		if(options.modelHashCodeFile != null)
