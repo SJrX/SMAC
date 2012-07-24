@@ -529,7 +529,19 @@ public class AutomaticConfigurator
 				logger.debug("Target Algorithm Evaluator Available {} ", name);
 			}
 			
-			
+			try {
+				//We don't handle this more gracefully because this seems like a super rare incident.
+				if(ManagementFactory.getThreadMXBean().isThreadCpuTimeEnabled())
+				{
+					logger.debug("JVM Supports CPU Timing Measurements");
+				} else
+				{
+					logger.warn("This Java Virtual Machine has CPU Time Measurements disabled, tunerTimeout will not contain any SMAC Execution Time.");
+				}
+			} catch(UnsupportedOperationException e)
+			{
+				logger.warn("This Java Virtual Machine does not support CPU Time Measurements, tunerTimeout will not contain any SMAC Execution Time Information (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/management/ThreadMXBean.html#setThreadCpuTimeEnabled(boolean))");
+			}
 			return config;
 		} catch(IOException e)
 		{

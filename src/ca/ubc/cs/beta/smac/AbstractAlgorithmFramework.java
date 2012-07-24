@@ -238,28 +238,68 @@ public class AbstractAlgorithmFramework {
 		logIncumbent(-1);
 	}
 	
+	/**
+	 * Returns the total CPU Time for this JVM
+	 * 
+	 * @return cpu time for this jvm if enabled&supported 0 otherwise
+	 */
 	public long getCPUTime()
 	{
-		ThreadMXBean b = ManagementFactory.getThreadMXBean();
-		long cpuTime = 0;
-		for(long threadID : b.getAllThreadIds())
+		try 
 		{
-			cpuTime += b.getThreadCpuTime(threadID);
+			ThreadMXBean b = ManagementFactory.getThreadMXBean();
+		
+			long cpuTime = 0;
+			for(long threadID : b.getAllThreadIds())
+			{
+				long threadTime =  b.getThreadCpuTime(threadID);
+				if(threadTime == -1)
+				{ //This JVM doesn't have CPU time enabled
+			      //We check every iteration because some threads (the current thread may give us something other than -1)
+					
+					log.trace("JVM does not have CPU Time enabled");
+					return 0; 
+				}
+			}
+			return cpuTime;
+		} catch(UnsupportedOperationException e)
+		{
+			log.trace("JVM does not support CPU Time measurements");
+			return 0;
 		}
-		return cpuTime;
 		
 	}
 	
+	/**
+	 * Returns the total CPU Time for this JVM
+	 * 
+	 * @return cpu user time for this jvm if enabled&supported 0 otherwise */
 	public long getCPUUserTime()
 	{
-		ThreadMXBean b = ManagementFactory.getThreadMXBean();
-		long cpuTime = 0;
-		for(long threadID : b.getAllThreadIds())
+		try
 		{
-			cpuTime += b.getThreadUserTime(threadID);
-		}
-		return cpuTime;
+			ThreadMXBean b = ManagementFactory.getThreadMXBean();
+			
+			long cpuTime = 0;
+			for(long threadID : b.getAllThreadIds())
+			{
+				long threadTime =  b.getThreadUserTime(threadID);
+				if(threadTime == -1)
+				{ //This JVM doesn't have CPU time enabled
+				      //We check every iteration because some threads (the current thread may give us something other than -1)
+					log.trace("JVM does not have CPU Time enabled");
+					return 0; 
+				}
+				cpuTime += threadTime;
+			}
+	
+			return cpuTime;
 		
+		} catch(UnsupportedOperationException e)
+		{
+			log.trace("JVM does not support CPU Time measurements");
+			return 0;
+		}
 	}
 	
 	
@@ -278,7 +318,7 @@ public class AbstractAlgorithmFramework {
 		{
 			log.info("Incument currently is: {} RunHistory ID: {} ", incumbent, runHistory.getThetaIdx(incumbent));
 		}
-		ThreadMXBean b = ManagementFactory.getThreadMXBean();
+	
 		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
 		double tunerTime = getTunerTime();
 		
