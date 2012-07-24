@@ -46,6 +46,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.DebugTargetAlgorithmEvaluat
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnFirstRunCrashTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.RetryCrashedRunsTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
@@ -277,7 +278,12 @@ public class AutomaticConfigurator
 	
 
 
-
+	/**
+	 * Generates the TargetAlgorithmEvaluator with the given runtime behaivor
+	 * @param options
+	 * @param execConfig
+	 * @return
+	 */
 	private static TargetAlgorithmEvaluator getTargetAlgorithmEvaluator(SMACOptions options, AlgorithmExecutionConfig execConfig)
 	{
 		
@@ -287,18 +293,13 @@ public class AutomaticConfigurator
 		
 		 
 		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorLoader.getTargetAlgorithmEvaluator(execConfig, options.maxConcurrentAlgoExecs, options.scenarioConfig.algoExecOptions.targetAlgorithmEvaluator,cl);
-		if(options.runHashCodeFile != null)
-		{
-			logger.info("Algorithm Execution will verify run Hash Codes");
-			Queue<Integer> runHashCodes = parseRunHashCodes(options.runHashCodeFile);
-			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval, runHashCodes);
-			 
-		} else
-		{
-			logger.info("Algorithm Execution will NOT verify run Hash Codes");
-			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval);
-		}
-
+		
+		//===== Note the decorators are not in general commutative
+		//Specifically Run Hash codes should only see the same runs the rest of the applications see
+		//Additionally retrying of crashed runs should probably happen before Abort on Crash
+		
+		algoEval = new RetryCrashedRunsTargetAlgorithmEvaluator(options.retryCount, algoEval);
+		
 		
 		if(options.abortOnCrash)
 		{
@@ -315,6 +316,20 @@ public class AutomaticConfigurator
 				logger.warn("Configured to treat all crashes as aborts, it is redundant to also treat the first as an abort");
 			}
 		}
+		
+		//==== Run Hash Code Verification should be last
+		if(options.runHashCodeFile != null)
+		{
+			logger.info("Algorithm Execution will verify run Hash Codes");
+			Queue<Integer> runHashCodes = parseRunHashCodes(options.runHashCodeFile);
+			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval, runHashCodes);
+			 
+		} else
+		{
+			logger.info("Algorithm Execution will NOT verify run Hash Codes");
+			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval);
+		}
+
 		
 		if(options.modelHashCodeFile != null)
 		{

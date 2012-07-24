@@ -237,6 +237,32 @@ public class AbstractAlgorithmFramework {
 	{
 		logIncumbent(-1);
 	}
+	
+	public long getCPUTime()
+	{
+		ThreadMXBean b = ManagementFactory.getThreadMXBean();
+		long cpuTime = 0;
+		for(long threadID : b.getAllThreadIds())
+		{
+			cpuTime += b.getThreadCpuTime(threadID);
+		}
+		return cpuTime;
+		
+	}
+	
+	public long getCPUUserTime()
+	{
+		ThreadMXBean b = ManagementFactory.getThreadMXBean();
+		long cpuTime = 0;
+		for(long threadID : b.getAllThreadIds())
+		{
+			cpuTime += b.getThreadUserTime(threadID);
+		}
+		return cpuTime;
+		
+	}
+	
+	
 	/**
 	 * Logs the incumbent 
 	 * @param iteration
@@ -254,10 +280,20 @@ public class AbstractAlgorithmFramework {
 		}
 		ThreadMXBean b = ManagementFactory.getThreadMXBean();
 		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
-		double cpuTime = runHistory.getTotalRunCost();
+		double tunerTime = getTunerTime();
 		
-		double acTime = b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;
-		Object[] arr2 = { iteration, wallTime , options.runtimeLimit - wallTime , cpuTime,options.scenarioConfig.tunerTimeout - cpuTime,   b.getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000, b.getCurrentThreadUserTime() / 1000.0 / 1000 / 1000 , Runtime.getRuntime().maxMemory() / 1024.0 / 1024, Runtime.getRuntime().totalMemory() / 1024.0 / 1024, Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
+		double acTime =  getCPUTime() / 1000.0 / 1000 / 1000;
+		Object[] arr2 = { iteration,
+							wallTime ,
+							options.runtimeLimit - wallTime ,
+							tunerTime,
+							options.scenarioConfig.tunerTimeout - tunerTime,
+							runHistory.getTotalRunCost(),
+							getCPUTime() / 1000.0 / 1000 / 1000,
+							getCPUUserTime() / 1000.0 / 1000 / 1000 ,
+							Runtime.getRuntime().maxMemory() / 1024.0 / 1024,
+							Runtime.getRuntime().totalMemory() / 1024.0 / 1024,
+							Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
 		
 		
 
@@ -265,7 +301,18 @@ public class AbstractAlgorithmFramework {
 		// -1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
 		writeIncumbent(runHistory.getTotalRunCost() + acTime, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),-1,runHistory.getThetaIdx(incumbent), acTime, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
 		
-		log.info("*****Runtime Statistics*****\n Iteration: {}\n Wallclock Time: {} s\n Wallclock Time Remaining:{} s\n Total CPU Time: {} s\n CPU Time Remaining: {} s\n AC CPU Time: {} s\n AC User Time: {} s\n Max Memory: {} MB\n Total Java Memory: {} MB\n Free Java Memory: {} MB\n",arr2);
+		log.info("*****Runtime Statistics*****\n" +
+				" Iteration: {}\n" +
+				" Wallclock Time: {} s\n" +
+				" Wallclock Time Remaining:{} s\n" +
+				" Tuner Time : {} s\n" +
+				" Tuner Time Remaining: {} s\n" +
+				" Target Algorithm Execution Time: {} s\n" + 
+				" AC CPU Time: {} s\n" +
+				" AC User Time: {} s\n" +
+				" Max Memory: {} MB\n" +
+				" Total Java Memory: {} MB\n" +
+				" Free Java Memory: {} MB\n",arr2);
 		
 		
 	}
@@ -819,8 +866,15 @@ public class AbstractAlgorithmFramework {
 
 
 	public double getTunerTime() {
-
-		return runHistory.getTotalRunCost();
+		
+		double cpuTime = 0;
+		
+		if(options.countSMACTimeAsTunerTime)
+		{
+			cpuTime = getCPUTime() / 1000.0 / 1000 / 1000;
+		}
+		
+		return cpuTime + runHistory.getTotalRunCost();
 	}
 
 
