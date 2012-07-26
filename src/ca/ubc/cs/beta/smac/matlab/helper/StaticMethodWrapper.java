@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
@@ -24,6 +23,12 @@ import ec.util.MersenneTwister;
 
 public class StaticMethodWrapper implements Serializable{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 6816563647209289030L;
+	
+	
 	private static InstanceSeedGenerator instanceSeedGenerator;
 	private static int instanceCount = 0;
 	

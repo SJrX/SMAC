@@ -17,16 +17,12 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ch.qos.logback.core.Context;
-import ch.qos.logback.core.util.StatusPrinter;
-
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.algorithmrun.ExistingAlgorithmRun;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.factory.TargetAlgorithmEvaluatorFactory;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.smac.SimpleExecutor;
 import ca.ubc.cs.beta.smac.ac.exceptions.TargetAlgorithmExecutionException;
 
@@ -241,7 +237,7 @@ public class BatchRunner {
 		SimpleExecutor smExec = new SimpleExecutor();
 
 		boolean rubyExecutor = false;
-		String rootDir = "/ubc/cs/project/arrow/hutter/experiments/";
+		String rootDir = ".";
 		String execString = "";
 		if(rubyExecutor)
 		{

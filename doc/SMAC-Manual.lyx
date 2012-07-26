@@ -1,5 +1,5 @@
-#LyX 1.6.9 created this file. For more info see http://www.lyx.org/
-\lyxformat 345
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
 \begin_document
 \begin_header
 \textclass article
@@ -12,18 +12,26 @@ theorems-ams
 eqs-within-sections
 figs-within-sections
 \end_modules
+\maintain_unincluded_children false
 \language english
+\language_package default
 \inputencoding auto
+\fontencoding global
 \font_roman default
 \font_sans default
 \font_typewriter default
 \font_default_family default
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
 \font_tt_scale 100
 
 \graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
 \paperfontsize 10
 \spacing single
 \use_hyperref false
@@ -31,21 +39,31 @@ figs-within-sections
 \use_geometry false
 \use_amsmath 1
 \use_esint 1
+\use_mhchem 1
+\use_mathdots 1
 \cite_engine basic
 \use_bibtopic false
+\use_indices false
 \paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
 \secnumdepth 3
 \tocdepth 3
 \paragraph_separation indent
-\defskip medskip
+\paragraph_indentation default
 \quotes_language english
 \papercolumns 1
 \papersides 1
 \paperpagestyle default
 \tracking_changes false
 \output_changes false
-\author "" 
-\author "" 
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
 \end_header
 
 \begin_body
@@ -345,7 +363,7 @@ APPROX, SPEEDUP rely on instance specific information which is not currently
 \begin_layout Description
 \begin_inset Tabular
 <lyxtabular version="3" rows="6" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -508,7 +526,7 @@ ADJ_MEAN Not implemented currently
 \begin_layout Description
 \begin_inset Tabular
 <lyxtabular version="3" rows="9" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>
@@ -831,7 +849,7 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---algoExec algorithm call to execute
+--algoExec Command String to execution
 \begin_inset Newline newline
 \end_inset
 
@@ -839,11 +857,40 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---execDir Execution Directory for Algorithm
+--execDir Working directory to execute algorithm in
 \begin_inset Newline newline
 \end_inset
 
  Default: 
+\end_layout
+
+\begin_layout Description
+--deterministic Whether the target algorithm is deterministic (0 no, 1 yes)
+ [An integer due to backwards compatibility]
+\begin_inset Newline newline
+\end_inset
+
+ Default: 0
+\end_layout
+
+\begin_layout Description
+--targetAlgorithmEvaluator System we should use to dispatch algorithm requests
+ [ See manual but CLI  (via Command Line) is default and generally what
+ you want ]
+\begin_inset Newline newline
+\end_inset
+
+ Default: CLI
+\end_layout
+
+\begin_layout Description
+--targetAlgorithmEvaluatorSearchPath Where we should look for other target
+ algorithm evaluators [ See manual but generally you can ignore this ] 
+\begin_inset Newline newline
+\end_inset
+
+ Default: <current working directory> (As well as a few other folders related
+ to internal development use) 
 \end_layout
 
 \begin_layout Description
@@ -860,8 +907,21 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---overallObj Aggregate over all Run's Objective Type that we are optimizing
- for
+--intraInstanceObj Objective function used to aggregate multiple runs for
+ a single instance
+\begin_inset Newline newline
+\end_inset
+
+ Default: MEAN
+\begin_inset Newline newline
+\end_inset
+
+ Values: MEAN, MEDIAN, Q90, ADJ_MEAN, MEAN1000, MEAN10, GEOMEAN
+\end_layout
+
+\begin_layout Description
+--interInstanceObj Objective function used to aggregate over multiple instances
+ (that have already been aggregated under the Intra-Instance Objective)
 \begin_inset Newline newline
 \end_inset
 
@@ -877,11 +937,21 @@ Configuration Options Reference
 \begin_inset Newline newline
 \end_inset
 
+
+\series bold
+\noun on
+[required
+\series default
+\noun default
+]
+\begin_inset Newline newline
+\end_inset
+
  Default: 300.0
 \end_layout
 
 \begin_layout Description
---cutoffLength Cap Time for an Individual Run
+--cutoffLength Cap Time for an Individual Run [Not Implemented Currently]
 \begin_inset Newline newline
 \end_inset
 
@@ -931,15 +1001,6 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---deterministic Whether the target algorithm is deterministic (0 no, 1 yes)
- [An integer due to backwards compatibility]
-\begin_inset Newline newline
-\end_inset
-
- Default: 0
-\end_layout
-
-\begin_layout Description
 --skipInstanceFileCheck Do not check if instances files exist on disk
 \begin_inset Newline newline
 \end_inset
@@ -964,7 +1025,7 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---seed Seed for Random Number Generator [0 means don't use a seed]
+--seed Seed for Random Number Generator (equivalent to numRun)
 \begin_inset Newline newline
 \end_inset
 
@@ -1029,11 +1090,12 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---runID String that identifies this run for logging purposes
+--runGroupName Name of subfolder of outputdir to save all outputs of this
+ group (different numruns) of runs
 \begin_inset Newline newline
 \end_inset
 
- Default: Run-YYYY-MM-DD--HH-mm-ss-xxx (where xxx is milli-seconds)
+ Default: RunGroup-2012-07-24--13-31-08-322
 \end_layout
 
 \begin_layout Description
@@ -1057,7 +1119,7 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---nuberOfChallengers Number of Challengers needed for Local Search
+--numberOfChallengers Number of Challengers needed for Local Search
 \begin_inset Newline newline
 \end_inset
 
@@ -1086,7 +1148,7 @@ Configuration Options Reference
 \end_layout
 
 \begin_layout Description
---stateDeserializer Controls how the state will be saved to disk
+--stateDeserializer Controls how the state will be restored from disk
 \begin_inset Newline newline
 \end_inset
 
@@ -1187,7 +1249,7 @@ Configuration Options Reference
 \begin_inset Newline newline
 \end_inset
 
- Default: false
+ Default: true
 \end_layout
 
 \begin_layout Description
@@ -1249,6 +1311,15 @@ s
 \end_layout
 
 \begin_layout Description
+--intensificationPercentage Percent of time to spend intensifying versus
+ model learning
+\begin_inset Newline newline
+\end_inset
+
+ Default: 0.5
+\end_layout
+
+\begin_layout Description
 --numSeedsPerTestInstance Number of test seeds to use per instance during
  validation
 \begin_inset Newline newline
@@ -1293,6 +1364,57 @@ s
 \end_inset
 
  Default: false
+\end_layout
+
+\begin_layout Description
+--consoleLogLevel Default Error Level of Console Output
+\begin_inset Newline newline
+\end_inset
+
+ Default: INFO
+\begin_inset Newline newline
+\end_inset
+
+ Values: TRACE, DEBUG, INFO, WARN, ERROR
+\end_layout
+
+\begin_layout Description
+--abortOnCrash Treat algorithm crashes as ABORT (Useful if the algorithm
+ really should never CRASH)
+\begin_inset Newline newline
+\end_inset
+
+ Default: false
+\end_layout
+
+\begin_layout Description
+--abortOnFirstRunCrash If the first run of the algorithm CRASHED treat it
+ as an ABORT, otherwise leave it alone
+\begin_inset Newline newline
+\end_inset
+
+ Default: false
+\end_layout
+
+\begin_layout Description
+--countSMACTimeAsTunerTime Include the CPU Time of SMAC as part of the tunerTime
+out
+\begin_inset Newline newline
+\end_inset
+
+ Default: true
+\end_layout
+
+\begin_layout Description
+--retryTargetAlgorithmRunCount Number of times to retry an algorithm run
+ before reporting crashed (NOTE: The original crashes DO NOT count towards
+ any time limits, they are in effect lost).
+ Additionally this only retries CRASHED runs, not ABORT runs, this is by
+ design as ABORT is only for cases when we shouldn't bother further runs
+\begin_inset Newline newline
+\end_inset
+
+ Default: 0
 \end_layout
 
 \begin_layout Subsection
@@ -2632,7 +2754,7 @@ SMAC also outputs a trajectory file, which is a CSV file that outpus the
 \begin_layout Standard
 \begin_inset Tabular
 <lyxtabular version="3" rows="7" columns="2">
-<features>
+<features tabularvalignment="middle">
 <column alignment="center" valignment="top" width="0">
 <column alignment="center" valignment="top" width="0">
 <row>

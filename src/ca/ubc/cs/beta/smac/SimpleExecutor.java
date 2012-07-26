@@ -10,6 +10,11 @@ import org.apache.commons.math.stat.descriptive.moment.StandardDeviation;
 
 public class SimpleExecutor implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -3547324451282571419L;
+	
 	public static double[] dbl = new double[10240];
 	public static int i=0;
 	StandardDeviation stdev = new StandardDeviation();

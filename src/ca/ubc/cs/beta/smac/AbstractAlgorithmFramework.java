@@ -74,7 +74,6 @@ public class AbstractAlgorithmFramework {
 	/**
 	 * Stores our configuration
 	 */
-	@Deprecated
 	protected final SMACOptions options;
 	
 	protected final Logger log = LoggerFactory.getLogger(this.getClass());

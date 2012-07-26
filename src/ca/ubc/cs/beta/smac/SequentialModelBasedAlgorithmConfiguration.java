@@ -17,13 +17,11 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
-import ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.BasicModelBuilder;
-import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.ModelBuilder;
 import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
@@ -189,6 +187,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		return challengers;
 	}
 	
+	@SuppressWarnings("unused")
 	public List<ParamConfiguration> selectChallengersWithEI(int numChallengers)
 	{
 		Set<ProblemInstance> instanceSet = new HashSet<ProblemInstance>();

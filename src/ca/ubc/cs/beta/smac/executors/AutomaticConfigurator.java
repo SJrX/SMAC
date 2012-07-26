@@ -41,8 +41,6 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.CommandLineTargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.DebugTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnFirstRunCrashTargetAlgorithmEvaluator;
@@ -155,7 +153,7 @@ public class AutomaticConfigurator
 			if (!f2.isAbsolute()){
 				f2 = new File(options.experimentDir + File.separator + algoExecDir);
 			}
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic > 0);
+			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic );
 		
 			
 			
@@ -198,7 +196,7 @@ public class AutomaticConfigurator
 			smac.run();
 			if(!options.skipValidation)
 			{
-				boolean concurrentRuns = (options.maxConcurrentAlgoExecs > 1);
+				
 				
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other validation crap that is probably not applicable here
 				TargetAlgorithmEvaluator validatingTae = algoEval;
@@ -334,7 +332,7 @@ public class AutomaticConfigurator
 		if(options.modelHashCodeFile != null)
 		{
 			logger.info("Algorithm Execution will verify model Hash Codes");
-			parseModelHashCodes(options.runHashCodeFile);
+			parseModelHashCodes(options.modelHashCodeFile);
 		}
 		
 		return algoEval;
@@ -406,7 +404,7 @@ public class AutomaticConfigurator
 	{
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
 		SMACOptions config = new SMACOptions();
-		JCommander com = new JCommander(config);
+		JCommander com = new JCommander(config, true, true);
 		com.setProgramName("smac");
 		try {
 			
@@ -483,7 +481,7 @@ public class AutomaticConfigurator
 			 
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.algoExecOptions.deterministic > 0));
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.algoExecOptions.deterministic));
 			instanceSeedGen = ilws.getSeedGen();
 			
 			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
@@ -500,7 +498,7 @@ public class AutomaticConfigurator
 			
 			
 			logger.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, !config.scenarioConfig.skipInstanceFileCheck, config.seed+2,(config.scenarioConfig.algoExecOptions.deterministic > 0) );
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, !config.scenarioConfig.skipInstanceFileCheck, config.seed+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			

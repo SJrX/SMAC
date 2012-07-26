@@ -119,7 +119,7 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 			ParamConfiguration incumbent) {
 		
 		
-		List<ProblemInstance> instances = testInstGen.getProblemInstanceOrder(pis);
+		
 		
 		
 		int numRuns = 0;
