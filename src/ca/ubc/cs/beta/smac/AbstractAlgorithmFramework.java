@@ -257,14 +257,14 @@ public class AbstractAlgorithmFramework {
 				{ //This JVM doesn't have CPU time enabled
 			      //We check every iteration because some threads (the current thread may give us something other than -1)
 					
-					log.trace("JVM does not have CPU Time enabled");
+					log.debug("JVM does not have CPU Time enabled");
 					return 0; 
 				}
 			}
 			return cpuTime;
 		} catch(UnsupportedOperationException e)
 		{
-			log.trace("JVM does not support CPU Time measurements");
+			log.debug("JVM does not support CPU Time measurements");
 			return 0;
 		}
 		
@@ -287,7 +287,7 @@ public class AbstractAlgorithmFramework {
 				if(threadTime == -1)
 				{ //This JVM doesn't have CPU time enabled
 				      //We check every iteration because some threads (the current thread may give us something other than -1)
-					log.trace("JVM does not have CPU Time enabled");
+					log.debug("JVM does not have CPU Time enabled");
 					return 0; 
 				}
 				cpuTime += threadTime;
@@ -297,7 +297,7 @@ public class AbstractAlgorithmFramework {
 		
 		} catch(UnsupportedOperationException e)
 		{
-			log.trace("JVM does not support CPU Time measurements");
+			log.debug("JVM does not support CPU Time measurements");
 			return 0;
 		}
 	}
@@ -312,11 +312,11 @@ public class AbstractAlgorithmFramework {
 		
 		if (iteration > 0)
 		{
-			Object[] arr = {iteration,  incumbent, runHistory.getThetaIdx(incumbent)};		
-			log.info("At end of iteration {}, incumbent is {} RunHistory ID:  {}",arr);
+			Object[] arr = {iteration, runHistory.getThetaIdx(incumbent), incumbent};		
+			log.info("At end of iteration {}, incumbent is {} ({}) ",arr);
 		} else
 		{
-			log.info("Incument currently is: {} RunHistory ID: {} ", incumbent, runHistory.getThetaIdx(incumbent));
+			log.info("Incument currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
 		}
 	
 		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
@@ -329,6 +329,7 @@ public class AbstractAlgorithmFramework {
 							runHistory.getInstancesRan(incumbent).size(),
 							runHistory.getUniqueParamConfigurations().size(),
 							runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),
+							runHistory.getAlgorithmRuns().size(), 
 							wallTime ,
 							options.runtimeLimit - wallTime ,
 							tunerTime,
@@ -349,17 +350,18 @@ public class AbstractAlgorithmFramework {
 		log.info("*****Runtime Statistics*****\n" +
 				" Iteration: {}\n" +
 				" Incumbent ID: {}\n"+
-				" Number of Runs for Incumbent:{}\n" + 
-				" Number of Instances for Incumbent:{}\n" +
+				" Number of Runs for Incumbent: {}\n" + 
+				" Number of Instances for Incumbent: {}\n" +
 				" Number of Configurations Run: {}\n" + 
-				" Performance of the Incumbent:{}\n" + 
-				" Wallclock Time: {} s\n" +
-				" Wallclock Time Remaining:{} s\n" +
-				" Tuner Time : {} s\n" +
-				" Tuner Time Remaining: {} s\n" +
-				" Target Algorithm Execution Time: {} s\n" + 
-				" AC CPU Time: {} s\n" +
-				" AC User Time: {} s\n" +
+				" Performance of the Incumbent: {}\n" + 
+				" Total Number of runs performed: {}\n" + 
+				" Wallclock time: {} s\n" +
+				" Wallclock time remaining: {} s\n" +
+				" Configuration time budget used: {} s\n" +
+				" Configuration time budget remaining: {} s\n" +
+				" Target algorithm execution time: {} s\n" + 
+				" AC CPU time: {} s\n" +
+				" AC User time: {} s\n" +
 				" Max Memory: {} MB\n" +
 				" Total Java Memory: {} MB\n" +
 				" Free Java Memory: {} MB\n",arr2);
@@ -554,6 +556,7 @@ public class AbstractAlgorithmFramework {
 				break;
 			} else
 			{
+				
 				log.info("Intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed);
 			}
 			challengeIncumbent(challengers.get(i));
@@ -574,7 +577,7 @@ public class AbstractAlgorithmFramework {
 			evaluateRun(incumbentRunConfig);
 		} else
 		{
-			log.debug("Too many incumbent runs, not performing additional run");
+			log.debug("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
 		}
 		
 		
@@ -639,7 +642,7 @@ public class AbstractAlgorithmFramework {
 				
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
 			}
-			Object[] args2 = { N, challenger, runHistory.getThetaIdx(challenger), bound_inc } ;
+			Object[] args2 = { N,  runHistory.getThetaIdx(challenger), challenger, bound_inc } ;
 			log.info("Performing up to {} run(s) for challenger {} ({}) up to a total bound of {} ", args2);
 			
 			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.maxConcurrentAlgoExecs); 
@@ -712,12 +715,12 @@ public class AbstractAlgorithmFramework {
 			double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
 			
 
-			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), runHistory.getThetaIdx(challenger), challenger.getFriendlyIDHex(), chalCost, incumbent.getFriendlyIDHex(), incCost  };
-			log.info("Based on {} common runs on (up to) {} instances, challenger {} ({})  has a lower bound {} and incumbent {} has obj {}",args);
+			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), runHistory.getThetaIdx(challenger), challenger.getFriendlyIDHex(), chalCost,runHistory.getThetaIdx(incumbent),  incumbent, incCost  };
+			log.info("Based on {} common runs on (up to) {} instances, challenger {} ({})  has a lower bound {} and incumbent {} ({}) has obj {}",args);
 			
 			//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.		
 			if (incCost + Math.pow(10, -6)  < chalCost){
-				log.info("Challenger is worse aborting runs with challenger {} ({})",  runHistory.getThetaIdx(challenger), challenger );
+				log.info("Challenger {} ({}) is worse; aborting its evaluation",  runHistory.getThetaIdx(challenger), challenger );
 				break;
 			} else if (sMissing.isEmpty())
 			{	
@@ -726,7 +729,7 @@ public class AbstractAlgorithmFramework {
 					changeIncumbentTo(challenger);
 				} else
 				{
-					log.info("Challenger has all the runs of the incumbent, but did not (significantly beat it");
+					log.info("Challenger {} ({}) has all the runs of the incumbent, but did not outperform it", runHistory.getThetaIdx(challenger), challenger );
 				}
 				
 				break;
@@ -734,7 +737,8 @@ public class AbstractAlgorithmFramework {
 			{
 				
 				N *= 2;
-				log.trace("Increasing number of runs to: {}", N);
+				Object[] args3 = { runHistory.getThetaIdx(challenger), challenger, N};
+				log.trace("Increasing additional number of runs for challenger {} ({}) to : {} ", args3);
 			}
 		}
 		
@@ -915,29 +919,20 @@ public class AbstractAlgorithmFramework {
 	protected List<AlgorithmRun> evaluateRun(List<RunConfig> runConfigs)
 	{
 		int i=0;
-		log.info("Scheduling {} run(s)", runConfigs.size());
+		log.info("Iteration {}: Scheduling {} run(s):", runConfigs.size());
 		for(RunConfig rc : runConfigs)
 		{
 			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
 			log.info("Iteration {}: Scheduling run for config {} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
-		if(log.isDebugEnabled())
-		{
-			for(RunConfig rc : runConfigs)
-			{
-				//log.debug("Run {}: {} ",i++, rc);
-			}
-		}
-		
 		List<AlgorithmRun> completedRuns = algoEval.evaluateRun(runConfigs);
 		
-		log.info("Scheduling {} run(s)", runConfigs.size());
 		for(AlgorithmRun run : completedRuns)
 		{
 			RunConfig rc = run.getRunConfig();
 			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
-			log.info("Iteration {}: Completed run for config {} ({}) on instance {} with seed {} and captime {} completed result: {} , response: {}, wallclock time: {} seconds", args);
+			log.info("Iteration {}: Completed run for config {} ({}) on instance {} with seed {} and captime {}. Completed result: {}, response: {}, wallclock time: {} seconds", args);
 		}
 		
 		

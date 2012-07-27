@@ -29,7 +29,12 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends AbstractTargetAlgorit
 		
 		
 		this.runHashQueue = runHashes;
+		
 		log.debug("Created with {} hash codes to verify", runHashQueue.size());
+		if(runHashQueue.size() == 0)
+		{
+			outOfHashCodesDisplayed = true;
+		}
 	}
 	
 	public RunHashCodeVerifyingAlgorithmEvalutor(TargetAlgorithmEvaluator tae) {
@@ -47,7 +52,7 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends AbstractTargetAlgorit
 		return runs;
 	
 	}
-	
+	boolean outOfHashCodesDisplayed = false;
 	private void validateRunHashCodes(List<AlgorithmRun> runs)
 	{
 		for(AlgorithmRun run: runs)
@@ -57,12 +62,16 @@ public class RunHashCodeVerifyingAlgorithmEvalutor extends AbstractTargetAlgorit
 			hashCode =  (hashCode == Integer.MIN_VALUE) ? 0 : hashCode;  
 			
 			hashCodesOfRuns = (31*hashCodesOfRuns + Math.abs( hashCode)% 32452867) % 32452867 	; //Some prime around 2^25 (to prevent overflows in computation)
-			log.info(runHash, "Run Hash Codes:{} After {} runs",hashCodesOfRuns, runNumber);
+			log.debug(runHash, "Run Hash Codes:{} After {} runs",hashCodesOfRuns, runNumber);
 			
 			Integer expectedHashCode = runHashQueue.poll();
 			if(expectedHashCode == null)
 			{
-				log.debug("No More Hash Codes To Verify");
+				if(!outOfHashCodesDisplayed)
+				{
+					log.debug("No More Hash Codes To Verify");
+					outOfHashCodesDisplayed = true;
+				}
 			} else if(hashCodesOfRuns != expectedHashCode)
 			{
 				throw new TrajectoryDivergenceException(expectedHashCode, hashCodesOfRuns, runNumber);

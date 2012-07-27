@@ -268,7 +268,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			log.debug("LS {} took {} seconds and yielded neg log EI {}",args);
 		}
 		
-		log.info("{} Local Searches took {} seconds in total ", numberOfSearches, stpWatch.stop()  / 1000 );
+		log.info("{} Local Searches took {} seconds in total ", numberOfSearches, stpWatch.stop()  / 1000.0 );
 		//=== Get into array format for debugging.
 		double[][] configArrayToDebug = new double[bestResults.size()][];
 		int j=0; 
