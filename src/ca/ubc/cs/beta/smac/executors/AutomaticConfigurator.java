@@ -28,6 +28,8 @@ import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
+import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
+import ca.ubc.cs.beta.aclib.misc.logging.LoggingMarker;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
@@ -437,11 +439,27 @@ public class AutomaticConfigurator
 				
 			}
 			
-			
-			
-			
-			
 			logger.trace("Command Line Options Parsed");
+			
+			
+			logCallString(args);
+			
+			if(config.scenarioConfig.algoExecOptions.logAllCallStrings)
+			{
+				MarkerFilter.accept(LoggingMarker.COMMAND_LINE_CALL);
+			} else
+			{
+				MarkerFilter.deny(LoggingMarker.COMMAND_LINE_CALL);
+			}
+			
+			if(config.scenarioConfig.algoExecOptions.logAllProcessOutput)
+			{
+				MarkerFilter.accept(LoggingMarker.FULL_PROCESS_OUTPUT);
+			} else
+			{
+				MarkerFilter.deny(LoggingMarker.FULL_PROCESS_OUTPUT);
+			}
+			
 			
 			Map<String, String> env = System.getenv();
 			
@@ -512,7 +530,7 @@ public class AutomaticConfigurator
 			}
 			
 			
-			logCallString(args);
+			
 			
 			
 			
@@ -576,11 +594,18 @@ public class AutomaticConfigurator
 		sb.append(AutomaticConfigurator.class.getCanonicalName()).append(" ");
 		for(String arg : args)
 		{
+			boolean escape = false;
 			if(arg.contains(" "))
 			{
+				escape = true;
 				arg = arg.replaceAll(" ", "\\ ");
 			}
-			sb.append("\"").append(arg).append("\" ");
+			
+			
+			if(escape) sb.append("\"");
+			sb.append(arg);
+			if(escape) 	sb.append("\"");
+			sb.append(" ");
 		}
 		
 		logger.info("Call String:");

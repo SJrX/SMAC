@@ -550,7 +550,7 @@ public class AbstractAlgorithmFramework {
 
 		
 		
-		logConfiguration("Challenger", challenger);
+		
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 			log.debug("Performing additional run with the incumbent");
@@ -737,8 +737,8 @@ public class AbstractAlgorithmFramework {
 		RunConfig config = new RunConfig(pisp, cutoffTime, challenger);
 		
 		String cmd = algoEval.getManualCallString(config);
-		Object[] args = { type, challenger, cmd };
-		log.info("Sample Call for {} configuration ID {}\n{} ",args);
+		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
+		log.info("Sample Call for {} {} ({}) \n{} ",args);
 		
 	}
 
@@ -750,7 +750,8 @@ public class AbstractAlgorithmFramework {
 		// TODO Auto-generated method stub
 		incumbent = challenger;
 		updateIncumbentCost();
-		log.info("Incumbent Changed to: {}", challenger);
+		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
+		logConfiguration("New Incumbent", challenger);
 	}
 
 	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)

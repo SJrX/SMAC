@@ -23,5 +23,6 @@
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/jcommander.jar"/>
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/spi-0.2.4.jar"/>
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/opencsv-2.3.jar"/>
+	<classpathentry kind="lib" path="/home/sjr/git/AutomaticConfiguratorLibrary/lib/logback-classic-1.0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
