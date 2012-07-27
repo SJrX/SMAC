@@ -553,7 +553,7 @@ public class AbstractAlgorithmFramework {
 		
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
-			log.debug("Performing additional run with the incumbent");
+			log.debug("Performing additional run with the incumbent ");
 			ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
 			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 			evaluateRun(incumbentRunConfig);
@@ -624,9 +624,8 @@ public class AbstractAlgorithmFramework {
 				
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
 			}
-			
-			log.info("Performing up to {} run(s) for challenger up to a total bound of {} ", N, bound_inc
-					);
+			Object[] args2 = { N, challenger, runHistory.getThetaIdx(challenger), bound_inc } ;
+			log.info("Performing up to {} run(s) for challenger {} ({}) up to a total bound of {} ", args2);
 			
 			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.maxConcurrentAlgoExecs); 
 			
@@ -698,12 +697,12 @@ public class AbstractAlgorithmFramework {
 			double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
 			
 
-			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), challenger.getFriendlyIDHex(), chalCost, incumbent.getFriendlyIDHex(), incCost  };
-			log.info("Based on {} common runs on (up to) {} instances, challenger {} has a lower bound {} and incumbent {} has obj {}",args);
+			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), runHistory.getThetaIdx(challenger), challenger.getFriendlyIDHex(), chalCost, incumbent.getFriendlyIDHex(), incCost  };
+			log.info("Based on {} common runs on (up to) {} instances, challenger {} ({})  has a lower bound {} and incumbent {} has obj {}",args);
 			
 			//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.		
 			if (incCost + Math.pow(10, -6)  < chalCost){
-				log.info("Challenger is worse aborting runs with challenger {}", challenger);
+				log.info("Challenger is worse aborting runs with challenger {} ({})",  runHistory.getThetaIdx(challenger), challenger );
 				break;
 			} else if (sMissing.isEmpty())
 			{	
@@ -902,15 +901,32 @@ public class AbstractAlgorithmFramework {
 	{
 		int i=0;
 		log.info("Scheduling {} run(s)", runConfigs.size());
+		for(RunConfig rc : runConfigs)
+		{
+			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
+			log.info("Iteration {}: Scheduling run for config {} ({}) on instance {} with seed {} and captime {}", args);
+		}
+		
 		if(log.isDebugEnabled())
 		{
 			for(RunConfig rc : runConfigs)
 			{
-				log.debug("Run {}: {} ",i++, rc);
+				//log.debug("Run {}: {} ",i++, rc);
 			}
 		}
 		
 		List<AlgorithmRun> completedRuns = algoEval.evaluateRun(runConfigs);
+		
+		log.info("Scheduling {} run(s)", runConfigs.size());
+		for(AlgorithmRun run : completedRuns)
+		{
+			RunConfig rc = run.getRunConfig();
+			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
+			log.info("Iteration {}: Completed run for config {} ({}) on instance {} with seed {} and captime {} completed result: {} , response: {}, wallclock time: {} seconds", args);
+		}
+		
+		
+		
 		updateRunHistory(completedRuns);
 		return completedRuns;
 	}
