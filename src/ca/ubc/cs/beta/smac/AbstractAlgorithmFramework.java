@@ -24,6 +24,7 @@ import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
@@ -416,7 +417,21 @@ public class AbstractAlgorithmFramework {
 					RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 					//Create initial row
 					writeIncumbent(0, Double.MAX_VALUE, -1,1,0, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+					try { 
 					evaluateRun(incumbentRunConfig);
+					} catch(OutOfTimeException e)
+					{
+						log.warn("Ran out of time while evaluating the default configuration on the first run, this is most likely a configuration error");
+						//Ignore this exception
+						//Force the incumbent to be logged in RunHistory and then we will timeout next
+						try {
+							runHistory.append(e.getAlgorithmRun());
+							
+						} catch (DuplicateRunException e1) {
+
+							throw new DeveloperMadeABooBooException(e1);
+						}
+					}
 					logIncumbent(iteration);
 				} else
 				{
@@ -871,7 +886,7 @@ public class AbstractAlgorithmFramework {
 		{
 			try {
 				if (have_to_stop(iteration, run.getRuntime())){
-					throw new OutOfTimeException();
+					throw new OutOfTimeException(run);
 				}
 				runHistory.append(run);
 			} catch (DuplicateRunException e) {
