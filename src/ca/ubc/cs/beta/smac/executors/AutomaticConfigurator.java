@@ -81,6 +81,7 @@ public class AutomaticConfigurator
 	public static void main(String[] args)
 	{
 		int returnValue = oldMain(args);
+		
 		logger.info("Returning with value: {}",returnValue);
 		
 		System.exit(returnValue);
@@ -256,8 +257,6 @@ public class AutomaticConfigurator
 					
 				}
 		
-			
-			
 				
 				if(t instanceof ParameterException)
 				{
@@ -433,6 +432,7 @@ public class AutomaticConfigurator
 				System.setProperty("RUNGROUPDIR", config.runGroupName);
 				System.setProperty("NUMRUN", String.valueOf(config.seed));
 				System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
+				System.setProperty("ROOT-LEVEL",config.logLevel.name());
 				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
@@ -465,6 +465,11 @@ public class AutomaticConfigurator
 			}
 			
 			
+			if(config.logLevel.lessVerbose(config.consoleLogLevel))
+			{
+				logger.warn("The console can NOT be more verbose than the logs (This will have no effect)");
+			}
+				
 			Map<String, String> env = System.getenv();
 			
 			StringBuilder sb = new StringBuilder();

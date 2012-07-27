@@ -78,7 +78,7 @@
   
   <logger name="ca.ubc.cs.beta.smac.RunHistory" level="warn"/>
 	
-  <root level="debug">
+  <root level="${ROOT-LEVEL}">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
     <appender-ref ref="FILE-RAW" />
