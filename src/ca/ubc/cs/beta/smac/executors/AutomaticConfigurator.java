@@ -433,6 +433,9 @@ public class AutomaticConfigurator
 				System.setProperty("NUMRUN", String.valueOf(config.seed));
 				System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
 				System.setProperty("ROOT-LEVEL",config.logLevel.name());
+				
+				System.out.println("*****************************\nLogging to: " + config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "log-run" + config.seed+ ".txt\n*****************************");
+				//${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
 				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
@@ -467,7 +470,8 @@ public class AutomaticConfigurator
 			
 			if(config.logLevel.lessVerbose(config.consoleLogLevel))
 			{
-				logger.warn("The console can NOT be more verbose than the logs (This will have no effect)");
+				throw new ParameterException("The console can NOT be more verbose than the logs (This will have no effect)");
+				
 			}
 				
 			Map<String, String> env = System.getenv();

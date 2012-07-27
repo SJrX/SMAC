@@ -260,6 +260,8 @@ public class AbstractAlgorithmFramework {
 					log.debug("JVM does not have CPU Time enabled");
 					return 0; 
 				}
+				
+				cpuTime += threadTime;
 			}
 			return cpuTime;
 		} catch(UnsupportedOperationException e)
@@ -420,6 +422,7 @@ public class AbstractAlgorithmFramework {
 				{ 
 					incumbent = configSpace.getDefaultConfiguration();
 					log.info("Default Configuration set as Incumbent: {}", incumbent);
+					
 					iteration = 0;
 					
 					
@@ -433,6 +436,8 @@ public class AbstractAlgorithmFramework {
 					writeIncumbent(0, Double.MAX_VALUE, -1,1,0, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
 					try { 
 					evaluateRun(incumbentRunConfig);
+					
+					
 					} catch(OutOfTimeException e)
 					{
 						log.warn("Ran out of time while evaluating the default configuration on the first run, this is most likely a configuration error");
@@ -446,6 +451,8 @@ public class AbstractAlgorithmFramework {
 							throw new DeveloperMadeABooBooException(e1);
 						}
 					}
+					
+					logConfiguration("New Incumbent", incumbent);
 					logIncumbent(iteration);
 					logRuntimeStatistics();
 				} else

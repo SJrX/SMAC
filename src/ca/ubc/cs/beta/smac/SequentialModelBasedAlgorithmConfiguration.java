@@ -199,20 +199,20 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		double[] predmean = predictions[0];
 		double[] predvar = predictions[1];
 
-		double quality = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
+		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
 		//=== Get the empirical cost into log space if the model gives log predictions. 
 		if (smacConfig.randomForestOptions.logModel)
 		{
 			//TODO HANDLE MIN RUNTIME THIS IS SO A BUG
 			//THIS IS SO A BUG
 			//THIS IS SO A BUG 
-			quality = Math.log10(quality);
+			fmin = Math.log10(fmin);
 		}
 		
 		//=== Compute EI of these configurations (as given by predmean,predvar)
-		log.info("Optimizing EI at valdata.iteration {}", getIteration());
+		log.info("Optimizing EI at valdata.iteration {}. fmin: {}", getIteration(), fmin);
 		StopWatch watch = new AutoStartStopWatch();
-		double[] negativeExpectedImprovementOfTheta = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
+		double[] negativeExpectedImprovementOfTheta = ei.computeNegativeExpectedImprovement(fmin, predmean, predvar);
 		
 		
 		
@@ -242,7 +242,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			watch = new AutoStartStopWatch();
 			
-			ParamWithEI lsResult = localSearch(sortedParams.get(i), quality, Math.pow(10, -5));
+			ParamWithEI lsResult = localSearch(sortedParams.get(i), fmin, Math.pow(10, -5));
 			
 
 			if(lsResult.getAssociatedValue() < min_neg)
@@ -326,7 +326,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		log.debug("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
-		double[] expectedImprovementOfRandoms = ei.computeNegativeExpectedImprovement(quality, predmean, predvar);
+		double[] expectedImprovementOfRandoms = ei.computeNegativeExpectedImprovement(fmin, predmean, predvar);
 		log.debug("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
 		for(int i=0; i <  randomConfigs.size(); i++)
