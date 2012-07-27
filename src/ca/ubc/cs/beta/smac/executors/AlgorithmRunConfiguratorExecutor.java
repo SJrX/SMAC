@@ -90,7 +90,7 @@ public class AlgorithmRunConfiguratorExecutor {
 		
 		
 		
-		AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(algo, exec_path, paramFile, false, false);
+		AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(algo, exec_path, paramFile, false, false, 500);
 		
 		f = new File(args[1]);
 		
