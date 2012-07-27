@@ -323,6 +323,11 @@ public class AbstractAlgorithmFramework {
 		
 		double acTime =  getCPUTime() / 1000.0 / 1000 / 1000;
 		Object[] arr2 = { iteration,
+							runHistory.getThetaIdx(incumbent),
+							runHistory.getTotalNumRunsOfConfig(incumbent),
+							runHistory.getInstancesRan(incumbent).size(),
+							runHistory.getUniqueParamConfigurations().size(),
+							runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),
 							wallTime ,
 							options.runtimeLimit - wallTime ,
 							tunerTime,
@@ -342,6 +347,11 @@ public class AbstractAlgorithmFramework {
 		
 		log.info("*****Runtime Statistics*****\n" +
 				" Iteration: {}\n" +
+				" Incumbent ID: {}\n"+
+				" Number of Runs for Incumbent:{}\n" + 
+				" Number of Instances for Incumbent:{}\n" +
+				" Number of Configurations Run: {}\n" + 
+				" Performance of the Incumbent:{}\n" + 
 				" Wallclock Time: {} s\n" +
 				" Wallclock Time Remaining:{} s\n" +
 				" Tuner Time : {} s\n" +
@@ -615,7 +625,8 @@ public class AbstractAlgorithmFramework {
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
 			}
 			
-			log.info("Performing up to {} runs for challenger up to a total bound of {} ", N, bound_inc);
+			log.info("Performing up to {} run(s) for challenger up to a total bound of {} ", N, bound_inc
+					);
 			
 			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.maxConcurrentAlgoExecs); 
 			
@@ -889,7 +900,7 @@ public class AbstractAlgorithmFramework {
 	protected List<AlgorithmRun> evaluateRun(List<RunConfig> runConfigs)
 	{
 		int i=0;
-		log.info("Evaluating {} run(s)", runConfigs.size());
+		log.info("Scheduling {} run(s)", runConfigs.size());
 		if(log.isDebugEnabled())
 		{
 			for(RunConfig rc : runConfigs)

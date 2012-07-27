@@ -222,7 +222,7 @@ endloop:
 		}
 		
 		
-		if(!smacConfig.noValidationHeaders)
+		if(smacConfig.validationHeaders)
 		{
 			ArrayList<String> headerRow = new ArrayList<String>();
 			headerRow.add("Instance");
@@ -291,7 +291,7 @@ endloop:
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
-		if(!smacConfig.noValidationHeaders)
+		if(smacConfig.validationHeaders)
 		{
 			String[] args = {"Seed","Instance","Response"};
 			writer.writeNext(args);
@@ -319,7 +319,7 @@ endloop:
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
-		if(!smacConfig.noValidationHeaders)
+		if(smacConfig.validationHeaders)
 		{
 			String[] args = {"Seed","Instance","Raw Result Line", "Result Line"};
 			writer.writeNext(args);

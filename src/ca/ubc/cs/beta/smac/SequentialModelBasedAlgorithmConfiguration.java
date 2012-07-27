@@ -150,17 +150,17 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		AutoStartStopWatch t = new AutoStartStopWatch();
 		List<ParamConfiguration> eichallengers = selectChallengersWithEI(smacConfig.numberOfChallengers);
 		
-		log.info("EI Challengers selected {} took {} (s)", eichallengers.size(), t.stop() / 1000.0);
+		log.info("Selecting {} challengers based on EI took {} seconds", eichallengers.size(), t.stop() / 1000.0);
 		
 		List<ParamConfiguration> randomChallengers = new ArrayList<ParamConfiguration>(eichallengers.size());
 		
-		log.info("Generating {} random configurations", eichallengers.size());
+		
 		 t = new AutoStartStopWatch();
 		for(int i=0; i < eichallengers.size(); i++)
 		{
 			randomChallengers.add(configSpace.getRandomConfiguration());
 		}
-		log.info("Generating random configurations took {} (s)", t.stop()/1000.0 );
+		log.debug("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
 		
 		//=== Interleave the EI and random challengers.
 		List<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>(eichallengers.size()*2);
@@ -236,6 +236,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		int numberOfSearches = Math.min(numChallengers, predmean.length);
 		List<ParamWithEI> bestResults  = new ArrayList<ParamWithEI>(numberOfSearches);
 		double min_neg = Double.MAX_VALUE;
+		AutoStartStopWatch stpWatch = new AutoStartStopWatch();
+		
 		for(int i=0; i < numberOfSearches; i++)
 		{
 			watch = new AutoStartStopWatch();
@@ -263,9 +265,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			configPredMeanVarEIMap.put(lsResult.getValue(), val);
 			watch.stop();
 			Object[] args = {i+1,((double) watch.time()/1000.0),min_neg};
-			log.info("LS {} took {} seconds and yielded neg log EI {}",args);
+			log.debug("LS {} took {} seconds and yielded neg log EI {}",args);
 		}
 		
+		log.info("{} Local Searches took {} seconds in total ", numberOfSearches, stpWatch.stop()  / 1000 );
 		//=== Get into array format for debugging.
 		double[][] configArrayToDebug = new double[bestResults.size()][];
 		int j=0; 
@@ -302,8 +305,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
 			randomConfigs.add(configSpace.getRandomConfiguration());
-		}
-		log.info("Generating Random Configurations took {} (s)", t.stop() / 1000.0);
+		} 
+		
+		log.debug("Generating {} Random Configurations took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
 		
 		t = new AutoStartStopWatch();
 		double[][] randomConfigToDebug = new double[randomConfigs.size()][];

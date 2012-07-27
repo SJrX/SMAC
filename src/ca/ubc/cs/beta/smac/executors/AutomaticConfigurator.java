@@ -194,7 +194,7 @@ public class AutomaticConfigurator
 			
 				
 			smac.run();
-			if(!options.skipValidation)
+			if(options.doValidation)
 			{
 				
 				
@@ -481,7 +481,7 @@ public class AutomaticConfigurator
 			 
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, !config.scenarioConfig.skipInstanceFileCheck, config.seed+1, (config.scenarioConfig.algoExecOptions.deterministic));
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.seed+1, (config.scenarioConfig.algoExecOptions.deterministic));
 			instanceSeedGen = ilws.getSeedGen();
 			
 			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
@@ -498,7 +498,7 @@ public class AutomaticConfigurator
 			
 			
 			logger.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, !config.scenarioConfig.skipInstanceFileCheck, config.seed+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, config.scenarioConfig.checkInstanceFilesExist, config.seed+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			

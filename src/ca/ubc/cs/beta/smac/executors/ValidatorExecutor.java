@@ -90,7 +90,7 @@ public class ValidatorExecutor {
 			
 		
 				log.info("Parsing test instances from {}", options.scenarioConfig.instanceFile );
-				InstanceListWithSeeds ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, !options.scenarioConfig.skipInstanceFileCheck, options.seed, Integer.MAX_VALUE);
+				InstanceListWithSeeds ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
 				List<ProblemInstance> testInstances = ilws.getInstances();
 				InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 				
