@@ -317,55 +317,67 @@ public class AbstractAlgorithmFramework {
 		} else
 		{
 			log.info("Incument currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
-		}
-	
-		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
-		double tunerTime = getTunerTime();
-		
+		}		
 		double acTime =  getCPUTime() / 1000.0 / 1000 / 1000;
-		Object[] arr2 = { iteration,
-							runHistory.getThetaIdx(incumbent),
-							runHistory.getTotalNumRunsOfConfig(incumbent),
-							runHistory.getInstancesRan(incumbent).size(),
-							runHistory.getUniqueParamConfigurations().size(),
-							runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),
-							runHistory.getAlgorithmRuns().size(), 
-							wallTime ,
-							options.runtimeLimit - wallTime ,
-							tunerTime,
-							options.scenarioConfig.tunerTimeout - tunerTime,
-							runHistory.getTotalRunCost(),
-							getCPUTime() / 1000.0 / 1000 / 1000,
-							getCPUUserTime() / 1000.0 / 1000 / 1000 ,
-							Runtime.getRuntime().maxMemory() / 1024.0 / 1024,
-							Runtime.getRuntime().totalMemory() / 1024.0 / 1024,
-							Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
-		
-		
-
 		
 		// -1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
 		writeIncumbent(runHistory.getTotalRunCost() + acTime, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),-1,runHistory.getThetaIdx(incumbent), acTime, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
 		
-		log.info("*****Runtime Statistics*****\n" +
-				" Iteration: {}\n" +
-				" Incumbent ID: {}\n"+
-				" Number of Runs for Incumbent: {}\n" + 
-				" Number of Instances for Incumbent: {}\n" +
-				" Number of Configurations Run: {}\n" + 
-				" Performance of the Incumbent: {}\n" + 
-				" Total Number of runs performed: {}\n" + 
-				" Wallclock time: {} s\n" +
-				" Wallclock time remaining: {} s\n" +
-				" Configuration time budget used: {} s\n" +
-				" Configuration time budget remaining: {} s\n" +
-				" Target algorithm execution time: {} s\n" + 
-				" AC CPU time: {} s\n" +
-				" AC User time: {} s\n" +
-				" Max Memory: {} MB\n" +
-				" Total Java Memory: {} MB\n" +
-				" Free Java Memory: {} MB\n",arr2);
 		
+		
+	}
+	private String lastLogMessage = "No statistics logged";
+	protected void logRuntimeStatistics()
+	{
+		
+		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
+		double tunerTime = getTunerTime();
+		
+		Object[] arr = { iteration,
+				runHistory.getThetaIdx(incumbent),
+				runHistory.getTotalNumRunsOfConfig(incumbent),
+				runHistory.getInstancesRan(incumbent).size(),
+				runHistory.getUniqueParamConfigurations().size(),
+				runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),
+				runHistory.getAlgorithmRuns().size(), 
+				wallTime ,
+				options.runtimeLimit - wallTime ,
+				tunerTime,
+				options.scenarioConfig.tunerTimeout - tunerTime,
+				runHistory.getTotalRunCost(),
+				getCPUTime() / 1000.0 / 1000 / 1000,
+				getCPUUserTime() / 1000.0 / 1000 / 1000 ,
+				Runtime.getRuntime().maxMemory() / 1024.0 / 1024,
+				Runtime.getRuntime().totalMemory() / 1024.0 / 1024,
+				Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
+		
+		lastLogMessage = "*****Runtime Statistics*****\n" +
+				" Iteration: " + arr[0]+
+				"\n Incumbent ID: "+ arr[1]+
+				"\n Number of Runs for Incumbent: " + arr[2] +
+				"\n Number of Instances for Incumbent: " + arr[3]+
+				"\n Number of Configurations Run: " + arr[4]+ 
+				"\n Performance of the Incumbent: " + arr[5]+
+				"\n Total Number of runs performed: " + arr[6]+ 
+				"\n Wallclock time:"+ arr[7] + " s" +
+				"\n Wallclock time remaining: "+ arr[8] +" s" +
+				"\n Configuration time budget used: "+ arr[9] +" s" +
+				"\n Configuration time budget remaining: "+ arr[10]+" s" +
+				"\n Sum of target algorithm execution times: "+arr[11] +" s" + 
+				"\n CPU time of Configurator: "+arr[12]+" s" +
+				"\n User time of Configurator: "+arr[13]+" s" +
+				"\n Max Memory: "+arr[14]+" MB" +
+				"\n Total Java Memory: "+arr[15]+" MB" +
+				"\n Free Java Memory: "+arr[16]+" MB";
+		
+		log.info(lastLogMessage);
+		
+	}
+	
+	
+	public void afterValidationStatistics()
+	{
+		log.info(lastLogMessage);
 		
 	}
 	
@@ -435,6 +447,7 @@ public class AbstractAlgorithmFramework {
 						}
 					}
 					logIncumbent(iteration);
+					logRuntimeStatistics();
 				} else
 				{
 					//We are restoring state
@@ -467,14 +480,17 @@ public class AbstractAlgorithmFramework {
 						intensify(challengers, intensifyTime);
 						
 						logIncumbent(iteration);
+						logRuntimeStatistics();
 					} 
 				} catch(OutOfTimeException e){
 					// We're out of time.
 					logIncumbent(iteration);
+					logRuntimeStatistics();
 				}
 				
 				
 				saveState("it", true);
+				logSMACResult();
 				log.info("SMAC Completed");
 				
 			} catch(RuntimeException e)
@@ -483,7 +499,7 @@ public class AbstractAlgorithmFramework {
 					saveState("CRASH",true);
 				} catch(RuntimeException e2)
 				{
-					log.error("SMAC has encounted an exception, and encountered another exception while trying to save the local state. NOTE: THIS PARTICULAR ERROR DID NOT CAUSE SMAC TO FAIL, the original culprit follows further below. (This second error is potentially another / seperate issue, or a disk failure of some kind.) When submitting bug/error reports, please include enough context for *BOTH* exceptions \n  ", e2);
+					log.error("SMAC has encountered an exception, and encountered another exception while trying to save the local state. NOTE: THIS PARTICULAR ERROR DID NOT CAUSE SMAC TO FAIL, the original culprit follows further below. (This second error is potentially another / seperate issue, or a disk failure of some kind.) When submitting bug/error reports, please include enough context for *BOTH* exceptions \n  ", e2);
 					throw e;
 				}
 				throw e;
@@ -530,6 +546,37 @@ public class AbstractAlgorithmFramework {
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) {
 	}
 
+	public void logSMACResult()
+	{
+		logSMACResult(Double.POSITIVE_INFINITY);
+	}
+	public void logSMACResult(double testSetPerformance)
+	{
+		
+		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
+		
+		RunConfig config = new RunConfig(pisp, cutoffTime, incumbent);
+		
+		String cmd = algoEval.getManualCallString(config);
+		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
+
+		
+		log.info("**********************************************");
+		
+		if(Double.isInfinite(testSetPerformance))
+		{
+			Object[] args2 = { runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime) }; 
+			log.info("Total Objective of Final Incumbent on training set: {}", args2 );
+		} else
+		{
+			Object[] args2 = { runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime), testSetPerformance };
+			log.info("Total Objective of Final Incumbent on training set: {}; on test set: {}", args2 );
+		}
+		
+		log.info("Sample Call for Final Incumbent {} ({}) \n{} ",args);
+		log.info("Complete Configuration (including inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+		
+	}
 
 
 	protected List<ParamConfiguration> selectConfigurations()

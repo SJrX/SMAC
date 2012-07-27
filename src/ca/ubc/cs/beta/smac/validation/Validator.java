@@ -33,17 +33,17 @@ public class Validator {
 	
 	private static Logger log = LoggerFactory.getLogger(Validator.class);
 	
-	public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
+	public double validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
 			String outputDir,
 			RunObjective runObj,
 			OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, double tunerTime, long numRun) {
 		
-		validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, intraInstanceObjective, interInstanceObjective,tunerTime, 0,0, numRun);
+		return validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, intraInstanceObjective, interInstanceObjective,tunerTime, 0,0, numRun);
 	}
 		
 		
 	
-public void validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
+public double validate(List<ProblemInstance> testInstances, ParamConfiguration incumbent, ValidationOptions config,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
 		String outputDir,
 		RunObjective runObj,
 		OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, double tunerTime,  double empericalPerformance, double cpuTime, long numRun) {
@@ -96,10 +96,14 @@ public void validate(List<ProblemInstance> testInstances, ParamConfiguration inc
 			double testSetPerformance = writeInstanceResultFile(runs, config, outputDir, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, numRun);
 			
 			appendInstanceResultFile(outputDir, tunerTime, empericalPerformance, testSetPerformance, cpuTime, numRun);
+			
+			return testSetPerformance;
 		} catch(IOException e)
 		{
 			log.error("Could not write results file:", e);
 		}
+		
+		return Double.NaN;
 		
 		
 		//writeInstanceResultFile(runs, options);
