@@ -1,5 +1,6 @@
 package ca.ubc.cs.beta.smac.matlab;
 
+import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.misc.math.MessyMathHelperClass;
 import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 
@@ -7,9 +8,16 @@ public class MatlabModelDataSanitizer extends PCAModelDataSanitizer {
 
 	public MatlabModelDataSanitizer(double[][] instanceFeatures,
 			double[][] paramValues, int numPCA, double[] responseValues,int[] usedInstanceIdxs,
-			boolean logModel) {
-		super(instanceFeatures, paramValues, numPCA, responseValues, usedInstanceIdxs, logModel);
+			boolean logModel,  int[][] theta_inst_indxs, boolean[] censoredRuns) {
+		super(instanceFeatures, paramValues, numPCA, responseValues, usedInstanceIdxs, logModel, theta_inst_indxs, censoredRuns);
 	}
+	
+	public MatlabModelDataSanitizer(double[][] instanceFeatures,
+			double[][] paramValues, int numPCA, double[] responseValues,int[] usedInstanceIdxs,
+			boolean logModel,  int[][] theta_inst_indxs, boolean[] censoredRuns, ParamConfigurationSpace configSpace) {
+		super(instanceFeatures, paramValues, numPCA, responseValues, usedInstanceIdxs, logModel,  theta_inst_indxs,  censoredRuns, configSpace);
+	}
+	
 
 	/**
 	 * Fixes data for matlab output

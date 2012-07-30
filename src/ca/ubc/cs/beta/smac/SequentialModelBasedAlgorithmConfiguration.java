@@ -23,7 +23,9 @@ import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.BasicModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.ModelBuilder;
+import ca.ubc.cs.beta.aclib.model.data.MaskCensoredDataAsUncensored;
 import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
+import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
@@ -56,7 +58,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	/**
 	 * Last build of sanitized data
 	 */
-	private PCAModelDataSanitizer sanitizedData;
+	private SanitizedModelData sanitizedData;
 	private final ExpectedImprovementFunction ei;
 	
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
@@ -114,25 +116,36 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		double[] runResponseValues = runHistory.getRunResponseValues();
 		
 		
-		
-		for(int j=0; j < runResponseValues.length; j++)
-		{ //=== Not sure if I Should be penalizing runs prior to the model
-			// but matlab sure does
-			if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
-			{	
-				runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+		if(smacConfig.penalizeModelInputValues)
+		{
+			for(int j=0; j < runResponseValues.length; j++)
+			{ //=== Not sure if I Should be penalizing runs prior to the model
+				// but matlab sure does
+				if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
+				{	
+					runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+				}
 			}
 		}
+		
 	
 		//=== Sanitize the data.
-		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, configSpace);
+		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), runHistory.getCensoredFlagForRuns(), configSpace);
+		
+		
+		if(smacConfig.maskCensoredDataAsUncensored)
+		{
+			sanitizedData = new MaskCensoredDataAsUncensored(sanitizedData);
+		}
+		
+		
 		
 		//=== Actually build the model.
 		ModelBuilder mb;
 		//TODO: always go through AdaptiveCappingModelBuilder
 		if(options.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);

@@ -635,6 +635,13 @@ public class AbstractAlgorithmFramework {
 		}
 		
 		
+		if(challenger.equals(incumbent))
+		{
+			Object[] args = { runHistory.getThetaIdx(challenger), challenger,  runHistory.getThetaIdx(incumbent), incumbent };
+			log.info("Challenger {} ({})  is equal to the incumbent {} ({}); not evaluating it further ", args);
+			return;
+		}
+		
 		int N=1;
 		while(true){
 
@@ -973,7 +980,7 @@ public class AbstractAlgorithmFramework {
 	protected List<AlgorithmRun> evaluateRun(List<RunConfig> runConfigs)
 	{
 		int i=0;
-		log.info("Iteration {}: Scheduling {} run(s):", runConfigs.size());
+		log.info("Iteration {}: Scheduling {} run(s):", iteration,  runConfigs.size());
 		for(RunConfig rc : runConfigs)
 		{
 			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
