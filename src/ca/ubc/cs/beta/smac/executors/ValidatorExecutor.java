@@ -194,7 +194,7 @@ public class ValidatorExecutor {
 				
 				
 				log.info("Begining Validation on tuner time: {} (trajectory file time: {}) emperical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
-		
+		/*
 				(new Validator()).validate(testInstances,
 						configToValidate,
 						options.validationOptions,
@@ -209,7 +209,8 @@ public class ValidatorExecutor {
 						options.empericalPerformance,
 						options.tunerOverheadTime,
 						options.seed);
-				
+				*/
+				if(true) throw new IllegalStateException("Developer didn't fix validation");
 				log.info("Validation Completed Successfully");
 			} catch(ParameterException e)
 			{

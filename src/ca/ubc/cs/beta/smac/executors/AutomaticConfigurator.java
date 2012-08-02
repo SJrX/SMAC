@@ -209,10 +209,11 @@ public class AutomaticConfigurator
 				double cpuTime = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;;
 				double empericalPerformance = smac.getEmpericalPerformance(smac.getIncumbent());
 
-				double testSetPerformance = (new Validator()).validate(testInstances, smac.getIncumbent(),options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tunerTime, empericalPerformance, cpuTime, options.seed);
-				smac.afterValidationStatistics();
-				smac.logSMACResult(testSetPerformance);
 				
+				//double testSetPerformance = (new Validator()).validate(testInstances, smac.getIncumbent(),options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tunerTime, empericalPerformance, cpuTime, options.seed);
+				smac.afterValidationStatistics();
+				smac.logSMACResult(0);
+				if(true) throw new IllegalStateException("Developer didn't fix validation");
 				
 			}
 			

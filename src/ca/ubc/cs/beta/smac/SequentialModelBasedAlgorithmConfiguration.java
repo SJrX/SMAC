@@ -13,6 +13,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
@@ -24,6 +25,7 @@ import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.BasicModelBuilder;
 import ca.ubc.cs.beta.aclib.model.builder.ModelBuilder;
 import ca.ubc.cs.beta.aclib.model.data.MaskCensoredDataAsUncensored;
+import ca.ubc.cs.beta.aclib.model.data.MaskInactiveConditionalParametersWithDefaults;
 import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
@@ -103,7 +105,13 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		i = 0;
 		for(ParamConfiguration pc : paramConfigs)
 		{
-			thetaMatrix[i++] = pc.toValueArray();
+			if(smacConfig.maskInactiveConditionalParametersAsDefaultValue)
+			{
+				thetaMatrix[i++] = pc.toComparisonValueArray();
+			} else
+			{
+				thetaMatrix[i++] = pc.toValueArray();
+			}
 		}
 
 		//=== Get an array of the order in which instances were used (TODO: same for Theta, from ModelBuilder) 
@@ -139,6 +147,13 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		
+		if(smacConfig.maskInactiveConditionalParametersAsDefaultValue)
+		{
+			sanitizedData = new MaskInactiveConditionalParametersWithDefaults(sanitizedData, configSpace);
+		}
+		
+		
+		
 		
 		//=== Actually build the model.
 		ModelBuilder mb;
@@ -149,8 +164,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
-			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions, runHistory); 
+			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions); 
 		}
+		
 		 /*= */
 		forest = mb.getRandomForest();
 		preparedForest = mb.getPreparedRandomForest();
@@ -212,24 +228,52 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		double[] predmean = predictions[0];
 		double[] predvar = predictions[1];
 
+		double[][] tmp_predictions = transpose(applyMarginalModel(Collections.singletonList(incumbent)));
+		log.info("Prediction for incumbent: {} +/- {} (in log space if logModel=true)", tmp_predictions[0][0], tmp_predictions[1][0]);
+		
 		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
 		//=== Get the empirical cost into log space if the model gives log predictions. 
 		if (smacConfig.randomForestOptions.logModel)
 		{
-			//TODO HANDLE MIN RUNTIME THIS IS SO A BUG
-			//THIS IS SO A BUG
-			//THIS IS SO A BUG 
+			
+			fmin = Math.max(SanitizedModelData.MINIMUM_RESPONSE_VALUE, fmin);
 			fmin = Math.log10(fmin);
+			
+			double adjusted_fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime, SanitizedModelData.MINIMUM_RESPONSE_VALUE);
+			adjusted_fmin = Math.max(SanitizedModelData.MINIMUM_RESPONSE_VALUE, adjusted_fmin);
+			adjusted_fmin = Math.log10(adjusted_fmin);
+			Object[] args = { getIteration(), fmin, adjusted_fmin};
+			
+			log.info("Optimizing EI at valdata.iteration {}. fmin: {}, fmin (accounting for minimum response value): {}", args);
+			/*
+			if(tmp_predictions[1][0] > Math.pow(10, -13))
+			{
+				
+				List<AlgorithmRun> o =  runHistory.getAlgorithmRuns();
+				for(AlgorithmRun run : o)
+				{
+					if(run.getRunConfig().getParamConfiguration().equals(incumbent))
+					{
+						log.info("Instance {} Runtime {}:", run.getRunConfig().getProblemInstanceSeedPair().getInstance().getInstanceID(), run.getRuntime());
+					}
+				}
+				
+				throw new IllegalStateException("");
+				//System.out.println("Hello");
+				
+			}
+			*/
+		} else
+		{
+			log.info("Optimizing EI at valdata.iteration {}. fmin: {}", getIteration(), fmin);
 		}
 		
 		//=== Compute EI of these configurations (as given by predmean,predvar)
-		log.info("Optimizing EI at valdata.iteration {}. fmin: {}", getIteration(), fmin);
+		
 		StopWatch watch = new AutoStartStopWatch();
 		double[] negativeExpectedImprovementOfTheta = ei.computeNegativeExpectedImprovement(fmin, predmean, predvar);
 		
-		
-		
-		
+
 		watch.stop();
 		log.info("Compute negEI for all conf. seen at valdata.iteration {}: took {} s",getIteration(), ((double) watch.time()) / 1000.0 );
 

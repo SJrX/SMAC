@@ -43,6 +43,8 @@
 		<javac srcdir="src" destdir="build/classes" debug="true">
 		<classpath refid="compile.classpath"/>
 		</javac>
+		
+		
 	</target>
 	<target name="archive" depends="compile">
 		
@@ -53,6 +55,13 @@
 		<echo file="${version.file.dev}">${version.devstring}</echo>
 		<echo file="build/classes/${version.file}">${version.string}</echo>
 		<jar destfile="dist/smac.jar" basedir="build/classes"/>
+		
+		<jar destfile="dist/smac-src.jar">
+					<fileset dir="src/">
+						 <include name="**/*.java"/>
+					</fileset>
+				</jar>
+			
 		<copy todir="dist/" force="true">
 			<fileset dir="deployables">
 				<include name="*"/>
