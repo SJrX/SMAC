@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -28,8 +29,9 @@ import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.CommandLineTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorFactory;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser;
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser.TrajectoryFileEntry;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 public class ValidatorExecutor {
@@ -115,27 +117,16 @@ public class ValidatorExecutor {
 				}
 				
 				double nearestTunerTime = 0;
-				
+				List<TrajectoryFileEntry> tfes;
 				if(options.trajectoryFile != null)
 				{
-					ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = TrajectoryFileParser.parseTrajectoryFile(options.trajectoryFile, configSpace);
 					
-					TrajectoryFileEntry tfe = skipList.floorEntry(options.tunerTime).getValue();
-					nearestTunerTime = skipList.floorEntry(options.tunerTime).getKey();
-					if(options.empericalPerformance == -1 )
-					{
-						options.empericalPerformance = tfe.getEmpericalPerformance();
-					}
-						
-					
-					
-					if(options.tunerOverheadTime == -1)
-					{
-						options.tunerOverheadTime = tfe.getACOverhead();
-					}
-					
-					configToValidate = tfe.getConfiguration();
-					
+					 tfes = TrajectoryFileParser.parseTrajectoryFileAsList(options.trajectoryFile, configSpace);
+					 
+					 if(options.validationOptions.maxTimestamp == -1)
+					 {
+						 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+					 }
 					
 				} else
 				{
@@ -143,6 +134,10 @@ public class ValidatorExecutor {
 					{
 						options.tunerOverheadTime = 0;	
 					}
+					
+					
+					
+					
 					
 					if(options.incumbent == null)
 					{
@@ -166,16 +161,27 @@ public class ValidatorExecutor {
 						}
 					}
 					
+					tfes = Collections.singletonList(new TrajectoryFileEntry(configToValidate, options.tunerTime, options.empericalPerformance, options.tunerOverheadTime));
+					
 				}
 				
-				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime);
+				String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
+				File f2 = new File(algoExecDir);
+				if (!f2.isAbsolute()){
+					f2 = new File(options.experimentDir + File.separator + algoExecDir);
+				}
+				
+				
+				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+			
+				
+				//AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime);
 				
 				
 				
 				
-				boolean concurrentRuns = (options.maxConcurrentAlgoExecs > 1);
 				
-				TargetAlgorithmEvaluator validatingTae = new CommandLineTargetAlgorithmEvaluator(execConfig, concurrentRuns);
+				TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorFactory.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
 				
 				
 				String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
@@ -190,13 +196,12 @@ public class ValidatorExecutor {
 					throw new ParameterException("Couldn't make output Directory:" + outputDir);
 				}
 				
-				Object[] arr = {options.tunerTime,nearestTunerTime, options.empericalPerformance, options.tunerOverheadTime, options.seed, configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX)};
 				
 				
-				log.info("Begining Validation on tuner time: {} (trajectory file time: {}) emperical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
-		/*
+				
+				//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) emperical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
+				log.info("Beginning Validation on {} entries", tfes.size());
 				(new Validator()).validate(testInstances,
-						configToValidate,
 						options.validationOptions,
 						options.scenarioConfig.cutoffTime,
 						testInstanceSeedGen,
@@ -205,13 +210,13 @@ public class ValidatorExecutor {
 						options.scenarioConfig.runObj,
 						options.scenarioConfig.intraInstanceObj,
 						options.scenarioConfig.interInstanceObj,
-						options.tunerTime,
-						options.empericalPerformance,
-						options.tunerOverheadTime,
+						tfes,
 						options.seed);
-				*/
-				if(true) throw new IllegalStateException("Developer didn't fix validation");
+				
+				
 				log.info("Validation Completed Successfully");
+				validatingTae.notifyShutdown();
+				System.exit(SMACReturnValues.SUCCESS);
 			} catch(ParameterException e)
 			{
 				com.usage();
@@ -220,6 +225,7 @@ public class ValidatorExecutor {
 		} catch(Throwable t)
 		{
 
+			int returnValue = SMACReturnValues.OTHER_EXCEPTION;
 			if(log != null)
 			{
 				
@@ -237,6 +243,7 @@ public class ValidatorExecutor {
 					PrintWriter writer = new PrintWriter(sWriter);
 					t.printStackTrace(writer);
 					log.error(stackTrace, "StackTrace:{}",sWriter.toString());
+					returnValue = SMACReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 					
@@ -245,17 +252,22 @@ public class ValidatorExecutor {
 				
 				log.info("Exiting Application with failure");
 				t = t.getCause();
+				
 			} else
 			{
 				if(t instanceof ParameterException )
 				{
+					returnValue = SMACReturnValues.PARAMETER_EXCEPTION;
 					System.err.println(t.getMessage());
 				} else
 				{
+					returnValue = SMACReturnValues.OTHER_EXCEPTION;
 					t.printStackTrace();
 				}
 				
 			}
+			
+			System.exit(returnValue);
 		}
 		/*(new Validator()).validate(testInstances, smac.getIncumbent(),options, testInstanceSeedGen, validatingTae);*/
 	}

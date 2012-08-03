@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
+import java.util.SortedMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,12 +45,14 @@ import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnFirstRunCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.RetryCrashedRunsTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.RunHashCodeVerifyingAlgorithmEvalutor;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
-import ca.ubc.cs.beta.smac.RunHashCodeVerifyingAlgorithmEvalutor;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 import ca.ubc.cs.beta.smac.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.smac.validation.Validator;
@@ -176,7 +179,17 @@ public class AutomaticConfigurator
 			}
 			
 			
-			TargetAlgorithmEvaluator algoEval = getTargetAlgorithmEvaluator(options, execConfig);
+			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorFactory.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
+			
+
+			if(options.modelHashCodeFile != null)
+			{
+				logger.info("Algorithm Execution will verify model Hash Codes");
+				parseModelHashCodes(options.modelHashCodeFile);
+			}
+			
+			
+			
 			AbstractAlgorithmFramework smac;
 			switch(options.execMode)
 			{
@@ -202,18 +215,22 @@ public class AutomaticConfigurator
 				
 				
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other validation crap that is probably not applicable here
-				TargetAlgorithmEvaluator validatingTae = algoEval;
+				
+				
+				if(options.validationOptions.maxTimestamp == -1)
+				{
+					options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+				}
+				
+				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorFactory.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 				
-				double tunerTime = smac.getTunerTime();
-				double cpuTime = ManagementFactory.getThreadMXBean().getCurrentThreadCpuTime() / 1000.0 / 1000 / 1000;;
-				double empericalPerformance = smac.getEmpericalPerformance(smac.getIncumbent());
-
+				List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
 				
-				//double testSetPerformance = (new Validator()).validate(testInstances, smac.getIncumbent(),options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tunerTime, empericalPerformance, cpuTime, options.seed);
+				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seed);
 				smac.afterValidationStatistics();
-				smac.logSMACResult(0);
-				if(true) throw new IllegalStateException("Developer didn't fix validation");
+				smac.logSMACResult(performance);
+				
 				
 			}
 			
@@ -281,107 +298,8 @@ public class AutomaticConfigurator
 	}
 	
 
-
-	/**
-	 * Generates the TargetAlgorithmEvaluator with the given runtime behaivor
-	 * @param options
-	 * @param execConfig
-	 * @return
-	 */
-	private static TargetAlgorithmEvaluator getTargetAlgorithmEvaluator(SMACOptions options, AlgorithmExecutionConfig execConfig)
-	{
-		
-		ClassLoader cl = getClassLoader(options);
-		//TargetAlgorithmEvaluator cli = TargetAlgorithmEvaluatorLoader.getTargetAlgorithmEvaluator(execConfig, options.maxConcurrentAlgoExecs, "CLI",cl);
-		//TargetAlgorithmEvaluator surrogate = TargetAlgorithmEvaluatorLoader.getTargetAlgorithmEvaluator(execConfig, options.maxConcurrentAlgoExecs, options.scenarioConfig.algoExecOptions.targetAlgorithmEvaluator,cl);
-		
-		 
-		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorLoader.getTargetAlgorithmEvaluator(execConfig, options.maxConcurrentAlgoExecs, options.scenarioConfig.algoExecOptions.targetAlgorithmEvaluator,cl);
-		
-		//===== Note the decorators are not in general commutative
-		//Specifically Run Hash codes should only see the same runs the rest of the applications see
-		//Additionally retrying of crashed runs should probably happen before Abort on Crash
-		
-		algoEval = new RetryCrashedRunsTargetAlgorithmEvaluator(options.retryCount, algoEval);
-		
-		
-		if(options.abortOnCrash)
-		{
-			algoEval = new AbortOnCrashTargetAlgorithmEvaluator(algoEval);
-		}
-		
-		
-		if(options.abortOnFirstRunCrash)
-		{
-			algoEval = new AbortOnFirstRunCrashTargetAlgorithmEvaluator(algoEval);
-			
-			if(options.abortOnCrash)
-			{
-				logger.warn("Configured to treat all crashes as aborts, it is redundant to also treat the first as an abort");
-			}
-		}
-		
-		//==== Run Hash Code Verification should be last
-		if(options.runHashCodeFile != null)
-		{
-			logger.info("Algorithm Execution will verify run Hash Codes");
-			Queue<Integer> runHashCodes = parseRunHashCodes(options.runHashCodeFile);
-			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval, runHashCodes);
-			 
-		} else
-		{
-			logger.info("Algorithm Execution will NOT verify run Hash Codes");
-			algoEval = new RunHashCodeVerifyingAlgorithmEvalutor(algoEval);
-		}
-
-		
-		if(options.modelHashCodeFile != null)
-		{
-			logger.info("Algorithm Execution will verify model Hash Codes");
-			parseModelHashCodes(options.modelHashCodeFile);
-		}
-		
-		return algoEval;
-	}
-
-	/**
-	 * Retrieves a modified class loader to do dynamically search for jars
-	 * @return
-	 */
-	private static ClassLoader getClassLoader(SMACOptions options)
-	{
-		String pathtoSearch = options.scenarioConfig.algoExecOptions.taeSearchPath;
-		String[] paths = pathtoSearch.split(File.pathSeparator);
-		
-		ArrayList<URL> urls = new ArrayList<URL>(paths.length);
-				
-		for(String path : paths)
-		{
-			
-			File f = new File(path);
-			
-			try {
-				urls.add(f.toURI().toURL());
-				
-			} catch (MalformedURLException e) {
-				logger.info("Could not parse path {}, got {}", path, e );
-			}
-			
-			
-		}
-		
-		
-		URL[] urlsArr = urls.toArray(new URL[0]);
-		
-		
-		URLClassLoader ucl = new URLClassLoader(urlsArr);
-		
-		return ucl;
-		
-		
-		
-	}
 	
+
 	
 	private static void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
 		
@@ -550,9 +468,7 @@ public class AutomaticConfigurator
 			
 			
 				
-			ClassLoader cl = getClassLoader(config);
-			
-			List<String> names = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators(cl);
+			List<String> names = TargetAlgorithmEvaluatorFactory.getAvailableTargetAlgorithmEvaluators(config.scenarioConfig.algoExecOptions);
 			
 			for(String name : names)
 			{
@@ -630,7 +546,7 @@ public class AutomaticConfigurator
 
 
 
-	private static Pattern runHashCodePattern = Pattern.compile("^Run Hash Codes:\\d+( After \\d+ runs)?\\z");
+	
 	
 	private static Pattern modelHashCodePattern = Pattern.compile("^(Preprocessed|Random) Forest Built with Hash Code:\\s*\\d+?\\z");
 	
@@ -696,56 +612,7 @@ public class AutomaticConfigurator
 	}
 	
 	
-	private static Queue<Integer> parseRunHashCodes(File runHashCodeFile) 
-	{
-		logger.info("Run Hash Code File Passed {}", runHashCodeFile.getAbsolutePath());
-		Queue<Integer> runHashCodeQueue = new LinkedList<Integer>();
-		BufferedReader bin = null;
-		try {
-			try{
-				bin = new BufferedReader(new FileReader(runHashCodeFile));
-			
-				String line;
-				int hashCodeCount=0;
-				int lineCount = 1;
-				while((line = bin.readLine()) != null)
-				{
-					
-					Matcher m = runHashCodePattern.matcher(line);
-					if(m.find())
-					{
-						Object[] array = { ++hashCodeCount, lineCount, line};
-						logger.debug("Found Run Hash Code #{} on line #{} with contents:{}", array);
-						int colonIndex = line.indexOf(":");
-						int spaceIndex = line.indexOf(" ", colonIndex);
-						String lineSubStr = line.substring(colonIndex+1,spaceIndex);
-						runHashCodeQueue.add(Integer.valueOf(lineSubStr));
-						
-					} else
-					{
-						logger.trace("No Hash Code found on line: {}", line );
-					}
-					lineCount++;
-				}
-				if(hashCodeCount == 0)
-				{
-					logger.warn("Hash Code File Specified, but we found no hash codes");
-				}
-			
-			} finally
-			{
-				if(bin != null) bin.close();
-			}
-			
-		} catch(IOException e)
-		{
-			throw new RuntimeException(e);
-		}
-		
-		
-		return runHashCodeQueue;
-		
-	}
+	
 
 	
 }

@@ -14,8 +14,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
+import java.util.SortedMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,8 @@ import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.StateSerializer;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
+
 import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
 
 public class AbstractAlgorithmFramework {
@@ -81,12 +85,22 @@ public class AbstractAlgorithmFramework {
 		
 	private final StateFactory stateFactory;
 	
-	private final FileWriter fout;
+	private final FileWriter trajectoryFileWriter;
+	private final FileWriter trajectoryFileWriterCSV;
 	
 	private int iteration = 0;
 	protected ParamConfiguration incumbent = null;
 	
 	private final int MAX_RUNS_FOR_INCUMBENT;
+	
+	
+	private final List<TrajectoryFileEntry> tfes = new ArrayList<TrajectoryFileEntry>();
+	
+	
+	private double sumOfWallClockTime = 0;
+	private double sumOfReportedAlgorithmRunTime = 0;
+	
+	
 	
 	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
 	{
@@ -119,9 +133,16 @@ public class AbstractAlgorithmFramework {
 		//=== Initialize trajectory file.
 		try {
 			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seed + ".txt";
-			this.fout = new FileWriter(new File(outputFileName));
+			this.trajectoryFileWriter = new FileWriter(new File(outputFileName));
 			log.info("Trajectory File Writing To: {}", outputFileName);
-			fout.write(options.runGroupName + ", " + options.seed + "\n");			
+			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seed + ".csv";
+			this.trajectoryFileWriterCSV = new FileWriter(new File(outputFileNameCSV));
+			log.info("Trajectory File Writing To: {}", outputFileNameCSV);
+			
+			
+			
+			trajectoryFileWriter.write(options.runGroupName + ", " + options.seed + "\n");
+			trajectoryFileWriterCSV.write(options.runGroupName + ", " + options.seed + "\n");		
 		} catch (IOException e) {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);
@@ -314,18 +335,13 @@ public class AbstractAlgorithmFramework {
 		
 		if (iteration > 0)
 		{
+			writeIncumbent();
 			Object[] arr = {iteration, runHistory.getThetaIdx(incumbent), incumbent};		
 			log.info("At end of iteration {}, incumbent is {} ({}) ",arr);
 		} else
 		{
 			log.info("Incument currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
-		}		
-		double acTime =  getCPUTime() / 1000.0 / 1000 / 1000;
-		
-		// -1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
-		writeIncumbent(runHistory.getTotalRunCost() + acTime, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),-1,runHistory.getThetaIdx(incumbent), acTime, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
-		
-		
+		}				
 		
 	}
 	private String lastLogMessage = "No statistics logged";
@@ -336,7 +352,7 @@ public class AbstractAlgorithmFramework {
 		double tunerTime = getTunerTime();
 		
 		Object[] arr = { iteration,
-				runHistory.getThetaIdx(incumbent),
+				runHistory.getThetaIdx(incumbent) + " (" + incumbent +")",
 				runHistory.getTotalNumRunsOfConfig(incumbent),
 				runHistory.getInstancesRan(incumbent).size(),
 				runHistory.getUniqueParamConfigurations().size(),
@@ -349,6 +365,8 @@ public class AbstractAlgorithmFramework {
 				runHistory.getTotalRunCost(),
 				getCPUTime() / 1000.0 / 1000 / 1000,
 				getCPUUserTime() / 1000.0 / 1000 / 1000 ,
+				sumOfReportedAlgorithmRunTime,
+				sumOfWallClockTime,
 				Runtime.getRuntime().maxMemory() / 1024.0 / 1024,
 				Runtime.getRuntime().totalMemory() / 1024.0 / 1024,
 				Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
@@ -361,16 +379,18 @@ public class AbstractAlgorithmFramework {
 				"\n Number of Configurations Run: " + arr[4]+ 
 				"\n Performance of the Incumbent: " + arr[5]+
 				"\n Total Number of runs performed: " + arr[6]+ 
-				"\n Wallclock time:"+ arr[7] + " s" +
+				"\n Wallclock time: "+ arr[7] + " s" +
 				"\n Wallclock time remaining: "+ arr[8] +" s" +
 				"\n Configuration time budget used: "+ arr[9] +" s" +
 				"\n Configuration time budget remaining: "+ arr[10]+" s" +
 				"\n Sum of target algorithm execution times: "+arr[11] +" s" + 
 				"\n CPU time of Configurator: "+arr[12]+" s" +
 				"\n User time of Configurator: "+arr[13]+" s" +
-				"\n Max Memory: "+arr[14]+" MB" +
-				"\n Total Java Memory: "+arr[15]+" MB" +
-				"\n Free Java Memory: "+arr[16]+" MB";
+				"\n Total Reported Algorithm Runtime: " + arr[14] + " s" + 
+				"\n Total Measured Wallclock Runtime: " + arr[15] + " s" +
+				"\n Max Memory: "+arr[16]+" MB" +
+				"\n Total Java Memory: "+arr[17]+" MB" +
+				"\n Free Java Memory: "+arr[18]+" MB";
 		
 		log.info(lastLogMessage);
 		
@@ -383,23 +403,55 @@ public class AbstractAlgorithmFramework {
 		
 	}
 	
+	
+	private void writeIncumbent()
+	{
+		writeIncumbent(getTunerTime(),runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime));
+	}
+	
+	private double lastEmpericalPerformance = Double.NaN;
+	private ParamConfiguration lastIncumbent = null;
+	
 	/**
 	 * Writes the incumbent to the trajectory file
 	 * @param totalTime
-	 * @param meanInc
+	 * @param empericalPerformance
 	 * @param stdDevInc
 	 * @param thetaIdxInc
 	 * @param acTime
 	 * @param paramString
 	 */
-	private void writeIncumbent(double totalTime, double meanInc, double stdDevInc, int thetaIdxInc, double acTime, String paramString)
+	private void writeIncumbent(double tunerTime, double empericalPerformance)
 	{
 		
-		String outLine = totalTime + ", " + meanInc + ", " + stdDevInc + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
+		if(incumbent.equals(tunerTime) && lastEmpericalPerformance == empericalPerformance)
+		{
+			return;
+		} else
+		{
+			lastEmpericalPerformance = empericalPerformance;
+			lastIncumbent = incumbent;
+		}
+		
+		int thetaIdxInc = runHistory.getThetaIdx(incumbent);
+		double acTime = getCPUTime() / 1000.0 / 1000 / 1000;
+		
+		//-1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
+		double stdDevInc = -1;
+		
+		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
+		
+		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, empericalPerformance, acTime);
+		
+		this.tfes.add(tfe);
+		
+		String outLine = tunerTime + ", " + empericalPerformance + ", " + stdDevInc + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
 		try 
 		{
-			fout.write(outLine);
-			fout.flush();
+			trajectoryFileWriter.write(outLine);
+			trajectoryFileWriter.flush();
+			trajectoryFileWriterCSV.write(outLine);
+			trajectoryFileWriterCSV.flush();
 		} catch(IOException e)
 		{
 			throw new IllegalStateException("Could not update trajectory file", e);
@@ -433,7 +485,7 @@ public class AbstractAlgorithmFramework {
 					log.trace("New Problem Instance Seed Pair generated {}", pisp);
 					RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 					//Create initial row
-					writeIncumbent(0, Double.MAX_VALUE, -1,1,0, incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+					writeIncumbent(0, Double.MAX_VALUE);
 					try { 
 					evaluateRun(incumbentRunConfig);
 					
@@ -514,7 +566,7 @@ public class AbstractAlgorithmFramework {
 		} finally
 		{
 			try {
-				fout.close();
+				trajectoryFileWriter.close();
 			} catch (IOException e) {
 				log.error("Trying to close Trajectory File failed with exception {}", e);
 			}
@@ -555,19 +607,46 @@ public class AbstractAlgorithmFramework {
 
 	public void logSMACResult()
 	{
-		logSMACResult(Double.POSITIVE_INFINITY);
+		//logSMACResult(Collections.emptyMap());
 	}
-	public void logSMACResult(double testSetPerformance)
+	
+	/**
+	 * 
+	 * @param tfePerformance
+	 */
+	public void logSMACResult(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
 	{
 		
-		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
 		
-		RunConfig config = new RunConfig(pisp, cutoffTime, incumbent);
-		
-		String cmd = algoEval.getManualCallString(config);
-		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
 
+		TrajectoryFileEntry tfe = null;
+		double testSetPerformance = Double.POSITIVE_INFINITY;
 		
+		//=== We want the last TFE
+		for(Entry<TrajectoryFileEntry, Double> ents : tfePerformance.entrySet())
+		{
+			tfe = ents.getKey();
+			testSetPerformance = ents.getValue();
+		}
+		
+		
+		if(tfe != null)
+		{
+			if(!tfe.getConfiguration().equals(incumbent))
+			{
+				throw new IllegalStateException("Last TFE should be Incumbent");
+			}
+		}
+		
+		
+		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
+	
+		RunConfig runConfig = new RunConfig(pisp, cutoffTime, incumbent);
+	
+		String cmd = algoEval.getManualCallString(runConfig);
+		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
+	
+
 		log.info("**********************************************");
 		
 		if(Double.isInfinite(testSetPerformance))
@@ -706,7 +785,7 @@ public class AbstractAlgorithmFramework {
 			Object[] args2 = { N,  runHistory.getThetaIdx(challenger), challenger, bound_inc } ;
 			log.info("Performing up to {} run(s) for challenger {} ({}) up to a total bound of {} ", args2);
 			
-			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.maxConcurrentAlgoExecs); 
+			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.scenarioConfig.algoExecOptions.maxConcurrentAlgoExecs); 
 			
 			if(options.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
@@ -749,7 +828,7 @@ public class AbstractAlgorithmFramework {
 					
 					sMissing.remove(pisp);
 					aMissing.remove(0);
-					if(runsToEval.size() == options.maxConcurrentAlgoExecs )
+					if(runsToEval.size() == options.scenarioConfig.algoExecOptions.maxConcurrentAlgoExecs )
 					{
 						evaluateRun(runsToEval);
 						runsToEval.clear();
@@ -831,6 +910,10 @@ public class AbstractAlgorithmFramework {
 		updateIncumbentCost();
 		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
 		logConfiguration("New Incumbent", challenger);
+
+		
+		
+
 	}
 
 	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
@@ -952,6 +1035,10 @@ public class AbstractAlgorithmFramework {
 			try {
 				if (have_to_stop(iteration, run.getRuntime())){
 					throw new OutOfTimeException(run);
+				} else
+				{
+					this.sumOfWallClockTime += run.getWallclockExecutionTime();
+					this.sumOfReportedAlgorithmRunTime += run.getRuntime();
 				}
 				runHistory.append(run);
 			} catch (DuplicateRunException e) {
@@ -993,6 +1080,8 @@ public class AbstractAlgorithmFramework {
 		{
 			RunConfig rc = run.getRunConfig();
 			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
+			
+			
 			log.info("Iteration {}: Completed run for config {} ({}) on instance {} with seed {} and captime {}. Completed result: {}, response: {}, wallclock time: {} seconds", args);
 		}
 		
@@ -1023,4 +1112,8 @@ public class AbstractAlgorithmFramework {
 		return runHistory.getEmpiricalCost(config, pis, cutoffTime);
 	}
 	
+	public List<TrajectoryFileEntry> getTrajectoryFileEntries()
+	{
+		return Collections.unmodifiableList(tfes);
+	}
 }
