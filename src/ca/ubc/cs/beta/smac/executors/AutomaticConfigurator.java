@@ -389,7 +389,8 @@ public class AutomaticConfigurator
 			
 			if(config.logLevel.lessVerbose(config.consoleLogLevel))
 			{
-				throw new ParameterException("The console can NOT be more verbose than the logs (This will have no effect)");
+				logger.warn("The console has been set to be more verbose than the log. This is generally an error, except if you have modified the conf.xml to have certain loggers be more specific");
+				//throw new ParameterException("The console can NOT be more verbose than the logs (This will have no effect)");
 				
 			}
 				
