@@ -222,7 +222,7 @@ public class AutomaticConfigurator
 					options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
 				}
 				
-				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorFactory.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
+				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorFactory.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 				
 				List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
