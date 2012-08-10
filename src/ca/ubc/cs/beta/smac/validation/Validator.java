@@ -84,30 +84,34 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			throw new IllegalStateException("Unknown Instance Seed Generator specified");
 		}
 		
-		log.info("Scheduling {} validation runs", pisps.size());
+		log.info("Scheduling {} validation runs per incumbent", pisps.size());
 		
-		ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = new ConcurrentSkipListMap<Double, TrajectoryFileEntry>();
-		
-		for(TrajectoryFileEntry tfe : tfes)
-		{
-			skipList.put(tfe.getTunerTime(), tfe);
-		}
-		if(options.maxTimestamp == -1)
-		{
-			options.maxTimestamp = skipList.floorKey(Double.MAX_VALUE);
-		}
 		
 		Set<TrajectoryFileEntry> tfesToUse = new TreeSet<TrajectoryFileEntry>();
 		
-		
-		for(double x = options.maxTimestamp; x > options.minTimestamp && x > 0.125 ; x /= options.multFactor)
+		if(options.validateOnlyLastIncumbent)
 		{
-			TrajectoryFileEntry tfe = skipList.floorEntry(x).getValue();
-
-			tfesToUse.add(new TrajectoryFileEntry(tfe.getConfiguration(), x, tfe.getEmpericalPerformance(), tfe.getACOverhead()));
+			tfesToUse.add(tfes.get(tfes.size() - 1));
+		} else
+		{
+			ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = new ConcurrentSkipListMap<Double, TrajectoryFileEntry>();
 			
-		}
+			for(TrajectoryFileEntry tfe : tfes)
+			{
+				skipList.put(tfe.getTunerTime(), tfe);
+			}
+			if(options.maxTimestamp == -1)
+			{
+				options.maxTimestamp = skipList.floorKey(Double.MAX_VALUE);
+			}
 		
+			for(double x = options.maxTimestamp; x > options.minTimestamp && x > 0.125 ; x /= options.multFactor)
+			{
+				TrajectoryFileEntry tfe = skipList.floorEntry(x).getValue();
+				tfesToUse.add(new TrajectoryFileEntry(tfe.getConfiguration(), x, tfe.getEmpericalPerformance(), tfe.getACOverhead()));
+				
+			}
+		}
 		
 		List<TrajectoryFileEntry> tfesToRun = new ArrayList<TrajectoryFileEntry>(tfesToUse.size());
 		tfesToRun.addAll(tfesToUse);
@@ -116,7 +120,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime);
 		
 		
-		log.info("Validation needs {} algorithm runs ", runConfigs.size());
+		log.info("Validation needs {} algorithm runs  to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
 		List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
 		
 		try

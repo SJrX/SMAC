@@ -13,6 +13,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -110,7 +111,8 @@ public class AutomaticConfigurator
 			logger.info("Automatic Configurator Started");
 			
 			
-			SeedableRandomSingleton.setSeed(options.seed);
+			
+			SeedableRandomSingleton.setSeed(options.numRun + options.seedOffset);
 			Random rand = SeedableRandomSingleton.getRandom(); 
 
 			
@@ -124,7 +126,7 @@ public class AutomaticConfigurator
 					restoreSF = new NullStateFactory();
 					break;
 				case LEGACY:
-					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seed + File.separator, options.restoreStateFrom);
+					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator, options.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -140,7 +142,8 @@ public class AutomaticConfigurator
 			{
 				try {
 					logger.debug("Trying param file in path {} ", path);
-					configSpace = ParamFileHelper.getParamFileParser(path, options.seed+1000000);
+					
+					configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
 					break;
 				} catch(IllegalStateException e)
 				{ 
@@ -172,7 +175,7 @@ public class AutomaticConfigurator
 					sf = new NullStateFactory();
 					break;
 				case LEGACY:
-					sf = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seed + File.separator, options.restoreStateFrom);
+					sf = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator, options.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -227,7 +230,8 @@ public class AutomaticConfigurator
 				
 				List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
 				
-				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seed);
+				
+				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun);
 				smac.afterValidationStatistics();
 				smac.logSMACResult(performance);
 				
@@ -349,11 +353,11 @@ public class AutomaticConfigurator
 			{
 				System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
 				System.setProperty("RUNGROUPDIR", config.runGroupName);
-				System.setProperty("NUMRUN", String.valueOf(config.seed));
+				System.setProperty("NUMRUN", String.valueOf(config.numRun));
 				System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
 				System.setProperty("ROOT-LEVEL",config.logLevel.name());
 				
-				System.out.println("*****************************\nLogging to: " + config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "log-run" + config.seed+ ".txt\n*****************************");
+				System.out.println("*****************************\nLogging to: " + config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "log-run" + config.numRun+ ".txt\n*****************************");
 				//${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
 				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");
@@ -432,7 +436,7 @@ public class AutomaticConfigurator
 			 
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.seed+1, (config.scenarioConfig.algoExecOptions.deterministic));
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+1, (config.scenarioConfig.algoExecOptions.deterministic));
 			instanceSeedGen = ilws.getSeedGen();
 			
 			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
@@ -449,7 +453,7 @@ public class AutomaticConfigurator
 			
 			
 			logger.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, config.scenarioConfig.checkInstanceFilesExist, config.seed+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
+			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			
@@ -488,6 +492,11 @@ public class AutomaticConfigurator
 			} catch(UnsupportedOperationException e)
 			{
 				logger.warn("This Java Virtual Machine does not support CPU Time Measurements, tunerTimeout will not contain any SMAC Execution Time Information (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/management/ThreadMXBean.html#setThreadCpuTimeEnabled(boolean))");
+			}
+			
+			if(config.numRun + config.seedOffset < 0)
+			{
+				logger.warn("NumRun {} plus Seed Offset {} should be positive, things may not seed correctly",config.numRun, config.seedOffset );
 			}
 			return config;
 		} catch(IOException e)

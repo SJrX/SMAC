@@ -132,17 +132,17 @@ public class AbstractAlgorithmFramework {
 		
 		//=== Initialize trajectory file.
 		try {
-			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seed + ".txt";
+			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.numRun + ".txt";
 			this.trajectoryFileWriter = new FileWriter(new File(outputFileName));
 			log.info("Trajectory File Writing To: {}", outputFileName);
-			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seed + ".csv";
+			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.numRun + ".csv";
 			this.trajectoryFileWriterCSV = new FileWriter(new File(outputFileNameCSV));
 			log.info("Trajectory File Writing To: {}", outputFileNameCSV);
 			
 			
 			
-			trajectoryFileWriter.write(options.runGroupName + ", " + options.seed + "\n");
-			trajectoryFileWriterCSV.write(options.runGroupName + ", " + options.seed + "\n");		
+			trajectoryFileWriter.write(options.runGroupName + ", " + options.numRun + "\n");
+			trajectoryFileWriterCSV.write(options.runGroupName + ", " + options.numRun + "\n");		
 		} catch (IOException e) {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);

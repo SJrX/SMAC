@@ -45,6 +45,7 @@ public class SMACTester {
 		*/
 		
 	public static String smacDeployment = null;
+	public static Long seedOffset = Math.abs((new Random()).nextLong());
 	
 	@BeforeClass
 	public static void initDeploymentToTest()
@@ -85,26 +86,26 @@ public class SMACTester {
 			if (true) return true;
 			*/
 	
-			String instanceCheck = (checkInstances) ? " " : " --skipInstanceFileCheck ";
+			String instanceCheck = (checkInstances) ? " --checkInstanceFilesExist true " : " --checkInstanceFilesExist false ";
 			
-			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runGroupName "  + runID + "-" + id + " --experimentDir " + experimentDir + " --seed " + Math.abs((new Random()).nextInt()) +  instanceCheck+  " --skipValidation ";
+			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runGroupName "  + runID + "-" + id + " --experimentDir " + experimentDir + " --numRun 0 "  +  instanceCheck+  " --doValidation false --seedOffset " + seedOffset;
 			
 			
 			
 			
 			if(restoreIteration > 0)
 			{
-				execString += " --restoreStateFrom " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "state";
+				execString += " --restoreStateFrom " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "state-run0";
 				execString += " --restoreIteration " + restoreIteration+ " ";
 				if(verifyHashCodes)
 				{
-					execString += " --runHashCodeFile " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "runhashes.txt";
+					execString += " --runHashCodeFile " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "runhashes-run0.txt";
 				}
 			}
 			
 			if(adaptiveCapping)
 			{
-				execString += " --adaptiveCapping ";
+				execString += " --adaptiveCapping true";
 			}
 			
 			if(ROARMode)
@@ -154,11 +155,13 @@ public class SMACTester {
 					String line;
 					System.out.print("RUNNING:");
 					System.out.flush();
-					String regex = "running options \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
+					String regex = ".*run for config \\d+ \\(0x[0-9A-Z]+\\) on instance \\d+ with seed (-?\\d+) and captime \\d+.*";
+					//String regex = "running options \\d+ on instance \\d+ with seed (-?\\d+) and captime \\d+";
 					Pattern pat = Pattern.compile(regex);
 					
 					while((line = in.readLine()) != null)
 					{
+						//System.out.println(line);
 						
 						if(Thread.interrupted())
 						{
@@ -178,7 +181,7 @@ public class SMACTester {
 						
 						//System.out.println(line);
 						last10Lines.add(line);
-						if(last10Lines.size() > 20)
+						if(last10Lines.size() > 100)
 						{
 							last10Lines.poll();
 						}

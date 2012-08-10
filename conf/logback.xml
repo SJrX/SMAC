@@ -77,7 +77,7 @@
   </appender>
   
   <logger name="ca.ubc.cs.beta.smac.RunHistory" level="warn"/>
-  <logger name="ca.ubc.cs.beta.aclib.model.builder" level="trace"/>
+  <!-- <logger name="ca.ubc.cs.beta.aclib.model.builder" level="trace"/> -->
   
   <root level="${ROOT-LEVEL}">
     <appender-ref ref="STDOUT" />

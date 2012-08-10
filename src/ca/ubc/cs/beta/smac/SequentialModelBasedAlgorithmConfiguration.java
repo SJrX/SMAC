@@ -123,19 +123,14 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		double[] runResponseValues = runHistory.getRunResponseValues();
 		
-		
-		if(smacConfig.penalizeModelInputValues)
-		{
-			for(int j=0; j < runResponseValues.length; j++)
-			{ //=== Not sure if I Should be penalizing runs prior to the model
-				// but matlab sure does
-				if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
-				{	
-					runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
-				}
+		for(int j=0; j < runResponseValues.length; j++)
+		{ //=== Not sure if I Should be penalizing runs prior to the model
+			// but matlab sure does
+			if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
+			{	
+				runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
 			}
 		}
-		
 	
 		//=== Sanitize the data.
 		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), runHistory.getCensoredFlagForRuns(), configSpace);

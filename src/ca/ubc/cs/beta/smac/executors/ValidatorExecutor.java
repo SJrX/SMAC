@@ -86,7 +86,8 @@ public class ValidatorExecutor {
 						options.empericalPerformance = 0;
 						
 					}
-						log.info("Using configuration specified on Command Line");
+					
+					log.info("Using configuration specified on Command Line");
 				}
 				
 			
@@ -127,17 +128,13 @@ public class ValidatorExecutor {
 					 {
 						 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
 					 }
-					
+				
 				} else
 				{
 					if (options.tunerOverheadTime == -1)
 					{
 						options.tunerOverheadTime = 0;	
 					}
-					
-					
-					
-					
 					
 					if(options.incumbent == null)
 					{
