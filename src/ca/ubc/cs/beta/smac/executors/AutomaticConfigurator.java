@@ -38,6 +38,7 @@ import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
+import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
@@ -372,6 +373,24 @@ public class AutomaticConfigurator
 			logger.trace("Command Line Options Parsed");
 			
 			
+			
+			if(config.adaptiveCapping == null)
+			{
+				switch(config.scenarioConfig.runObj)
+				{
+				case RUNTIME:
+					config.adaptiveCapping = true;
+				case QUALITY:
+					config.adaptiveCapping = false;
+				}
+			}
+			
+			
+			
+			
+			
+			validateObjectiveCombinations(config.scenarioConfig, config.adaptiveCapping);
+			
 			logCallString(args);
 			
 			if(config.scenarioConfig.algoExecOptions.logAllCallStrings)
@@ -515,7 +534,46 @@ public class AutomaticConfigurator
 	
 
 	
-	
+	/**
+	 * Validates the various objective functions and ensures that they are legal together
+	 * @param scenarioConfig
+	 */
+	private static void validateObjectiveCombinations(
+			ScenarioOptions scenarioConfig, boolean adaptiveCapping) {
+
+		switch(scenarioConfig.interInstanceObj)
+		{
+			case MEAN:
+				//Okay
+				break;
+			default:
+				throw new ParameterException("Model does not currently support an inter-instance objective other than " +  OverallObjective.MEAN);
+				
+		}
+		
+		
+		
+		
+		switch(scenarioConfig.runObj)
+		{
+			case RUNTIME:
+				break;
+			
+			case QUALITY:
+				if(!scenarioConfig.intraInstanceObj.equals(OverallObjective.MEAN))
+				{
+					throw new ParameterException("To optimize quality you MUST use an intra-instance objective of " + OverallObjective.MEAN);
+				}
+				
+				if(adaptiveCapping)
+				{
+					throw new ParameterException("You can only use Adaptive Capping when using " + RunObjective.RUNTIME + " as an objective");
+				}
+				
+		}
+	}
+
+
 	/**
 	 * Makes a best at our column size 
 	 * @return
