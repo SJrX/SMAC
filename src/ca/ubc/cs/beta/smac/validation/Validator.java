@@ -58,7 +58,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		String outputDir,
 		RunObjective runObj,
 		OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective,  List<TrajectoryFileEntry> tfes, long numRun) 
-{
+		{
 
 		int testInstancesCount = Math.min(options.numberOfTestInstances, testInstances.size());
 		int testSeedsPerInstance = options.numberOfTestSeedsPerInstance;
@@ -105,10 +105,14 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 				options.maxTimestamp = skipList.floorKey(Double.MAX_VALUE);
 			}
 		
-			for(double x = options.maxTimestamp; x > options.minTimestamp && x > 0.125 ; x /= options.multFactor)
+			for(double x = options.maxTimestamp; x > options.minTimestamp ; x /= options.multFactor)
 			{
 				TrajectoryFileEntry tfe = skipList.floorEntry(x).getValue();
 				tfesToUse.add(new TrajectoryFileEntry(tfe.getConfiguration(), x, tfe.getEmpericalPerformance(), tfe.getACOverhead()));
+				
+				//If minTimestamp is zero, then we would never get there, but we will stop after 0.25
+				//We don't put this in the loop condition, because we do always want atleast one run
+				if( x  < 0.25) break; 
 				
 			}
 		}

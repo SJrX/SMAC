@@ -383,7 +383,7 @@ public class AbstractAlgorithmFramework {
 				"\n Wallclock time remaining: "+ arr[8] +" s" +
 				"\n Configuration time budget used: "+ arr[9] +" s" +
 				"\n Configuration time budget remaining: "+ arr[10]+" s" +
-				"\n Sum of Target Algorithm Execution Times: "+arr[11] +" s" + 
+				"\n Sum of Target Algorithm Execution Times (treating minimum value as 0.1): "+arr[11] +" s" + 
 				"\n CPU time of Configurator: "+arr[12]+" s" +
 				"\n User time of Configurator: "+arr[13]+" s" +
 				"\n Total Reported Algorithm Runtime: " + arr[14] + " s" + 
@@ -502,6 +502,7 @@ public class AbstractAlgorithmFramework {
 
 							throw new DeveloperMadeABooBooException(e1);
 						}
+						
 					}
 					
 					logConfiguration("New Incumbent", incumbent);
