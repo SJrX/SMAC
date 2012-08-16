@@ -660,6 +660,7 @@ public class AbstractAlgorithmFramework {
 		}
 		
 		log.info("Sample Call for Final Incumbent {} ({}) \n{} ",args);
+		log.info("Complete Configuration (no inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX_NO_INACTIVE));
 		log.info("Complete Configuration (including inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
 		
 	}
