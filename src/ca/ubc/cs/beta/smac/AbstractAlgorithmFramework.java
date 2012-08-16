@@ -383,11 +383,11 @@ public class AbstractAlgorithmFramework {
 				"\n Wallclock time remaining: "+ arr[8] +" s" +
 				"\n Configuration time budget used: "+ arr[9] +" s" +
 				"\n Configuration time budget remaining: "+ arr[10]+" s" +
-				"\n Sum of target algorithm execution times: "+arr[11] +" s" + 
+				"\n Sum of Target Algorithm Execution Times: "+arr[11] +" s" + 
 				"\n CPU time of Configurator: "+arr[12]+" s" +
 				"\n User time of Configurator: "+arr[13]+" s" +
 				"\n Total Reported Algorithm Runtime: " + arr[14] + " s" + 
-				"\n Total Measured Wallclock Runtime: " + arr[15] + " s" +
+				"\n Sum of Measured Wallclock Runtime: " + arr[15] + " s" +
 				"\n Max Memory: "+arr[16]+" MB" +
 				"\n Total Java Memory: "+arr[17]+" MB" +
 				"\n Free Java Memory: "+arr[18]+" MB";

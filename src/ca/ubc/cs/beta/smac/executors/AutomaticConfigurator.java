@@ -427,28 +427,31 @@ public class AutomaticConfigurator
 		        }
 			
 			
-			 logger.info("==========Enviroment Variables===========\n{}", sb.toString());
-			 Map<Object,Object > props = System.getProperties();
-			 sb = new StringBuilder();
-			 for (Entry<Object, Object> ent : props.entrySet())
-			 {
-				 
-				 sb.append(ent.getKey().toString()).append("=").append(ent.getValue().toString()).append("\n");
-				 
-		           
-		     }
-			
-			 String hostname = "[UNABLE TO DETERMINE HOSTNAME]";
-			try {
-				hostname = InetAddress.getLocalHost().getHostName();
-			} catch(UnknownHostException e)
-			{ //If this fails it's okay we just use it to output to the log
-				
-			}
-			
-			logger.info("Hostname:{}\n\n", hostname);
-			logger.info("==========System Properties==============\n{}", sb.toString() );
 			 
+			 if(logger.isDebugEnabled())
+			 {
+				 logger.debug("==========Enviroment Variables===========\n{}", sb.toString());
+				 Map<Object,Object > props = System.getProperties();
+				 sb = new StringBuilder();
+				 for (Entry<Object, Object> ent : props.entrySet())
+				 {
+					 
+					 sb.append(ent.getKey().toString()).append("=").append(ent.getValue().toString()).append("\n");
+					 
+			           
+			     }
+				
+				 String hostname = "[UNABLE TO DETERMINE HOSTNAME]";
+				try {
+					hostname = InetAddress.getLocalHost().getHostName();
+				} catch(UnknownHostException e)
+				{ //If this fails it's okay we just use it to output to the log
+					
+				}
+				
+				logger.debug("Hostname:{}", hostname);
+				logger.debug("==========System Properties==============\n{}", sb.toString() );
+			 }
 			
 			logger.info("==========Configuration Options==========\n{}", config.toString());
 			 
