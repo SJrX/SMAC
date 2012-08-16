@@ -550,7 +550,7 @@ public class AbstractAlgorithmFramework {
 				
 				
 				saveState("it", true);
-				logSMACResult();
+				
 				log.info("SMAC Completed");
 				
 			} catch(RuntimeException e)
@@ -606,9 +606,55 @@ public class AbstractAlgorithmFramework {
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) {
 	}
 
-	public void logSMACResult()
+	
+	public void logIncumbentPerformance(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
 	{
-		//logSMACResult(Collections.emptyMap());
+		TrajectoryFileEntry tfe = null;
+		double testSetPerformance = Double.POSITIVE_INFINITY;
+		
+		//=== We want the last TFE
+		
+		ParamConfiguration lastIncumbent = null;
+		double lastEmpericalPerformance = Double.POSITIVE_INFINITY;
+		
+		double lastTestSetPerformance = Double.POSITIVE_INFINITY;
+		for(Entry<TrajectoryFileEntry, Double> ents : tfePerformance.entrySet())
+		{
+			
+			
+			tfe = ents.getKey();
+			double empericalPerformance = tfe.getEmpericalPerformance();
+			
+			testSetPerformance = ents.getValue();
+			double tunerTime = tfe.getTunerTime();
+			ParamConfiguration formerIncumbent = tfe.getConfiguration();
+			
+			
+			if(formerIncumbent.equals(lastIncumbent) && empericalPerformance == lastEmpericalPerformance && lastTestSetPerformance == testSetPerformance)
+			{
+				continue;
+			} else
+			{
+				lastIncumbent = formerIncumbent;
+				lastEmpericalPerformance = empericalPerformance;
+				lastTestSetPerformance = testSetPerformance;
+			}
+			
+			
+			
+			if(Double.isInfinite(testSetPerformance))
+			{
+				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empericalPerformance }; 
+				log.info("Total Objective of Incumbent {} ({}) at time {} on training set: {}", args2 );
+			} else
+			{
+				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empericalPerformance, testSetPerformance };
+				log.info("Total Objective of Incumbent {} ({}) at time {} on training set: {}; on test set: {}", args2 );
+			}
+			
+			
+		}
+		
 	}
 	
 	/**
@@ -624,12 +670,8 @@ public class AbstractAlgorithmFramework {
 		double testSetPerformance = Double.POSITIVE_INFINITY;
 		
 		//=== We want the last TFE
-		for(Entry<TrajectoryFileEntry, Double> ents : tfePerformance.entrySet())
-		{
-			tfe = ents.getKey();
-			testSetPerformance = ents.getValue();
-		}
-		
+		tfe = tfePerformance.lastKey();
+		testSetPerformance = tfePerformance.get(tfe);
 		
 		if(tfe != null)
 		{
@@ -652,12 +694,12 @@ public class AbstractAlgorithmFramework {
 		
 		if(Double.isInfinite(testSetPerformance))
 		{
-			Object[] args2 = { runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime) }; 
-			log.info("Total Objective of Final Incumbent on training set: {}", args2 );
+			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime) }; 
+			log.info("Total Objective of Final Incumbent {} ({}) on training set: {}", args2 );
 		} else
 		{
-			Object[] args2 = { runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime), testSetPerformance };
-			log.info("Total Objective of Final Incumbent on training set: {}; on test set: {}", args2 );
+			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent,runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime), testSetPerformance };
+			log.info("Total Objective of Final Incumbent {} ({}) on training set: {}; on test set: {}", args2 );
 		}
 		
 		log.info("Sample Call for Final Incumbent {} ({}) \n{} ",args);

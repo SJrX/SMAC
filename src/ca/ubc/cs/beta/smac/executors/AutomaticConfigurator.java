@@ -234,6 +234,10 @@ public class AutomaticConfigurator
 				
 				
 				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun);
+				
+				
+				
+				smac.logIncumbentPerformance(performance);
 				smac.afterValidationStatistics();
 				smac.logSMACResult(performance);
 				
