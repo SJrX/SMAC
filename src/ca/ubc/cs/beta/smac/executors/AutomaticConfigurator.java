@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
 import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -417,21 +418,26 @@ public class AutomaticConfigurator
 				
 			}
 				
-			Map<String, String> env = System.getenv();
-			
-			StringBuilder sb = new StringBuilder();
-			 for (String envName : env.keySet()) {
-				 sb.append(envName).append("=").append(env.get(envName)).append("\n");
-				 
-		           
-		        }
 			
 			
 			 
 			 if(logger.isDebugEnabled())
 			 {
+				Map<String, String> env = new TreeMap<String, String>(System.getenv());
+					
+				StringBuilder sb = new StringBuilder();
+				 for (String envName : env.keySet()) {
+					 sb.append(envName).append("=").append(env.get(envName)).append("\n");
+					 
+			           
+			        }
+				
+				
+					 
 				 logger.debug("==========Enviroment Variables===========\n{}", sb.toString());
-				 Map<Object,Object > props = System.getProperties();
+				 
+				 
+				 Map<Object,Object > props = new TreeMap<Object, Object>(System.getProperties());
 				 sb = new StringBuilder();
 				 for (Entry<Object, Object> ent : props.entrySet())
 				 {
