@@ -340,7 +340,7 @@ public class AbstractAlgorithmFramework {
 			log.info("At end of iteration {}, incumbent is {} ({}) ",arr);
 		} else
 		{
-			log.info("Incument currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
+			log.info("Incumbent currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
 		}				
 		
 	}

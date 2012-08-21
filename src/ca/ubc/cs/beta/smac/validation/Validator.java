@@ -72,7 +72,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		{
 			if(validationRunsCount > testInstGen.getInitialInstanceSeedCount())
 			{
-				log.info("Clamping number of validation runs to the number of seeds available");
+				log.info("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
 				validationRunsCount = testInstGen.getInitialInstanceSeedCount();
 			}
 			pisps = getValidationRuns(testInstances, (SetInstanceSeedGenerator) testInstGen, validationRunsCount);

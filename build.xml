@@ -146,7 +146,7 @@
 		
 		<echo file="${lastdeployfile}" append="false">${software.dir}/${outputfilename}</echo>
 			
-		<symlink link="${deploy.dir}" overwrite="true" resource="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}-${build.number}" failonerror="false"/>
+		<symlink link="${deploy.dir}" overwrite="true" resource="${software.dir}/smac-${version.string}" failonerror="false"/>
 		<echo>Untar Successful to ${software.dir}/${outputfilename}</echo>
 	</target>
 	<target name="deploy" depends="zip, deploy-release"/>

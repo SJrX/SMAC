@@ -38,6 +38,7 @@ import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
+import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
@@ -48,7 +49,7 @@ import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.AbortOnFirstRunCrashTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.RetryCrashedRunsTargetAlgorithmEvaluator;
@@ -184,7 +185,7 @@ public class AutomaticConfigurator
 			}
 			
 			
-			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorFactory.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
+			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
 			
 
 			if(options.modelHashCodeFile != null)
@@ -227,7 +228,7 @@ public class AutomaticConfigurator
 					options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
 				}
 				
-				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorFactory.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
+				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 				
 				List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
@@ -370,6 +371,7 @@ public class AutomaticConfigurator
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
 				//VersionTracker.loadVersionFromClassPath("SMAC", "smac-version.txt");
+				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorBuilder.getClassLoader(config.scenarioConfig.algoExecOptions));
 				VersionTracker.logVersions();
 				
 				
@@ -505,7 +507,7 @@ public class AutomaticConfigurator
 			
 			
 				
-			List<String> names = TargetAlgorithmEvaluatorFactory.getAvailableTargetAlgorithmEvaluators(config.scenarioConfig.algoExecOptions);
+			List<String> names = TargetAlgorithmEvaluatorBuilder.getAvailableTargetAlgorithmEvaluators(config.scenarioConfig.algoExecOptions);
 			
 			for(String name : names)
 			{
@@ -533,14 +535,24 @@ public class AutomaticConfigurator
 			return config;
 		} catch(IOException e)
 		{
-			com.setColumnSize(getConsoleSize());
-			com.usage();
+			//com.setColumnSize(getConsoleSize());
+			try {
+				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0)));
+			} catch (Exception e1) {
+				logger.error("Exception occured while trying to generate usage screen",e1);
+				logger.error("This exception did NOT cause SMAC to crash");
+			}
 			throw e;
 			
 		} catch(ParameterException e)
 		{
-			com.setColumnSize(getConsoleSize());
-			com.usage();
+			try {
+				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0)));
+			} catch (Exception e1) {
+				logger.error("Exception occured while trying to generate usage screen",e1);
+				logger.error("This exception did NOT cause SMAC to crash");
+			}
+			
 			throw e;
 		}
 	}
