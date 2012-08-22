@@ -99,6 +99,8 @@ public class AbstractAlgorithmFramework {
 	
 	private double sumOfWallClockTime = 0;
 	private double sumOfReportedAlgorithmRunTime = 0;
+
+	protected final InstanceSeedGenerator instanceSeedGen;
 	
 	
 	
@@ -113,6 +115,7 @@ public class AbstractAlgorithmFramework {
 		this.stateFactory = stateFactory;
 		this.configSpace = configSpace;
 		this.runHistory = new NewRunHistory(instanceSeedGen,smacOptions.scenarioConfig.intraInstanceObj, smacOptions.scenarioConfig.interInstanceObj, smacOptions.scenarioConfig.runObj);
+		this.instanceSeedGen = instanceSeedGen;
 		
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);
@@ -244,9 +247,9 @@ public class AbstractAlgorithmFramework {
 			return true;
 		}
 		
-		if(runHistory.getAlgorithmRunData().size() >= options.totalNumRunLimit)
+		if(runHistory.getAlgorithmRunData().size() >= options.totalNumRunsLimit)
 		{
-			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), options.totalNumRunLimit);
+			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), options.totalNumRunsLimit);
 			return true;
 		}
 		
@@ -1150,7 +1153,6 @@ public class AbstractAlgorithmFramework {
 
 
 	public double getEmpericalPerformance(ParamConfiguration config) {
-		// TODO Auto-generated method stub
 		Set<ProblemInstance> pis = new HashSet<ProblemInstance>();
 		pis.addAll(instances);
 		return runHistory.getEmpiricalCost(config, pis, cutoffTime);

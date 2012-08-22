@@ -13,13 +13,16 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
@@ -62,6 +65,7 @@ import ca.ubc.cs.beta.smac.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,7 +152,7 @@ public class AutomaticConfigurator
 					
 					configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
 					break;
-				} catch(IllegalStateException e)
+				}catch(IllegalStateException e)
 				{ 
 				
 				}
@@ -346,6 +350,7 @@ public class AutomaticConfigurator
 			
 			//JCommanderHelper.parse(com, args);
 			try {
+				checkArgsForUsageScreenValues(args,config);
 				com.parse(args);
 				
 				File outputDir = new File(config.scenarioConfig.outputDirectory);
@@ -559,6 +564,71 @@ public class AutomaticConfigurator
 	
 
 	
+	private static void checkArgsForUsageScreenValues(String[] args, SMACOptions config) {
+		/*
+		@Parameter(names="--showHiddenParameters", description="show hidden parameters that no one has use for, and probably just break SMAC")
+		public boolean showHiddenParameters = false;
+		
+		@Parameter(names={"--help","-?","/?","-h"}, description="show help")
+		public boolean showHelp = false;
+		
+		@Parameter(names={"-v","--version"}, description="print version and exit")
+		public boolean showVersion = false;
+		*/
+		
+		try {
+			Set<String> possibleValues = new HashSet<String>(Arrays.asList(args));
+			
+			String[] helpNames =  config.getClass().getField("showHelp").getAnnotation(Parameter.class).names();
+			for(String helpName : helpNames)
+			{
+				if(possibleValues.contains(helpName))
+				{
+					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config));
+					System.exit(SMACReturnValues.SUCCESS);
+				}
+			}
+			
+			
+			String[] hiddenNames =  config.getClass().getField("showHiddenParameters").getAnnotation(Parameter.class).names();
+			for(String helpName : hiddenNames)
+			{
+				if(possibleValues.contains(helpName))
+				{
+					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config), true);
+					System.exit(SMACReturnValues.SUCCESS);
+				}
+			}
+			
+			
+			String[] versionNames = config.getClass().getField("showVersion").getAnnotation(Parameter.class).names();
+			for(String helpName : versionNames)
+			{
+				if(possibleValues.contains(helpName))
+				{
+					//Turn off logging
+					System.setProperty("logback.configurationFile", "logback-off.xml");
+					VersionTracker.setClassLoader(TargetAlgorithmEvaluatorBuilder.getClassLoader(config.scenarioConfig.algoExecOptions));
+					System.out.println(VersionTracker.getVersionInformation());
+					
+					
+					System.exit(SMACReturnValues.SUCCESS);
+				}
+			}
+			
+			
+			
+			
+		} catch (Exception e) {
+			
+			throw new IllegalStateException(e);
+		}
+		
+		
+		
+	}
+
+
 	/**
 	 * Validates the various objective functions and ensures that they are legal together
 	 * @param scenarioConfig

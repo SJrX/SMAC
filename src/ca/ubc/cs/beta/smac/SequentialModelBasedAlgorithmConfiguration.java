@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
+import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
@@ -30,6 +32,7 @@ import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
@@ -72,14 +75,56 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
 		this.ei = ei;
+		
 	}
 
+	
+	protected double freeMemoryAfterGC()
+	{
+		log.debug("Running System Garbage Collector");
+		System.gc();
+		
+		double freeMemory = ((double) Runtime.getRuntime().freeMemory() / (double) Runtime.getRuntime().totalMemory());
+		log.debug("Free memory {} %", freeMemory);
+		return freeMemory;
+	}
+	
+	
+	private double subsamplePercentage = 1;
 	/**
 	 * Learns a model from the data in runHistory.
 	 */
 	@Override
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) 
 	{
+		
+		
+		
+		if(options.randomForestOptions.subsampleValuesWhenLowMemory)
+		{
+			
+			double freeMemory = freeMemoryAfterGC();
+			if(freeMemory < options.randomForestOptions.freeMemoryPercentageToSubsample)
+			{
+				subsamplePercentage *= options.randomForestOptions.subsamplePercentage;
+				Object[] args = { getIteration(), freeMemory, subsamplePercentage};
+				log.info("Iteration {} : Free memory too low ({}) subsample percentage now {} ", args);
+			}
+
+		} else
+		{
+			subsamplePercentage = 1;
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		//=== The following two sets are required to be sorted by instance and paramConfig ID.
 		Set<ProblemInstance> all_instances = new LinkedHashSet<ProblemInstance>(instances);
 		Set<ParamConfiguration> paramConfigs = runHistory.getUniqueParamConfigurations();
@@ -148,18 +193,16 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		
-		
-		
 		//=== Actually build the model.
 		ModelBuilder mb;
 		//TODO: always go through AdaptiveCappingModelBuilder
 		if(options.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor());
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
-			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions); 
+			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions,subsamplePercentage); 
 		}
 		
 		 /*= */
