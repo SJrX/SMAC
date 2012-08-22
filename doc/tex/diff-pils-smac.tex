@@ -1,0 +1,34 @@
+\section{Differences Between SMAC and ParamILS}
+
+There are various differences between SMAC and ParamILS, including the following.
+
+\begin{itemize}
+\item \textbf{Support for continuous parameters:} 
+While ParamILS was limited to categorical parameters, SMAC also natively handles continuous and integer parameters. See Section \ref{sec:param_decl_clauses} for details.
+
+\item \textbf{Run objectives:} 
+Not all of ParamILS's run objectives are supported at this time. If you require an unsupported objective please let us know.
+
+\item \textbf{Order of instances:} 
+In contrast to ParamILS, the order of instances in the instance file does not matter in SMAC.
+
+\item \textbf{Configuration time budget and runtime overheads:} 
+Both ParamILS and SMAC accept a time budget as an input parameter. ParamILS only keeps track of the CPU time the target algorithm reports and terminates once the sum of these runtimes exceeds the time budget; it does \emph{not} take into account overheads due to e.g.\ command line calls of the target algorithm. In cases where the reported CPU time of each target algorithm run was very small (e.g.\ milliseconds), these unaccounted overheads could actually dominate ParamILS's wall-clock time.
+SMAC offers a more flexible management of its runtime overheads through the options 
+\textbf{-~$\!$-countSMACTimeAsTunerTime} and \textbf{-~$\!$-wallClockLimit}. See Section \ref{sec:wall-clock} for details on the wall clock time limit.
+
+\item \textbf{Resuming previous runs:} 
+While this was not possible in ParamILS, in SMAC you can resume previous runs from a saved state.
+Please refer to Section \ref{sec:state-restoration} for state restoration and to Section \ref{subsec:state-files} for information on the state files SMAC saves.
+
+\item \textbf{Feature files:} 
+SMAC accepts as an optional input a feature file providing additional information about the instances in the training set; see Section \ref{sec:feature_file_format}.
+
+
+\item \textbf{Algorithm wrappers:} 
+The wrapper syntax has been extended in SMAC to support additional results in the ``solved'' field. Specifically, there is a new result \textbf{ABORT} signaling that the configuration process should be aborted (e.g. because the wrapper is in an inconsistent state that should never be reached). A similar behaviour is triggered if option \textbf{-~$\!$-abortOnFirstRunCrash} is set and the first run returns \textbf{CRASHED}.
+
+\item \textbf{Instance files vs. instance/seed files:} 
+The \textbf{instance\_file} parameter now auto-detects whether the file conforms to ParamILS's \textbf{instance\_file} or \textbf{instance\_seed\_file} format. SMAC treats the latter option as an alias for the former. See Section \ref{sec:instance_file_format} for details.
+While SMAC is backwards compatible with previous (space-separated) files, the prefered format is now \texttt{.csv}.
+\end{itemize}

@@ -1,0 +1,195 @@
+\documentclass[manual.tex]{subfiles} 
+\begin{document}
+
+\label{sec:output} 
+
+SMAC outputs a variety of information to log files, trajectory files,
+and state files. Most of the files are human readable, and this section
+describes these files.
+\\
+\textsc{Note:} All output is written to the \textbf{outdir} in the \textbf{-~$\!$-runGroupName} sub-directory.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Logging Output}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\input{logging-blurb}
+
+
+By default SMAC writes the following logging files out to disk (\textsc{Note:} The $N$ represents the \textbf{-~$\!$-numRun} setting): 
+\begin{description}
+\item [{log-run$N$.txt}] A log file that contains a full dump of all the information logged, and where it was logged from.
+\item [{log-warn$N$.txt}] Contains the same information as the above file,
+except only from warning and higher level messages.
+\item [{log-err$N$.txt}] Contains the same information as the above file,
+except only from error messages.
+\item [{raw-run$N$.txt}] Only the actual logging messages (this is easier to grep for needed information).
+\item [{runhashes-run$N$.txt}] A file that contains only the Run Hash Codes for a given run see the corresponding entry in the \textbf{FAQ}.
+
+\end{description}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Interpreting the Log File}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SMAC basically goes through three phases when executing:
+\begin{itemize}
+\item Setup Phase Input files are read, and their arguments validated. Everything necessary to execute the Automatic Configuration Phase, is constructed. This phase ends (baring anything that must be lazily loaded), once \texttt{Automatic Configurator Started} is logged.
+
+\item Automatic Configuration Phase, SMAC is now actively configuring the target algorithm. SMAC will spend most of it's time here, and outputs it's progress. The most important output is the Runtime Statistics which will appear like:
+\scriptsize{
+\begin{verbatim}
+[INFO ] *****Runtime Statistics*****
+ Iteration: 35
+ Incumbent ID: 64 (0x18824F)
+ Number of Runs for Incumbent: 70
+ Number of Instances for Incumbent: 70
+ Number of Configurations Run: 67
+ Performance of the Incumbent: 1589.1414639125514
+ Total Number of runs performed: 242
+ Wallclock time: 18.213 s
+ Wallclock time remaining: 2.147483628787E9 s
+ Configuration time budget used: 84056.83939320213 s
+ Configuration time budget remaining: 2343.160606797872 s
+ Sum of Target Algorithm Execution Times \
+ 	(treating minimum value as 0.1): 84036.36939320213 s
+ CPU time of Configurator: 20.47 s
+ User time of Configurator: 19.6 s
+ Total Reported Algorithm Runtime: 84033.27806288192 s
+ Sum of Measured Wallclock Runtime: 0.0 s
+ Max Memory: 3505.8125 MB
+ Total Java Memory: 1249.0625 MB
+ Free Java Memory: 719.8940582275391 MB
+[INFO ] **********************************************
+\end{verbatim}
+}
+
+\normalsize
+While most of the fields are self-explanatory some deserve special attention:
+
+
+\texttt{Incumbent ID}
+
+The second ID (0x18824F) is a hex-code that represents the configuration anywhere / everywhere it is logged. The first ID, 64, occurs in context where we know the configuration is intended to be run. This ID will corresponding to the ID in the state files The first ID should always appear with the second, but not conversely. The second ID roughly represents the specific configuration in memory \footnote{Specifically every time a configuration is modified, this number is incremented. In cases where the configuration space is small,or we are examining a small part of it, SMAC may end up back at the same configuration again. As far as the behaviour of SMAC is concerned these are identical, the ID is only ever used for logging.}.
+
+\texttt{Performance of the Incumbent}
+
+This represents the performance of the incumbent under the given \textbf{run\_obj} and \textbf{overall\_obj} on the runs so far.
+
+\texttt{Configuration time budget used}
+
+The tuner time that has been used so far.
+
+\texttt{Sum of Target Algorithm Execution Times} 
+
+This represents the contribution of the algorithm runs to the Tuner Time (if applicable), in general each run contributes the minimum of $0.1$ and it's reported runtime. This parameter differs from \texttt{Sum of Measurement Wallclock Runtime} in that the latter is a direct sum. If you are only running on algorithms with large runtime, this difference may be 0.
+
+\item Validation Phase, depending on the options used this can also take a large fraction of SMAC's runtime. The logic here is actually quite simple, as it largely only requires running many algorithm runs and computing the objectives from them.
+
+At the end of Validation the Runtime Statistics (from the Automatic Configuration Phase) are displayed again, as is the following information
+
+\begin{enumerate}
+
+\item The performance of the incumbent on both the training and test set.
+\item A sample call of the final incumbent (selected configuration)
+\item The complete configuration selected (without inactive conditionals)
+\item The complete configuration selected (with inactive conditionals)
+\item The Return value of SMAC (generally 0 if successful)
+
+\end{enumerate}
+
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{State Files}\label{subsec:state-files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+State files allow you to examine and potentially restore the state of SMAC at a specific point of it's execution. The files are written to the state-run$N$/ sub-directory, where $N$ is the value of \textbf{-~$\!$-numRun} option. 
+
+
+All files have the following convention as a suffix either \texttt{it} or \texttt{CRASH} followed by either the iteration number $M$, or in some cases \texttt{quick} or \texttt{quick-bak}.
+
+The state is saved for every iteration $m$, where $m=2^{n}$ $n \in \mathbb{N}$, additionally it is saved when SMAC completes whether successfully or due to crash.
+% Finally the \texttt{java\_obj\_dump} file is written every iteration, though only the last two are saved (the \texttt{quick} file stores the present iteration, and \texttt{quick-bak} stores the previous iteration} . 
+
+The following files are saved in this state directory (ignoring the suffix):
+
+\begin{description}
+\item[java\_obj\_dump] Stores (Java) serialized versions of the the incumbent and the random object state. In general there is no need to look at this file, and it is not human readable.
+
+\item[paramstrings]	  Stores a human readable setting of each configuration ran, with a prefix of the numeric id of the configuration (as used in the logs, and other state files).
+
+\item[uniq\_configurations] Stores the configurations ran in a more concise but effectively un-human readable form. The first column again is the numeric id of the configuration (as used in the logs, and other state files).
+
+\item[run\_and\_results] Stores the result of every run of the target algorithm that SMAC has done. The first 13 columns (after the header row are designed to be backwards compatible with SMAC versions 1.xx. Each column is labelled with what data it contains, the following columns deserve some description.
+	\begin{enumerate}
+	\item[\texttt{Instance ID}]	This is the instance used, and is the $n^{th}$ \textbf{Instance Name} specified in the \textbf{instance\_file} option.
+	\item[\texttt{Response Value(y)}]  This is the value determined by the \textbf{run\_obj} on the run.
+	\item[\texttt{Censored}] Indicates whether the \texttt{Cutoff Time Used} field is less than the \textbf{cutoff\_time} in the original run. 0 means \texttt{false}, 1 means \texttt{true}.
+	\item[\texttt{Run Result Code}]	This is a mapping from the \texttt{Run Result} to an integer for use with previous versions.
+	\end{enumerate}
+\end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Trajectory File}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SMAC also outputs a trajectory file into identical files \texttt{traj-run-$N$.txt} \footnote{This file is outputted for backwards compatibility with existing scripts.} and \texttt{traj-run-$N$.csv}. These files outline the incumbent (by id) over the course of execution and it's performance. The first line gives the 
+\textbf{-~$\!\!$-runGroupName}, and then the  \textbf{-~$\!\!$-numRun}.
+
+The rest of the file follows the following format:
+
+\begin{tabular}{|c|c|}
+\hline 
+Column Name & Description\tabularnewline
+\hline 
+\hline 
+Total Time & Sum of all execution times \\ & and CPU time of SMAC\tabularnewline
+\hline 
+Incumbents Mean Performance & Performance of the Incumbent under the given \\ &  \textbf{--runObjective
+}and \textbf{--overallObjective}\tabularnewline
+\hline 
+Incumbent's Performance $\sigma$ & Outputs -1 Currently %Standard deviation of the Incumbent under the given \textbf{--runObjective }and \textbf{--overallObjective}
+\tabularnewline
+\hline 
+Incumbent ID & The ID of the incumbent \\ & as listed in the \textbf{param\_strings} file \ref{subsec:state-files}.
+\tabularnewline
+\hline 
+acTime & CPU Time of SMAC\tabularnewline
+\hline 
+Remaining Columns & Give a name value mapping for the \\& configuration value as given by the \texttt{Incumbent ID} column \tabularnewline
+\hline 
+\end{tabular}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Validation Output}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+When Validation is completed four files are outputted, (again $N$ is the value of the \textbf{-~$\!\!$-numRun} argument):
+
+\begin{enumerate}
+
+
+\item \texttt{rawValidationExecutionResults-run$N$.csv}:
+
+ CSV File containing a list of the configuration, 
+seeds \& instance run and the corresponding result and the result of the target algorithm execution. This file is mainly for debugging.
+
+\item 
+\texttt{validationInstanceSeedResult-run$N$.csv}:
+
+ CSV File containing a list of seeds \&
+instances and the resulting response value. Again this file is mainly for debugging, but is easier to parse than the previous.
+\item 
+\texttt{validationResultsMatrix-run$N$.csv}:
+
+CSV File containing the list of instances
+on each line, the next column is the aggregation of the remaining columns under the 
+\textbf{overall\_obj}. Finally there is one additional row that
+gives the aggregation of all the individual \textbf{overall\_obj},
+aggregated in the same way.
+\end{enumerate}
+
+
+\end{document}

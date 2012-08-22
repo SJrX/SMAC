@@ -75,7 +75,7 @@ public class SMACTester {
 	
 		public String getExecString(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, boolean verifyHashCodes, boolean checkInstances, boolean surrogate)
 		{
-			String experimentDir = (new File(scenarioFile)).getParent();
+			String experimentDir = (new File(scenarioFile)).getParentFile().getParent();
 			String runID = new File(scenarioFile).getName() + "-JUNIT";
 			
 			/*ScenarioConfig options = new ScenarioConfig();
@@ -98,11 +98,11 @@ public class SMACTester {
 			
 			if(restoreIteration > 0)
 			{
-				execString += " --restoreStateFrom " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "state-run0";
+				execString += " --restoreStateFrom " +  (new File(scenarioFile)).getParentFile().getAbsolutePath() + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "state-run0";
 				execString += " --restoreIteration " + restoreIteration+ " ";
 				if(verifyHashCodes)
 				{
-					execString += " --runHashCodeFile " + experimentDir + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "runhashes-run0.txt";
+					execString += " --runHashCodeFile " + (new File(scenarioFile)).getParentFile().getAbsolutePath()  + File.separator + "paramils-out" + File.separator +  runID + "-" + (id-1)+ File.separator + "runhashes-run0.txt";
 				}
 			}
 			
@@ -122,6 +122,8 @@ public class SMACTester {
 		
 		public int runSMAC(String scenarioFile, boolean adaptiveCapping, int iterationLimit, boolean ROARMode, int restoreIteration, int id, String messageClass, String message, boolean verifyHashCodes, boolean checkInstances, boolean surrogate )
 		{
+			
+			
 			
 			int iteration=0;
 			
@@ -205,6 +207,13 @@ public class SMACTester {
 							System.out.print(" " + iteration  + ":");
 							System.out.flush();
 							iteration++;
+						}if(line.contains(it + restoreIteration) && restoreIteration > 0)
+						{
+							iteration = restoreIteration+1;
+							
+							System.out.print(" " + iteration  + ":");
+							System.out.flush();
+							
 						}
 						
 						

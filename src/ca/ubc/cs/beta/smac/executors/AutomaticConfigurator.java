@@ -182,7 +182,14 @@ public class AutomaticConfigurator
 					sf = new NullStateFactory();
 					break;
 				case LEGACY:
-					sf = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator, options.restoreStateFrom);
+					String savePath = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator;
+					
+					File saveLocation = new File(savePath);
+					if(!saveLocation.isAbsolute())
+					{
+						savePath = options.experimentDir + File.separator + savePath;
+					}
+					sf = new LegacyStateFactory(savePath, options.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");

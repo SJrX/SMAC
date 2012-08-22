@@ -1,0 +1,426 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% GENERAL PACKAGES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{epsfig}
+\usepackage{subfigure}
+\usepackage{url}
+\urlstyle{sf}	% typeset urls in sans-serif
+
+%\usepackage{amsmath}
+%\usepackage{amsfonts}
+%\usepackage{color}
+%\usepackage{framed}
+
+%\usepackage{makeidx}  % allows for indexgeneration
+\usepackage{bm}
+\usepackage{graphicx}
+\usepackage[boxed, algoruled, vlined, linesnumbered]{algorithm2e} % noresetcount
+\usepackage{times}
+\usepackage{dsfont}
+\usepackage[longnamesfirst,numbers]{natbib} %FH: longnamesfirst does not seem to work :(
+\usepackage{microtype}
+%\usepackage[longnamesfirst]{natbib}
+\usepackage{amsmath, amssymb, amsfonts}
+
+%Next 7 lines: tell natbib not to put bibliography onto new page
+\makeatletter
+\renewcommand\bibsection%
+{
+  \section*{\refname
+    \@mkboth{\MakeUppercase{\refname}}{\MakeUppercase{\refname}}}
+}
+\makeatother
+
+%% Define a new style for URLs that will use a smaller font.
+%% use a different one for footnotes (requires manual switching)
+\makeatletter
+\def\url@newstyle{%
+  \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\small}}}
+\def\url@newFNstyle{%
+  \@ifundefined{selectfont}{\def\UrlFont{\sf}}{\def\UrlFont{\scriptsize}}}
+\makeatother
+\urlstyle{new}
+
+
+\newcommand{\todo}[1]{\textbf{TODO: #1}}
+\newcommand{\todocrc}[1]{\note{TODOCRC: #1}}
+\newcommand{\cmnt}[1]{\textbf{COMMENT: #1}}
+\newcommand{\fhcrc}[1]{\note{FH CRC comment: #1}}
+
+
+\newcommand{\SingleInstSaps}{{\small{\texttt{\textsc{Single\-Inst\-Saps}}}}}
+\newcommand{\SingleInstSpear}{{\small{\texttt{\textsc{Single\-Inst\-Spear}}}}}
+\newcommand{\Broad}{{\small{\texttt{\textsc{Broad}}}}}
+\renewcommand{\AlTitleFnt}[1]{{\bf{}#1}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONVENIENT COMMANDS for commenting text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\hide}[1]{}
+\newcommand{\fh}[1]{{\bf{}FH: #1}}
+\newcommand{\hh}[1]{\note{HH says: #1}}
+\renewcommand{\hh}[1]{}
+\newcommand{\klb}[1]{{\bf{}KLB: #1}}
+
+
+
+%Configurators
+\newcommand{\algofont}[1]{{\footnotesize{\textsc{#1}}}}
+\newcommand{\paramils}{\algofont{Param\-ILS}}
+%\newcommand{\paramils}{\textsc{Param\-ILS}}
+\newcommand{\focusedils}{\algofont{Focused\-ILS}}
+\newcommand{\basicils}{\algofont{Basic\-ILS}}
+\newcommand{\gga}{\algofont{GGA}}
+\newcommand{\smac}{\algofont{SMAC}}
+\newcommand{\roar}{\algofont{ROAR}}
+\newcommand{\tbspo}{\algofont{TB-SPO}}
+\newcommand{\spop}{{\algofont{SPO$^+$}}}
+\newcommand{\randomstar}{\algofont{Ran\-dom$^*$}}
+\newcommand{\randomsearchstar}{\randomstar}
+\newcommand{\frace}{{\algofont{F-Race}}}
+
+\newcommand{\salgofont}[1]{{\scriptsize{\textsc{#1}}}}
+\newcommand{\sgga}{\salgofont{GGA}}
+\newcommand{\ssmac}{\salgofont{SMAC}}
+\newcommand{\sroar}{\salgofont{ROAR}}
+\newcommand{\stbspo}{\salgofont{TB-SPO}}
+\newcommand{\sspop}{{\salgofont{SPO$^+$}}}
+
+%SAT solvers
+\newcommand{\spear}{\algofont{SPEAR}}
+\newcommand{\saps}{\algofont{SAPS}}
+\newcommand{\satenstein}{\algofont{SATenstein}}
+
+%MIP solvers
+\newcommand{\lpsolve}{\algofont{lp\-solve}}
+\newcommand{\gurobi}{\algofont{Gu\-ro\-bi}}
+\newcommand{\cplex}{\algofont{CPLEX}}
+\newcommand{\ibmcplex}{\algofont{IBM ILOG CPLEX}}
+
+%Instance sets
+\newcommand{\shoe}{\textsc{SHOE}}
+%\newcommand{\MASS}{\textsc{MASS}}
+\newcommand{\QCP}{QCP}
+\newcommand{\SWGCP}{SWGCP}
+\newcommand{\MASS}{MASS}
+\newcommand{\MIK}{MIK}
+\newcommand{\CLS}{CLS}
+\newcommand{\MJA}{MJA}
+\newcommand{\corlat}{\textsc{CORLAT}}
+\newcommand{\regionsonehundred}{\textsc{Regions100}}
+\newcommand{\regionstwohundred}{\textsc{Regions200}}
+\newcommand{\regionsseventy}{\textsc{Regions70}}
+
+\newcommand{\SPEARSWGCP}{{\footnotesize{\texttt{\textsc{Spear-SWGCP}}}}}
+\newcommand{\SPEARQCP}{{\footnotesize{\texttt{\textsc{Spear-QCP}}}}}
+
+\newcommand{\SAPSSWGCP}{{\footnotesize{\texttt{\textsc{Saps-SWGCP}}}}}
+\newcommand{\SAPSSWGCPhomog}{{\footnotesize{\texttt{\textsc{Saps-SW-hom}}}}}
+
+\newcommand{\cplexregionsonehundred}{{\footnotesize{\texttt{\textsc{CPLEX-Regions100}}}}}
+\newcommand{\cplexmik}{{\footnotesize{\texttt{\textsc{CPLEX-MIK}}}}}
+\newcommand{\SAPSQCP}{{\footnotesize{\texttt{\textsc{Saps-QCP}}}}}
+\newcommand{\SAPSQCPeasy}{{\footnotesize{\texttt{\textsc{Saps-QCP-easy}}}}}
+\newcommand{\SAPSQCPmed}{{\footnotesize{\texttt{\textsc{Saps-QCP-med}}}}}
+\newcommand{\SAPSQCPseventyfive}{{\footnotesize{\texttt{\textsc{Saps-QCP-q075}}}}}
+\newcommand{\SAPSQCPninetyfive}{{\footnotesize{\texttt{\textsc{Saps-QCP-q095}}}}}
+\newcommand{\SAPSSWGCPmed}{{\footnotesize{\texttt{\textsc{Saps-SWGCP-med}}}}}
+\newcommand{\SAPSSWGCPseventyfive}{{\footnotesize{\texttt{\textsc{Saps-SWGCP-q075}}}}}
+\newcommand{\SAPSSWGCPninetyfive}{{\footnotesize{\texttt{\textsc{Saps-SWGCP-q095}}}}}
+
+\newcommand{\cplexregionsonehundredtiny}{\scriptsize{\texttt{\textsc{CPLEX-Regions100}}}}
+\newcommand{\cplexmiktiny}{{\scriptsize{\texttt{\textsc{CPLEX-MIK}}}}}
+\newcommand{\SAPSQCPtiny}{{\scriptsize{\texttt{\textsc{Saps-QCP}}}}}
+\newcommand{\SPEARSWGCPtiny}{{\scriptsize{\texttt{\textsc{Spear-SWGCP}}}}}
+\newcommand{\SPEARQCPtiny}{{\scriptsize{\texttt{\textsc{Spear-QCP}}}}}
+\newcommand{\SAPSSWGCPtiny}{{\scriptsize{\texttt{\textsc{Saps-SWGCP}}}}}
+
+
+\newcommand{\SAPSQCPmedtiny}{{\scriptsize{\texttt{\textsc{Saps-QCP-med}}}}}
+\newcommand{\SAPSQCPseventyfivetiny}{{\scriptsize{\texttt{\textsc{Saps-QCP-q075}}}}}
+\newcommand{\SAPSQCPninetyfivetiny}{{\scriptsize{\texttt{\textsc{Saps-QCP-q095}}}}}
+\newcommand{\SAPSSWGCPmedtiny}{{\scriptsize{\texttt{\textsc{Saps-SWGCP-med}}}}}
+\newcommand{\SAPSSWGCPseventyfivetiny}{{\scriptsize{\texttt{\textsc{Saps-SWGCP-q075}}}}}
+\newcommand{\SAPSSWGCPninetyfivetiny}{{\scriptsize{\texttt{\textsc{Saps-SWGCP-q095}}}}}
+
+\newcommand{\SAPSQWH}{{\footnotesize{\texttt{\textsc{Saps-QWH}}}}}
+\newcommand{\SAPSQWHtiny}{{\scriptsize{\texttt{\textsc{Saps-QWH}}}}}
+
+
+\newcommand{\SPEARIBMtwentyfive}{{\footnotesize{\texttt{\textsc{Spear-IBM-q025}}}}}
+\newcommand{\SPEARIBMmed}{{\footnotesize{\texttt{\textsc{Spear-IBM-med}}}}}
+\newcommand{\SPEARSWVmed}{{\footnotesize{\texttt{\textsc{Spear-SWV-med}}}}}
+\newcommand{\SPEARSWVseventyfive}{{\footnotesize{\texttt{\textsc{Spear-SWV-q075}}}}}
+\newcommand{\SPEARSWVninetyfive}{{\footnotesize{\texttt{\textsc{Spear-SWV-q095}}}}}
+
+\newcommand{\SPEARIBMtwentyfivetiny}{{\scriptsize{\texttt{\textsc{Spear-IBM-q025}}}}}
+\newcommand{\SPEARIBMmedtiny}{{\scriptsize{\texttt{\textsc{Spear-IBM-med}}}}}
+\newcommand{\SPEARSWVmedtiny}{{\scriptsize{\texttt{\textsc{Spear-SWV-med}}}}}
+\newcommand{\SPEARSWVseventyfivetiny}{{\scriptsize{\texttt{\textsc{Spear-SWV-q075}}}}}
+\newcommand{\SPEARSWVninetyfivetiny}{{\scriptsize{\texttt{\textsc{Spear-SWV-q095}}}}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% ABBREVIATIONS
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\etal}[0]{et al.{}}
+\newcommand{\eg}[0]{\emph{e.{}g.{}}}
+\newcommand{\ie}[0]{\emph{i.{}e.{}}}
+\newcommand{\adhoc}[0]{\emph{ad hoc}}
+\newcommand{\cf}[0]{cf.{}}
+\newcommand{\vs}[0]{\emph{vs}}
+\newcommand{\wrt}[0]{w.{}r.{}t.{}}
+\newcommand{\wrtl}[0]{with respect to}
+\newcommand{\iid}[0]{i.{}i.{}d.{}}
+\newcommand{\naive}[0]{na\"ive}
+\newcommand{\Naive}[0]{Na\"ive}
+
+%Math
+\newcommand{\vTheta}{{\bm{\Theta}}}
+\newcommand{\vtheta}{{\bm{\theta}}}
+\newcommand{\vo}{{\bm{o}}}
+\newcommand{\calM}{\mbox{${\cal M}$}}
+\newcommand{\calD}{\mbox{${\cal D}$}}
+\newcommand{\gauss}{\mbox{${\cal N}$}}
+\newcommand\transpose{{\textrm{\tiny{\sf{T}}}}}
+
+%% keep figures from going onto a page by themselves
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\textfraction}{0.1}
+\renewcommand{\floatpagefraction}{0.85}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% SET UP CHANGEBAR
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\usepackage[outerbars,color]{changebar}
+%\ifx\pdfoutput\undefined
+%\else\ifnum\pdfoutput>0
+%\usepackage{pdfcolmk}
+%\fi\fi
+
+\setcounter{changebargrey}{60}
+\cbcolor{red}
+
+\newcommand{\cb}[1]{\cbstart{#1} \cbend}
+%\renewcommand{\cb}[1]{#1}
+\newcommand{\cbgreen}[1]{\cbstart{\textcolor{green}{#1}} \cbend}
+\newcommand{\tred}[1]{\textcolor{red}{#1}}
+
+
+\newcommand{\denselist}{\itemsep -1.5pt\partopsep -20pt}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONVENIENT COMMANDS for formulae
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\nangbra}[1]{$\langle{}$#1$\rangle$}
+\newcommand{\angbra}[1]{\langle{}#1\rangle}
+\newcommand{\bra}[1]{\left(#1\right)}
+\newcommand{\squbra}[1]{\left[#1\right]}
+\newcommand{\vctm}[1]{\boldmath{$#1$}\unboldmath{}}
+\newcommand{\vct}[1]{\mbox{\boldmath{$#1$}\unboldmath{}}}
+%\newcommand{\qed}{~\vspace*{-0.5cm}\hspace*{\textwidth}\qedsymbol~\vspace*{0.5cm}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COMMANDS for algorithm2e.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\SetCommentSty{textit}
+\SetKwComment{fhcomment}{// ===== }{}
+\newcommand{\nlcom}[1]{{\BlankLine\footnotesize{\fhcomment{\CommentSty{#1}}}}}
+\newcommand{\com}[1]{{\footnotesize{\CommentSty{// #1}}}}
+
+\newcommand{\fhem}[1]{\text{\emph{#1}}}
+\newcommand{\algo}[2]{#1\;\small #2}
+
+%\newcommand{\Input}[1]{Input: #1}
+%\newcommand{\Output}[1]{Output: #1}
+%\newcommand{\Effect}[1]{Effect: #1}
+
+\SetKwBlock{Procedure}{begin}{end}
+\SetKwFunction{Term}{TerminationCriterion()}
+\SetKwFunction{Init}{GenerateInitialSolution}
+\SetKwFunction{Acc}{AcceptanceCriterion}
+\SetKwFunction{Best}{best}
+\SetKwFunction{IteratedLocalsearch}{IteratedLocalsearch}
+\SetKwFunction{Localsearch}{LocalSearch}
+\SetKwFunction{IterativeFirstImprovement}{IterativeFirstImprovement}
+\SetKwFunction{Pert}{Perturbation}
+%\DontPrintSemicolon
+\SetFuncSty{textit}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% COMMANDS for theorems, lemmas, definitions, etc.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%\usepackage{amsmath, amsthm, amssymb}
+\newtheorem{thm}{Theorem}%[section]
+\newtheorem{ex}{Example}%[section]
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{obs}[thm]{Observation}
+
+%\theoremstyle{definition}
+\newtheorem{define}[thm]{Definition}
+\hyphenation{ge-ne-ral-ize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% FIGURES
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcommand{\largequadraticgraph}[1]{
+%        \includegraphics[width=3.9cm,height=3.9cm]{#1}
+%        \includegraphics[width=4.6cm,height=4.6cm]{#1}
+%        \includegraphics[width=4.9cm,height=4.6cm]{#1}
+%        \includegraphics[width=5.4cm,height=5.4cm]{#1}
+        \includegraphics[width=5.4cm,height=5.4cm]{#1}
+  }
+
+
+\newcommand{\smallquadraticgraph}[1]{
+%        \includegraphics[width=3.9cm,height=3.9cm]{#1}
+%        \includegraphics[width=4.6cm,height=4.6cm]{#1}
+        \includegraphics[width=4.9cm,height=4.6cm]{#1}
+%        \includegraphics[width=5.4cm,height=5.4cm]{#1}
+}
+
+
+\newcommand{\quadraticgraph}[1]{
+%        \includegraphics[width=4.1cm,height=4.1cm]{#1}
+        %\includegraphics[width=4.6cm,height=4.6cm]{#1}
+        \includegraphics[width=5.4cm,height=5.4cm]{#1}
+        %\includegraphics[width=6.15cm,height=6.15cm]{#1}
+}
+
+\newcommand{\smallgraph}[1]{
+%        \includegraphics[width=6.15cm,height=4.1cm]{#1}
+        %\includegraphics[width=6.9cm,height=4.6cm]{#1}
+%        \includegraphics[width=12cm,height=8cm]{#1}
+\includegraphics[width=5.4cm,height=3.6cm]{#1}
+%	\includegraphics[width=4.95cm,height=3.3cm]{#1}
+}
+
+
+\newcommand{\normalgraph}[1]{
+%        \includegraphics[width=6.15cm,height=4.1cm]{#1}
+        \includegraphics[width=6.9cm,height=4.6cm]{#1}
+%        \includegraphics[width=12cm,height=8cm]{#1}
+%\includegraphics[width=5.4cm,height=3.6cm]{#1}
+%	\includegraphics[width=4.95cm,height=3.3cm]{#1}
+}
+
+\newcommand{\biggergraph}[1]{
+%        \includegraphics[width=6.15cm,height=4.1cm]{#1}
+        \includegraphics[width=6.9cm,height=4.6cm]{#1}
+%        \includegraphics[width=12cm,height=8cm]{#1}
+%\includegraphics[width=5.4cm,height=3.6cm]{#1}
+%	\includegraphics[width=4.95cm,height=3.3cm]{#1}
+}
+
+\newcommand{\fig}[3]{  % input_file, label, caption
+  \begin{figure}[tpb]
+    \begin{center}
+      \normalgraph{#1}
+      \caption{\label{#2}#3}
+    \end{center}
+  \end{figure}
+}
+
+
+\newcommand{\qfig}[3]{  % input_file, label, caption
+  \begin{figure}[tpb]
+%hh: temporarily changed:
+%  \begin{figure}[p]
+    \begin{center}
+      \quadraticgraph{#1}
+      \caption{\label{#2}#3}
+    \end{center}
+  \end{figure}
+}
+
+\newcommand{\largeqfig}[3]{  % input_file, label, caption
+%  \begin{figure}[tpb]
+%hh: temporarily changed:
+  \begin{figure}[p]
+    \begin{center}
+      \largequadraticgraph{#1}
+      \caption{\label{#2}#3}
+    \end{center}
+  \end{figure}
+}
+
+\newcommand{\sides}[6]{         %fig1, fig2, cap1, cap2, cap, label
+        \begin{figure*}[tbph]
+        \hfill
+            \subfigure[#3]
+            {
+                \quadraticgraph{#1}
+                  }
+        \hfill{}
+        \hfill
+            \subfigure[#4]
+            {
+                \quadraticgraph{#2}
+                  }
+        \hfill{}
+        \caption{#5}
+        \label{#6}
+%        \vspace{-0.245cm}
+        \end{figure*}
+}
+
+\newcommand{\threefig}[8]{         %fig1, fig2, fig3, cap1, cap2, cap3, cap, label
+    \begin{figure*}[tbp]
+      \begin{center}
+        \mbox{
+            \subfigure[#4]
+            {
+                \quadraticgraph{#1}
+                  }
+            \subfigure[#5]
+            {
+                \quadraticgraph{#2}
+                  }
+            \subfigure[#6]
+            {
+                \quadraticgraph{#3}
+                  }
+        }
+        \vspace{-0.4cm}
+        \caption{#7}
+        \label{#8}
+      \end{center}
+      \vspace{-0.245cm}
+    \end{figure*}
+}
+
+\newcommand{\threebfig}[8]{         %fig1, fig2, fig3, cap1, cap2, cap3, cap, label
+    \begin{figure*}[tb]
+      \begin{center}
+        \mbox{
+            \subfigure[#4]
+            {
+                \smallgraph{#1}
+                  }
+            \subfigure[#5]
+            {
+                \smallgraph{#2}
+                  }
+            \subfigure[#6]
+            {
+                \smallgraph{#3}
+                  }
+        }
+        \vspace{-0.4cm}
+        \caption{#7}
+        \label{#8}
+      \end{center}
+      \vspace{-0.245cm}
+    \end{figure*}
+}

@@ -1,0 +1,547 @@
+\documentclass[manual.tex]{subfiles}\begin{document}
+	\subsubsection{SMAC Options}
+
+General Options for Running SMAC
+	\begin{description}		\item[-~$\!$-~$\!$adaptiveCapping] Use Adaptive Capping
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-adaptiveCapping 
+			\item[Default Value:] Defaults to true when --intraInstanceObjective is RUNTIME, false otherwise 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$capAddSlack] amount to increase computed adaptive capping value of challengers by (post scaling)
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-capAddSlack 
+			\item[Default Value:] 1.0 
+			\item[Domain:] (0, $\infty$) 
+		\end{description}
+		\item[-~$\!$-~$\!$capSlack] amount to scale computed adaptive capping value of challengers by
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-capSlack 
+			\item[Default Value:] 1.3 
+			\item[Domain:] (0, $\infty$) 
+		\end{description}
+		\item[-~$\!$-~$\!$consoleLogLevel] default log level of console output (this cannot be more verbose than the logLevel)
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-consoleLogLevel 
+			\item[Default Value:] INFO 
+			\item[Domain:] $\{TRACE, DEBUG, INFO, WARN, ERROR, OFF\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$countSMACTimeAsTunerTime] include the CPU Time of SMAC as part of the tunerTimeout
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-countSMACTimeAsTunerTime 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$doValidation] perform validation when SMAC completes
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-doValidation, -~$\!$-validation 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$executionMode] execution mode of the automatic configurator
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-executionMode 
+			\item[Default Value:] SMAC 
+			\item[Domain:] $\{SMAC, ROAR\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$expectedImprovementFunction] expected improvement function to use during local search
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-expectedImprovementFunction 
+			\item[Default Value:] EXPONENTIAL 
+			\item[Domain:] $\{EXPONENTIAL, SIMPLE\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$experimentDir] root directory for experiments Folder
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-experimentDir, -e 
+			\item[Default Value:] $<$current working directory$>$ 
+		\end{description}
+		\item[-~$\!$-~$\!$help] show help
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-help, -?, /?, -h 
+		\end{description}
+		\item[-~$\!$-~$\!$imputationIterations] amount of times to impute censored data when building model
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-imputationIterations 
+			\item[Default Value:] 2 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$intensificationPercentage] percent of time to spend intensifying versus model learning
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-intensificationPercentage, -~$\!$-frac\_rawruntime 
+			\item[Default Value:] 0.5 
+			\item[Domain:] (0, 1) 
+		\end{description}
+		\item[-~$\!$-~$\!$logLevel] Log Level for SMAC
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-logLevel 
+			\item[Default Value:] DEBUG 
+			\item[Domain:] $\{TRACE, DEBUG, INFO, WARN, ERROR, OFF\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$maskInactiveConditionalParametersAsDefaultValue] build the model treating inactive conditional values as the default value
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-maskInactiveConditionalParametersAsDefaultValue 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$maxIncumbentRuns] maximum number of incumbent runs allowed
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-maxIncumbentRuns, -~$\!$-maxRunsForIncumbent 
+			\item[Default Value:] 2000 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$numChallengers] number of challengers needed for local search
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numChallengers, -~$\!$-numberOfChallengers 
+			\item[Default Value:] 10 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$numEIRandomConfigs] number of random configurations to evaluate during EI search
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numEIRandomConfigs, -~$\!$-numberOfRandomConfigsInEI, -~$\!$-numRandomConfigsInEI, -~$\!$-numberOfEIRandomConfigs 
+			\item[Default Value:] 10000 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$numIterations] limits the number of iterations allowed during automatic configuration phase
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numIterations, -~$\!$-numberOfIterations 
+			\item[Default Value:] 2147483647 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$numPCA] number of principal components features to use when building the model
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numPCA 
+			\item[Default Value:] 7 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$numRun] number of this run (and seed)
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-numRun, -~$\!$-seed 
+			\item[Default Value:] 0 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$optionFile] read options from file
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-optionFile 
+		\end{description}
+		\item[-~$\!$-~$\!$optionFile2] read options from file
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-optionFile2 
+		\end{description}
+		\item[-~$\!$-~$\!$restoreStateFrom] location of state to restore
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-restoreStateFrom 
+			\item[Default Value:] N/A (No state is being restored) 
+		\end{description}
+		\item[-~$\!$-~$\!$restoreStateIteration] iteration of the state to restore
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-restoreStateIteration, -~$\!$-restoreIteration 
+			\item[Default Value:] N/A (No state is being restored) 
+		\end{description}
+		\item[-~$\!$-~$\!$runGroupName] name of subfolder of outputdir to save all the output files of this run to
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-runGroupName 
+			\item[Default Value:] RunGroup-$<$current date and time$>$ 
+		\end{description}
+		\item[-~$\!$-~$\!$runtimeLimit] limits the total wall-clock time allowed during the automatic configuration phase
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-runtimeLimit, -~$\!$-wallClockLimit 
+			\item[Default Value:] 2147483647 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$seedOffset] offset of numRun to use from seed (this plus -~$\!$-numRun should be less than LONG\_MAX)
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-seedOffset 
+			\item[Default Value:] 0 
+		\end{description}
+		\item[-~$\!$-~$\!$showHiddenParameters] show hidden parameters that no one has use for, and probably just break SMAC (no-arguments)
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-showHiddenParameters 
+		\end{description}
+		\item[-~$\!$-~$\!$stateDeserializer] determines the format of the files that store the saved state to restore
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-stateDeserializer 
+			\item[Default Value:] LEGACY 
+			\item[Domain:] $\{NULL, LEGACY\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$stateSerializer] determines the format of the files to save the state in
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-stateSerializer 
+			\item[Default Value:] LEGACY 
+			\item[Domain:] $\{NULL, LEGACY\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$totalNumRunsLimit] limits the total number of target algorithm runs allowed during the automatic configuration phase
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-totalNumRunsLimit, -~$\!$-numRunsLimit, -~$\!$-numberOfRunsLimit 
+			\item[Default Value:] 9223372036854775807 
+			\item[Domain:] (0, 9223372036854775807] 
+		\end{description}
+		\item[-~$\!$-~$\!$treatCensoredDataAsUncensored] builds the model as-if the response values observed for cap values, were the correct ones [NOT RECOMMENDED]
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-treatCensoredDataAsUncensored 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$v] print version and exit
+
+		\begin{description}
+			\item[Aliases:] -v, -~$\!$-version 
+		\end{description}
+	\end{description}
+
+	\subsubsection{Scenario Options}
+
+Standard Scenario Options for use with SMAC. In general consider using the --scenarioFile directive to specify these parameters and Algorithm Execution Options
+	\begin{description}		\item[-~$\!$-~$\!$checkInstanceFilesExist] check if instances files exist on disk
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-checkInstanceFilesExist 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$cutoffTime] CPU time limit for an individual target algorithm run
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-cutoffTime, -~$\!$-cutoff\_time 
+			\item[Default Value:] 0.0 
+			\item[Domain:] (0, $\infty$) 
+		\end{description}
+		\item[-~$\!$-~$\!$instanceFeatureFile] file that contains the all the instances features
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-instanceFeatureFile, -~$\!$-feature\_file 
+		\end{description}
+		\item[-~$\!$-~$\!$instanceFile] file containing a list of instances to use during the automatic configuration phase (see Instance File Format section of the manual)
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-instanceFile, -i, -~$\!$-instance\_file, -~$\!$-instance\_seed\_file 
+			\item[Default Value:] null 
+		\end{description}
+		\item[-~$\!$-~$\!$interInstanceObj] objective function used to aggregate over multiple instances (that have already been aggregated under the Intra-Instance Objective)
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-interInstanceObj, -~$\!$-inter\_instance\_obj 
+			\item[Default Value:] MEAN 
+			\item[Domain:] $\{MEAN, MEAN1000, MEAN10\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$intraInstanceObj] objective function used to aggregate multiple runs for a single instance
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-intraInstanceObj, -~$\!$-overallObj, -~$\!$-overall\_obj, -~$\!$-intra\_instance\_obj 
+			\item[Default Value:] null 
+			\item[Domain:] $\{MEAN, MEAN1000, MEAN10\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$outputDirectory] Output Directory
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-outputDirectory, -~$\!$-outdir 
+			\item[Default Value:] $<$current working directory$>$/smac-output 
+		\end{description}
+		\item[-~$\!$-~$\!$runObj] per target algorithm run objective type that we are optimizing for
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-runObj, -~$\!$-run\_obj 
+			\item[Default Value:] null 
+			\item[Domain:] $\{RUNTIME, QUALITY\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$scenarioFile] scenario file
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-scenarioFile 
+		\end{description}
+		\item[-~$\!$-~$\!$testInstanceFile] file containing a list of instances to use during the validation phase (see Instance File Format section of the manual)
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-testInstanceFile, -~$\!$-test\_instance\_file, -~$\!$-test\_instance\_seed\_file 
+			\item[Default Value:] null 
+		\end{description}
+		\item[-~$\!$-~$\!$tunerTimeout] limits the total cpu time allowed between SMAC and the target algorithm runs during the automatic configuration phase
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-tunerTimeout 
+			\item[Default Value:] 2147483647 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+	\end{description}
+
+	\begin{description}		\item[-~$\!$p] File containing algorithm parameter space information (see Algorithm Parameter File in the Manual)
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -p, -~$\!$-paramFile, -~$\!$-paramfile 
+			\item[Default Value:] null 
+		\end{description}
+	\end{description}
+
+	\subsubsection{Algorithm Execution Options}
+
+Options related to running the target algorithm
+	\begin{description}		\item[-~$\!$-~$\!$abortOnCrash] treat algorithm crashes as an ABORT (Useful if algorithm should never CRASH). NOTE:  This only aborts if all retries fail.
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-abortOnCrash 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$abortOnFirstRunCrash] if the first run of the algorithm CRASHED treat it as an ABORT, otherwise allow crashes.
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-abortOnFirstRunCrash 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$algoExec] command string to execute algorithm with
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-algoExec, -~$\!$-algo 
+			\item[Default Value:] null 
+		\end{description}
+		\item[-~$\!$-~$\!$deterministic] treat the target algorithm as deterministic
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-deterministic 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$execDir] working directory to execute algorithm in
+
+		\begin{description}
+			\item[REQUIRED]
+			\item[Aliases:] -~$\!$-execDir, -~$\!$-execdir 
+			\item[Default Value:] null 
+		\end{description}
+		\item[-~$\!$-~$\!$logAllCallStrings] log every call string
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-logAllCallStrings 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$logAllProcessOutput] log all process output
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-logAllProcessOutput 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$numConcurrentAlgoExecs] maximum number of concurrent target algorithm executions
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numConcurrentAlgoExecs, -~$\!$-maxConcurrentAlgoExecs, -~$\!$-numberOfConcurrentAlgoExecs 
+			\item[Default Value:] 1 
+		\end{description}
+		\item[-~$\!$-~$\!$retryTargetAlgorithmRunCount] number of times to retry an algorithm run before eporting crashed (NOTE: The original crashes DO NOT count towards any time limits, they are in effect lost). Additionally this only retries CRASHED runs, not ABORT runs, this is by design as ABORT is only for cases when we shouldn't bother further runs
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-retryTargetAlgorithmRunCount 
+			\item[Default Value:] 0 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$runHashCodeFile] file containing a list of run hashes one per line: Each line should be: "Run Hash Codes: (Hash Code) After (n) runs". The number of runs in this file need not match the number of runs that we execute, this file only ensures that the sequences never diverge. Note the n is completely ignored so the order they are specified in is the order we expect the hash codes in this version. Finally note you can simply point this at a previous log and other lines will be disregarded
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-runHashCodeFile 
+		\end{description}
+		\item[-~$\!$-~$\!$targetAlgorithmEvaluator] Target Algorithm Evaluator to use when making target algorithm calls
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-targetAlgorithmEvaluator, -~$\!$-tae 
+			\item[Default Value:] CLI 
+		\end{description}
+		\item[-~$\!$-~$\!$targetAlgorithmEvaluatorSearchPath] location to look for other target algorithm evaluators [ See manual but generally you can ignore this ]
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-targetAlgorithmEvaluatorSearchPath, -~$\!$-taeSP 
+			\item[Default Value:] $<$current working directory$>$/plugins/ amoung others 
+		\end{description}
+	\end{description}
+
+	\subsubsection{Random Forest Options}
+
+Options used when building the Random Forests
+	\begin{description}		\item[-~$\!$-~$\!$fullTreeBootstrap] bootstrap all data points into trees
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-fullTreeBootstrap 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$ignoreConditionality] ignore conditionality for building the model
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-ignoreConditionality 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$logModel] store response values in log-normal form
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-logModel 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$minVariance] minimum allowed variance
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-minVariance 
+			\item[Default Value:] 1.0E-14 
+			\item[Domain:] (0, $\infty$) 
+		\end{description}
+		\item[-~$\!$-~$\!$numTrees] number of trees to create in random forest
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numTrees, -~$\!$-nTrees, -~$\!$-numberOfTrees 
+			\item[Default Value:] 10 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$penalizeImputedValues] treat imputed values that fall above the cutoff time, and below the penalized max time, as the penalized max time
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-penalizeImputedValues 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$preprocessMarginal] build random forest with preprocessed marginal
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-preprocessMarginal 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$ratioFeatures] ratio of the number of features to consider when splitting a node
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-ratioFeatures 
+			\item[Default Value:] 0.8333333333333334 
+			\item[Domain:] (0, 1] 
+		\end{description}
+		\item[-~$\!$-~$\!$shuffleImputedValues] shuffle imputed value predictions between trees
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-shuffleImputedValues 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$splitMin] minimum number of elements needed to split a node
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-splitMin 
+			\item[Default Value:] 10 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$storeDataInLeaves] store full data in leaves of trees
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-storeDataInLeaves 
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+	\end{description}
+
+	\subsubsection{Validation Options}
+
+Options that control validation
+	\begin{description}		\item[-~$\!$-~$\!$maxTimestamp] maximimum relative timestamp in the trajectory file to configure against. -1 means auto-detect
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-maxTimestamp 
+			\item[Default Value:] Auto Detect 
+			\item[Domain:] [0, $\infty$) $\bigcup$ $\{-1\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$minTimestamp] minimum relative timestamp in the trajectory file to configure against.
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-minTimestamp 
+			\item[Default Value:] 0.0 
+			\item[Domain:] [0, $\infty$) 
+		\end{description}
+		\item[-~$\!$-~$\!$multFactor] base of the geometric progression of timestamps to validate (timestamps selected are: maxTime$\times$multFactor$^{-n}$ where $n$ is $\{1,2,3,4...\}$ while timestamp $\geq$ minTimestamp )
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-multFactor 
+			\item[Default Value:] 2.0 
+			\item[Domain:] (0, $\infty$) 
+		\end{description}
+		\item[-~$\!$-~$\!$numSeedsPerTestInstance] number of test seeds to use per instance during validation
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numSeedsPerTestInstance, -~$\!$-numberOfSeedsPerTestInstance 
+			\item[Default Value:] 1000 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$numTestInstances] number of instances to test against (will execute min of this, and number of instances in test Instance File)
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numTestInstances, -~$\!$-numberOfTestInstances 
+			\item[Default Value:] 2147483647 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$numValidationRuns] approximate number of validation runs to do
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-numValidationRuns, -~$\!$-numberOfValidationRuns 
+			\item[Default Value:] 1000 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$validateOnlyLastIncumbent] validate only the last incumbent found
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-validateOnlyLastIncumbent 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$validationHeaders] put headers on output CSV files for validation
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-validationHeaders 
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$validationRoundingMode] selects whether to round the number of validation (to next multiple of numTestInstances
+
+		\begin{description}
+			\item[Aliases:] -~$\!$-validationRoundingMode 
+			\item[Default Value:] UP 
+			\item[Domain:] $\{UP, NONE\}$ 
+		\end{description}
+	\end{description}
+
+\end{document}

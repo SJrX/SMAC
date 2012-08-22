@@ -1,0 +1,211 @@
+\documentclass[11pt,letterpaper,twoside]{article}
+\include{fh_commands}
+\usepackage{setspace}
+
+\begin{document}
+
+\title{Quickstart Guide for SMAC version  \input{version}}
+
+\author{
+Frank~Hutter \& Steve~Ramage\\
+Department of Computer Science\\
+University of British Columbia\\
+Vancouver, BC\ \ V6T~1Z4, Canada\\
+\texttt{\{hutter,seramage\}@cs.ubc.ca}
+}
+
+
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+This document is the manual for SMAC~\cite{HutHooLey11-SMAC} (an acronym for \emph{Sequential Model-based Algorithm Configuration}). SMAC aims to solve the following \emph{algorithm configuration} problem: Given a binary of a parameterized algorithm $\mathcal{A}$, a set of instances $\mathcal{S}$ of the problem $\mathcal{A}$ solves, and a performance metric $m$, find parameter settings of $\mathcal{A}$ optimizing $m$ across $\mathcal{S}$.
+The goal of this quickstart guide is to get you off the ground quickly; for more detailed information, please see the comprehensive manual.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{License}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SMAC is to be released under a dual usage license. 
+Academic \& non-commercial usage is permitted free of charge. Please contact us to discuss commercial usage.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section {Usage}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{System Requirements}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SMAC itself requires only Java 6 or newer to run. The included scripts are currently only available for Unix-compatible operating systems. The included example scenarios require Ruby. 
+%To run SMAC manually you can replace \emph{./smac} you will need to consult your local java documentation, for specifics but the main entry point class is \emph{ca.ubc.cs.beta.smac.executors.AutomaticConfigurator} Additionally some included examples are only compiled for Linux.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Running SMAC}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Download and extract the SMAC archive from
+{\small
+\begin{verbatim}
+http://www.cs.ubc.ca/labs/beta/Projects/SMAC/smac-v2.00.01rc-315.tgz
+\end{verbatim}
+}
+This will create a new folder named \texttt{smac-v2.00.01rc-315} containing SMAC and several example scenarios. 
+From \texttt{smac-v2.00.01rc-315}, you can run SMAC using the simple bash script \texttt{./smac}. If bash is not available (\eg{}, on Windows), you can run SMAC directly using \texttt{java}.\footnote{The main entry point class is \texttt{ca.ubc.cs.beta.smac.executors.AutomaticConfigurator} and you need to include every jar in the folder in the classpath. You would call it using: \texttt{java -cp <jar files> {ca.ubc.cs.beta.smac.executors.AutomaticConfigurator}.}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Basic Usage Example}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SMAC comes with some small configuration scenarios you can run to ensure everything is set up properly.
+The simplest scenario
+{\small
+\begin{verbatim}
+example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt
+\end{verbatim}
+}
+configures the local search algorithm SAPS for a small training set of SAT instances.\footnote{Normally, to avoid over-tuning to the specific instances in the training set, one would use a much larger set of training instances -- we usually use 1\,000 instances if available.} From \texttt{smac-v2.00.01rc-315}, you can start SMAC on this scenario with the following command line:
+{\small
+\begin{verbatim}
+./smac --scenarioFile 
+example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt
+--runGroupName first_example_out --numRun 0 --numberOfValidationRuns 10
+\end{verbatim}
+}
+This command executes SMAC on this simple configuration scenario (which should take just above 30 seconds) and writes several output files to folder
+{\small
+\begin{verbatim}
+smac-v2.00.01rc-315/first_example_out
+\end{verbatim}
+}
+The \texttt{numRun} parameter controls SMAC's random seed and output filenames in that folder; since SMAC is highly randomized and its performance differs across runs, we recommend to perform several parallel runs (with different values for \texttt{numRun}) and use the one with the best training performance (see \cite{HutHooLey12-ParallelAC} for details).
+The parameter \texttt{numberOfValidationRuns} controls the number of runs to perform for validating the final incumbent SMAC finds at the end of its runtime budget; here we set it to a small number of 10 to facilitate a quick example run, but in practice one would use a much larger number (the default is 1\,000 validation runs). Note that validation runs are carried out on a benchmark test set disjoint from the training set; this is done to guard against over-tuning since performance on the training set is a biased (optimistic) estimator of generalization performance.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Interpreting output files}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+SMAC writes several output files; not all of these are important in everyday use, but if you encounter a problem please zip up and send all of them. The most important output file for users is the log file, here:
+{\small
+\begin{verbatim}
+smac-v2.00.01rc-315/first_example_out/log-run0.txt
+\end{verbatim}
+}
+%and\\
+%{\small\texttt{smac-v2.00.01rc-315/first\_example\_out/classicValidationResults-run0.csv}}.\\
+This file lists a lot of information about the run and at its end includes an example command line call for the final incumbent, as well as its training and test performance. For example, in the run we performed, this output is\\
+{\small
+\begin{verbatim}
+[INFO ] Total Objective of Final Incumbent
+on training set: 0.7999999999999999; on test set: 1.143
+[INFO ] Sample Call for Final Incumbent 5 (0xEACB)
+cd example\_saps; ~ruby saps\_wrapper.rb
+example\_data/SWGCP-satisfiable-instances/SWlin2006.8287.cnf 0 5.0
+2147483647 3724427 -alpha '1.126' -ps '0.066' -rho '0.333' -wp '0.02'   
+\end{verbatim}
+}
+%~[INFO ] Total Objective of Final Incumbent\\on training set: 0.0342; on test set: 0.043\\
+%~[INFO ] Sample Call for Final Incumbent 21 (0x2D359) \\
+%~cd smac-v2.00.01rc-315/example\_saps; ~ruby saps\_wrapper.rb\\ example\_data/qwh\_instance/000549.cnf 0 5.0 2147483647 9039844 -alpha '1.126' -ps '0.066' -rho '0.17' -wp '0.02'\\
+(Note that due to SMAC's randomization, the result will likely differ on your machine.)
+
+%The validation file {\small\texttt{smac-v2.00.01rc-315/first\_example\_out/classicValidationResults-run0.csv}} 
+%contains training and test performances for 
+
+%first_example_out/classicValidationResults-run0.csv
+%Other configuration scenarios
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Configuring your own algorithms}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We will refer to the algorithm to be configured as the \emph{target algorithm}.
+The quickest way to set up everything needed to configure a new target algorithm is to 
+copy-paste and edit one of the provided examples. The following files are part of a configuration scenario:
+
+\begin{itemize}
+\denselist
+	\item \textbf{Scenario file:} This is the central file describing all ingredients of the configuration scenario, referencing the files that follow. 
+	
+	\item \textbf{Parameter file:} This file specifies the target algorithm's configurable parameters.
+
+	\item \textbf{Instance file:} This file specifies the list of training instances to configure the target algorithm on. 
+
+	\item \textbf{Algorithm wrapper:} This is a wrapper that executes the target algorithm and returns a result.
+	
+	\item \textbf{Feature file:} This optional file provides additional information characterizing each problem instance.
+\end{itemize}
+
+\noindent{}These files are described by example in the following subsections.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Scenario File}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This is the central file describing all ingredients of the configuration scenario.
+This file is not required since all its ingredients can also be specified on the command line, but it is still often useful to have as a central specification. It references an exectuable for calling the target algorithm (and the path to execute it from), a file describing the target algorithm's parameters, a file containing a list of problem instances, a performance metric, and some additional information for the configuration procedure. In the SAPS example above, this file is \texttt{example\_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parameter File}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This file, referenced in the scenario file, specifies the configurable parameters your target algorithm accepts as an input, along with their domains. In the SAPS example above, this file is \texttt{example\_saps/saps-params.txt}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Algorithm wrapper}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The scenario file references an exectuable of the target algorithm. Since this executable has to follow a rigid input/output format that we don't want to impose on algorithm developers, we typically specify a \emph{wrapper} around the target algorithm that translates between SMAC's and the target algorithm's input/output format.
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Wrapper Changes}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Compared to ParamILS, we allow a new possible result code \emph{ABORT} that is used to signify that not only did the program fail, but that if this occurs the configuration procedure should abort.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Instance File}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This file, referenced in the scenario file, specifies the list of training instances to configure your algorithm on. 
+In the SAPS example above, this file is\\
+\texttt{example\_saps/example\_data/SWGCP-satisfiable-small-train.txt}.
+There is also a file with test instances that will not be used at configuration time, but are used for offline validation of the final incumbent SMAC found; in the SAPS example above, this file is\\ \texttt{example\_data/SWGCP-satisfiable-small-test.txt}.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Feature file}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+In order to optimize performance across instance set $\mathcal{S}$, SMAC accepts an optional input file that contains additional information for each instance $s \in \mathcal{S}$. Any domain-specific instance characteristics (or ``features'') that might correlate with performance can be useful. The file can also contain entries for additional instances; those will be ignored by SMAC. 	In the SAPS example above, the feature file is\\ \texttt{example\_saps/SWGCP-small-train-features.csv}.
+ 
+ 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Differences Between SMAC and ParamILS}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+There are various differences between SMAC and ParamILS. The following differences are described in some more detail in Section 2 of the SMAC manual.
+
+\begin{itemize}
+\item SMAC natively supports continuous and integer parameters.
+\item SMAC so far only implements ParamILS's most popular run objectives.
+\item The order of instances in SMAC's instance file is not important.
+\item SMAC counts its own overhead time as part of the configuration budget and allows for wall clock timeouts. This can fix ParamILS's large overheads in cases where target algorithm runs are extremely fast.
+\item SMAC can resume previous runs.
+\item SMAC accepts optional feature files as input.
+\item SMAC supports new options for the wrappers.
+\item SMAC auto-detects instance files vs. instance/seed files.
+\end{itemize}
+ 
+%\bibliographystyle{plain}
+\bibliographystyle{apalike}
+%\bibliographystyle{plainnat}
+%\bibliographystyle{abbrvnat}
+%\renewcommand{\baselinestretch}{0.97}
+
+%\begin{spacing}{0.76}
+%\setlength{\bibsep}{1.2mm}
+%\footnotesize{
+\footnotesize{
+%\bibliography{abbrev,frankbib}
+\bibliography{short,frankbib}
+}
+%\end{spacing}
+
+\end {document}
