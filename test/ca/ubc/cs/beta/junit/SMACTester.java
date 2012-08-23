@@ -190,6 +190,17 @@ public class SMACTester {
 						{
 							last10Lines.poll();
 						}
+						
+						if(line.contains("{}"))
+						{
+							for(String s : last10Lines)
+							{
+								System.out.println(s);
+							}
+							throw new IllegalStateException("Application Exited With Failure ({}) detected, this is a log bug generally");
+						}
+						
+						
 						if(line.contains("SMAC Completed Successfully"))
 						{
 							System.out.println(" [SUCCESS]");
