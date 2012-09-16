@@ -7,7 +7,8 @@
 	<property file="${private.buildfile}"/>
 	<property file="build-resources/antbuild.properties"/>
 	<property name="version.file.dev" value="version/${version.file}"/>
-	<property name="doc.buildpath" value="doc/build"/>
+	<property name="doc.buildpath" value="doc/build" />
+	<property name="buildnumberfile" value="/ubc/cs/project/arrow/seramage/software/build-numbers/buildnumber-${ant.project.name}"/>
 	<fail message="No Software Directory specified, a private build file should exist in ${private.buildfile} this should specify at the very least 'software.dir'">
 		<condition>
 			<not>
@@ -52,8 +53,7 @@
 		
 	</target>
 	<target name="archive" depends="compile, manual">
-		
-		<buildnumber file="/ubc/cs/project/arrow/seramage/software/build-numbers/buildnumber-${ant.project.name}"/>
+		<buildnumber file="${buildnumberfile}"/>
 		<property name="version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${build.number}"/>
 		<property name="outputfilename" value="smac-${version.string}"/>
 		<property name="version.devstring" value="v${version.major}.${version.minor}.${version.revision}dev-${build.number}"/>
@@ -179,9 +179,12 @@
 			<fileset dir="doc/tex/"/>
 		</copy>
 		
-		<loadfile property="doc.build.number" srcFile="/ubc/cs/project/arrow/seramage/software/build-numbers/buildnumber-${ant.project.name}"/>
-		<property name="doc.version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}"/>
+		<property file="${buildnumberfile}" prefix="manual" />
+
+		<property name="doc.version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}" />
 		<echo message="${doc.version.string}" file="${doc.buildpath}/version.tex"/>
+		<property name="doc.version.full.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${manual.build.number}"/>
+		<echo message="${doc.version.full.string}" file="${doc.buildpath}/versionfull.tex"/>
 		
 		
 		<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" output="${doc.buildpath}/options-ref.tex">
@@ -191,22 +194,49 @@
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 			<arg value="faq.tex"/>
 		</exec>
+		<echo></echo>
+		<echo>FAQ Phase 1 Complete</echo>
+		<echo></echo>
+		
+		
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 					<arg value="faq.tex"/>
 		</exec>
+		<echo></echo>
+		<echo>FAQ Phase 2 Complete</echo>
+		<echo></echo>
+			
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 					<arg value="quickstart.tex"/>
 		</exec>
+		<echo></echo>
+		<echo>Quickstart Phase 1 Complete</echo>
+		<echo></echo>
+		
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 					<arg value="quickstart.tex"/>
 		</exec>
+		
+		<echo></echo>
+		<echo>Quickstart Phase 2 Complete</echo>
+		<echo></echo>
+		
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 					<arg value="manual.tex"/>
 		</exec>
+		
+		<echo></echo>
+		<echo>Manual Phase 1 Complete</echo>
+		<echo></echo>
+		
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 					<arg value="manual.tex"/>
 		</exec>
 			
+		<echo></echo>
+		<echo>Manual Phase 1 Complete</echo>
+		<echo></echo>
+		
 		
 		
 	</target>	

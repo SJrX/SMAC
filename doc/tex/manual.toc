@@ -1,0 +1,53 @@
+\contentsline {section}{\numberline {1}Introduction}{3}
+\contentsline {subsection}{\numberline {1.1}License}{3}
+\contentsline {subsection}{\numberline {1.2}System Requirements}{3}
+\contentsline {subsection}{\numberline {1.3}Version}{3}
+\contentsline {section}{\numberline {2}Differences Between SMAC and ParamILS}{4}
+\contentsline {section}{\numberline {3}Commonly Used Options}{5}
+\contentsline {subsection}{\numberline {3.1}ROAR Mode}{5}
+\contentsline {subsection}{\numberline {3.2}Adaptive Capping}{5}
+\contentsline {subsection}{\numberline {3.3}Wall-Clock Limit}{6}
+\contentsline {subsection}{\numberline {3.4}State Restoration}{6}
+\contentsline {subsection}{\numberline {3.5}Concurrent Algorithm Execution Requests}{6}
+\contentsline {subsection}{\numberline {3.6}Named Rungroups}{7}
+\contentsline {subsection}{\numberline {3.7}Offline Validation}{7}
+\contentsline {subsubsection}{\numberline {3.7.1}Limiting the Number of Instances Used in a Validation Run}{7}
+\contentsline {subsubsection}{\numberline {3.7.2}Disabling Validation}{7}
+\contentsline {subsubsection}{\numberline {3.7.3}Standalone Validation}{8}
+\contentsline {section}{\numberline {4}File Format Reference}{8}
+\contentsline {subsection}{\numberline {4.1}Option Files}{8}
+\contentsline {subsubsection}{\numberline {4.1.1}Scenario File}{8}
+\contentsline {subsection}{\numberline {4.2}Instance File Format}{10}
+\contentsline {subsection}{\numberline {4.3}Feature File Format}{11}
+\contentsline {subsection}{\numberline {4.4}Algorithm Parameter File}{11}
+\contentsline {subsubsection}{\numberline {4.4.1}Parameter Declaration Clauses}{12}
+\contentsline {subsubsection}{\numberline {4.4.2}Conditional Parameter Clause}{13}
+\contentsline {subsubsection}{\numberline {4.4.3}Forbidden Parameter Clauses}{13}
+\contentsline {subsection}{\numberline {4.5}Algorithm executable / wrapper}{13}
+\contentsline {subsubsection}{\numberline {4.5.1}Invocation}{14}
+\contentsline {subsubsection}{\numberline {4.5.2}Output}{14}
+\contentsline {subsubsection}{\numberline {4.5.3}Wrappers \& Native Libraries}{16}
+\contentsline {section}{\numberline {5}Interpreting SMAC's Output}{17}
+\contentsline {subsection}{\numberline {5.1}Logging Output}{17}
+\contentsline {subsubsection}{\numberline {5.1.1}Interpreting the Log File}{18}
+\contentsline {subsection}{\numberline {5.2}State Files}{19}
+\contentsline {subsection}{\numberline {5.3}Trajectory File}{20}
+\contentsline {subsection}{\numberline {5.4}Validation Output}{21}
+\contentsline {section}{\numberline {6}Developer Reference}{21}
+\contentsline {subsection}{\numberline {6.1}Design Overview}{21}
+\contentsline {subsection}{\numberline {6.2}Class Overview}{22}
+\contentsline {subsection}{\numberline {6.3}Target Algorithm Evaluator}{24}
+\contentsline {subsection}{\numberline {6.4}Plugin Versioning}{27}
+\contentsline {subsection}{\numberline {6.5}Run Hash Codes}{27}
+\contentsline {section}{\numberline {7}Acknowledgements}{27}
+\contentsline {section}{\numberline {8}References}{27}
+\contentsline {section}{\numberline {9}Appendix}{28}
+\contentsline {subsection}{\numberline {9.1}Return Codes}{28}
+\contentsline {subsection}{\numberline {9.2}Version History of Java SMAC}{28}
+\contentsline {subsection}{\numberline {9.3}Known Issues}{28}
+\contentsline {subsection}{\numberline {9.4}Options Reference}{29}
+\contentsline {subsubsection}{\numberline {9.4.1}SMAC Options}{29}
+\contentsline {subsubsection}{\numberline {9.4.2}Scenario Options}{34}
+\contentsline {subsubsection}{\numberline {9.4.3}Algorithm Execution Options}{36}
+\contentsline {subsubsection}{\numberline {9.4.4}Random Forest Options}{38}
+\contentsline {subsubsection}{\numberline {9.4.5}Validation Options}{40}

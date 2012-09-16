@@ -1,0 +1,690 @@
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  15 SEP 2012 15:04
+entering extended mode
+ %&-line parsing enabled.
+**manual.tex
+(./manual.tex
+LaTeX2e <2009/09/24>
+Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, farsi, arabic, croatian, bulgarian, ukrainian, russian, czech, slov
+ak, danish, dutch, finnish, french, basque, ngerman, german, german-x-2009-06-1
+9, ngerman-x-2009-06-19, ibycus, monogreek, greek, ancientgreek, hungarian, san
+skrit, italian, latin, latvian, lithuanian, mongolian2a, mongolian, bokmal, nyn
+orsk, romanian, irish, coptic, serbian, turkish, welsh, esperanto, uppersorbian
+, estonian, indonesian, interlingua, icelandic, kurmanji, slovenian, polish, po
+rtuguese, spanish, galician, catalan, swedish, ukenglish, pinyin, loaded.
+(/usr/share/texmf-texlive/tex/latex/base/article.cls
+Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
+(/usr/share/texmf-texlive/tex/latex/base/size11.clo
+File: size11.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+\@input{fh_commands.aux}
+\openout2 = `fh_commands.aux'.
+
+(./fh_commands.tex (/usr/share/texmf-texlive/tex/latex/subfigure/subfigure.sty
+Package: subfigure 2002/03/15 v2.1.5 subfigure package
+\subfigtopskip=\skip43
+\subfigcapskip=\skip44
+\subfigcaptopadj=\dimen103
+\subfigbottomskip=\skip45
+\subfigcapmargin=\dimen104
+\subfiglabelskip=\skip46
+\c@subfigure=\count87
+\c@lofdepth=\count88
+\c@subtable=\count89
+\c@lotdepth=\count90
+
+****************************************
+* Local config file subfigure.cfg used *
+****************************************
+(/usr/share/texmf-texlive/tex/latex/subfigure/subfigure.cfg)
+\subfig@top=\skip47
+\subfig@bottom=\skip48
+)
+(/usr/share/texmf-texlive/tex/latex/ltxmisc/url.sty
+\Urlmuskip=\muskip10
+Package: url 2006/04/12  ver 3.3  Verb mode for urls, etc.
+)
+(/usr/share/texmf-texlive/tex/latex/tools/bm.sty
+Package: bm 2004/02/26 v1.1c Bold Symbol Support (DPC/FMi)
+\symboldoperators=\mathgroup4
+\symboldletters=\mathgroup5
+\symboldsymbols=\mathgroup6
+LaTeX Font Info:    Redeclaring math alphabet \mathbf on input line 138.
+LaTeX Info: Redefining \bm on input line 204.
+)
+(/usr/share/texmf-texlive/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-texlive/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texmf-texlive/tex/latex/graphics/graphics.sty
+Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-texlive/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/etc/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2009/08/28 v1.8 graphics configuration of TeX Live
+)
+Package graphics Info: Driver file: pdftex.def on input line 91.
+
+(/usr/share/texmf-texlive/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2010/03/12 v0.04p Graphics/color for pdfTeX
+\Gread@gobject=\count91
+))
+\Gin@req@height=\dimen105
+\Gin@req@width=\dimen106
+)
+(/usr/share/texmf-texlive/tex/latex/algorithm2e/algorithm2e.sty
+Package: algorithm2e 2005/10/04 v3.9 algorithms environments
+\c@AlgoLine=\count92
+
+(/usr/share/texmf-texlive/tex/latex/base/ifthen.sty
+Package: ifthen 2001/05/26 v1.1c Standard LaTeX ifthen package (DPC)
+)
+(/usr/share/texmf-texlive/tex/latex/tools/xspace.sty
+Package: xspace 2006/05/08 v1.12 Space after command names (DPC,MH)
+)
+********************************************************
+Package `algorithm2e' Release 3.9 -- october 04 2005 --
+- algorithm2e-announce@lirmm.fr mailing list for announcement about releases
+- algorithm2e-discussion@lirmm.fr mailing list for discussion about package
+subscribe by emailing sympa@lirmm.fr with 'subscribe <list> <firstname name>'
+- Author: Christophe Fiorio (fiorio@lirmm.fr)
+********************************************************
+\skiptotal=\skip49
+\skiprule=\skip50
+\skiphlne=\skip51
+\skiptext=\skip52
+\skiplength=\skip53
+\algomargin=\skip54
+\skipalgocfslide=\skip55
+\algowidth=\dimen107
+\inoutsize=\dimen108
+\inoutline=\dimen109
+\algocf@inoutbox=\box26
+\algocf@inputbox=\box27
+\AlCapSkip=\skip56
+\AlCapHSkip=\skip57
+\algocf@capbox=\box28
+\c@algocfline=\count93
+\c@algocf=\count94
+\algocf@algoframe=\box29
+\algocf@algobox=\box30
+) (/usr/share/texmf-texlive/tex/latex/psnfss/times.sty
+Package: times 2005/04/12 PSNFSS-v9.2a (SPQR) 
+)
+(/usr/share/texmf-texlive/tex/latex/doublestroke/dsfont.sty
+Package: dsfont 1995/08/01 v0.1 Double stroke roman fonts
+)
+(/usr/share/texmf-texlive/tex/latex/natbib/natbib.sty
+Package: natbib 2009/07/16 8.31 (PWD, AO)
+\bibhang=\skip58
+\bibsep=\skip59
+LaTeX Info: Redefining \cite on input line 694.
+\c@NAT@ctr=\count95
+)
+(/usr/share/texmf-texlive/tex/latex/microtype/microtype.sty
+Package: microtype 2009/03/27 v2.3d Micro-typography with pdfTeX (RS)
+\MT@toks=\toks15
+\MT@count=\count96
+LaTeX Info: Redefining \lsstyle on input line 1608.
+LaTeX Info: Redefining \lslig on input line 1608.
+\MT@outer@space=\skip60
+LaTeX Info: Redefining \textls on input line 1616.
+\MT@outer@kern=\dimen110
+LaTeX Info: Redefining \textmicrotypecontext on input line 2167.
+Package microtype Info: Loading configuration file microtype.cfg.
+
+(/usr/share/texmf-texlive/tex/latex/microtype/microtype.cfg
+File: microtype.cfg 2009/03/27 v2.3d microtype main configuration file (RS)
+))
+(/usr/share/texmf-texlive/tex/latex/amsmath/amsmath.sty
+Package: amsmath 2000/07/18 v2.13 AMS math features
+\@mathmargin=\skip61
+
+For additional information on amsmath, use the `?' option.
+(/usr/share/texmf-texlive/tex/latex/amsmath/amstext.sty
+Package: amstext 2000/06/29 v2.01
+
+(/usr/share/texmf-texlive/tex/latex/amsmath/amsgen.sty
+File: amsgen.sty 1999/11/30 v2.0
+\@emptytoks=\toks16
+\ex@=\dimen111
+))
+(/usr/share/texmf-texlive/tex/latex/amsmath/amsbsy.sty
+Package: amsbsy 1999/11/29 v1.2d
+LaTeX Info: Redefining \boldsymbol on input line 54.
+\pmbraise@=\dimen112
+)
+(/usr/share/texmf-texlive/tex/latex/amsmath/amsopn.sty
+Package: amsopn 1999/12/14 v2.01 operator names
+)
+\inf@bad=\count97
+LaTeX Info: Redefining \frac on input line 211.
+\uproot@=\count98
+\leftroot@=\count99
+LaTeX Info: Redefining \overline on input line 307.
+\classnum@=\count100
+\DOTSCASE@=\count101
+LaTeX Info: Redefining \ldots on input line 379.
+LaTeX Info: Redefining \dots on input line 382.
+LaTeX Info: Redefining \cdots on input line 467.
+\Mathstrutbox@=\box31
+\strutbox@=\box32
+\big@size=\dimen113
+LaTeX Font Info:    Redeclaring font encoding OML on input line 567.
+LaTeX Font Info:    Redeclaring font encoding OMS on input line 568.
+\macc@depth=\count102
+\c@MaxMatrixCols=\count103
+\dotsspace@=\muskip11
+\c@parentequation=\count104
+\dspbrk@lvl=\count105
+\tag@help=\toks17
+\row@=\count106
+\column@=\count107
+\maxfields@=\count108
+\andhelp@=\toks18
+\eqnshift@=\dimen114
+\alignsep@=\dimen115
+\tagshift@=\dimen116
+\tagwidth@=\dimen117
+\totwidth@=\dimen118
+\lineht@=\dimen119
+\@envbody=\toks19
+\multlinegap=\skip62
+\multlinetaggap=\skip63
+\mathdisplay@stack=\toks20
+LaTeX Info: Redefining \[ on input line 2666.
+LaTeX Info: Redefining \] on input line 2667.
+)
+(/usr/share/texmf-texlive/tex/latex/amsfonts/amssymb.sty
+Package: amssymb 2009/06/22 v3.00
+
+(/usr/share/texmf-texlive/tex/latex/amsfonts/amsfonts.sty
+Package: amsfonts 2009/06/22 v3.00 Basic AMSFonts support
+\symAMSa=\mathgroup7
+\symAMSb=\mathgroup8
+LaTeX Font Info:    Overwriting math alphabet `\mathfrak' in version `bold'
+(Font)                  U/euf/m/n --> U/euf/b/n on input line 96.
+))
+(/usr/share/texmf-texlive/tex/latex/changebar/changebar.sty
+Package: changebar 2005/09/18 v3.5c Indicate changes with marginal bars
+\cb@nextpoint=\count109
+\cb@topleft=\count110
+\cb@topright=\count111
+\cb@botleft=\count112
+\cb@botright=\count113
+\cb@cnta=\count114
+\cb@cntb=\count115
+\cb@dima=\dimen120
+\cb@curbarwd=\dimen121
+\cb@page=\count116
+\cb@pagecount=\count117
+\cb@odd@left=\dimen122
+\cb@odd@right=\dimen123
+\cb@even@left=\dimen124
+\cb@even@right=\dimen125
+\cb@writexy=\write3
+\cb@readxy=\read1
+\openout3 = `manual.cb2'.
+
+\changebarwidth=\skip64
+\deletebarwidth=\skip65
+\changebarsep=\skip66
+\c@changebargrey=\count118
+
+(/usr/share/texmf-texlive/tex/latex/graphics/color.sty
+Package: color 2005/11/14 v1.0j Standard LaTeX Color (DPC)
+
+(/etc/texmf/tex/latex/config/color.cfg
+File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
+)
+Package color Info: Driver file: pdftex.def on input line 130.
+)
+\cb@write=\write4
+\cb@read=\read2
+\openout4 = `manual.cb'.
+
+)
+\c@thm=\count119
+\c@ex=\count120
+)
+(/usr/share/texmf-texlive/tex/latex/setspace/setspace.sty
+Package: setspace 2000/12/01 6.7 Contributed and Supported LaTeX2e package
+
+Package: `setspace' 6.7 <2000/12/01>
+) (./subfiles.sty
+Package: subfiles 2012/05/23 Federico Garcia
+ (/usr/share/texmf-texlive/tex/latex/tools/verbatim.sty
+Package: verbatim 2003/08/22 v1.5q LaTeX2e package for verbatim enhancements
+\every@verbatim=\toks21
+\verbatim@line=\toks22
+\verbatim@in@stream=\read3
+))
+(./manual.aux)
+\openout1 = `manual.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 13.
+LaTeX Font Info:    ... okay on input line 13.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 13.
+ (/usr/share/texmf-texlive/tex/latex/psnfss/ot1ptm.fd
+File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
+)
+(/usr/share/texmf-texlive/tex/context/base/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count121
+\scratchdimen=\dimen126
+\scratchbox=\box33
+\nofMPsegments=\count122
+\nofMParguments=\count123
+\everyMPshowfont=\toks23
+\MPscratchCnt=\count124
+\MPscratchDim=\dimen127
+\MPnumerator=\count125
+\everyMPtoPDFconversion=\toks24
+)
+LaTeX Info: Redefining \microtypecontext on input line 13.
+Package microtype Info: Generating PDF output.
+Package microtype Info: Character protrusion enabled (level 2).
+Package microtype Info: Using default protrusion set `alltext'.
+Package microtype Info: Automatic font expansion enabled (level 2),
+(microtype)             stretch: 20, shrink: 20, step: 1, non-selected.
+Package microtype Info: Using default expansion set `basictext'.
+Package microtype Info: No tracking.
+Package microtype Info: No adjustment of interword spacing.
+Package microtype Info: No adjustment of character kerning.
+ (/usr/share/texmf-texlive/tex/latex/microtype/mt-ptm.cfg
+File: mt-ptm.cfg 2006/04/20 v1.7 microtype config. file: Times (RS)
+) (./version.tex)
+(/usr/share/texmf-texlive/tex/latex/microtype/mt-cmr.cfg
+File: mt-cmr.cfg 2008/02/29 v1.9a microtype config. file: Computer Modern Roman
+ (RS)
+)
+LaTeX Font Info:    Try loading font information for U+msa on input line 26.
+
+(/usr/share/texmf-texlive/tex/latex/amsfonts/umsa.fd
+File: umsa.fd 2009/06/22 v3.00 AMS symbols A
+)
+(/usr/share/texmf-texlive/tex/latex/microtype/mt-msa.cfg
+File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
+)
+LaTeX Font Info:    Try loading font information for U+msb on input line 26.
+
+(/usr/share/texmf-texlive/tex/latex/amsfonts/umsb.fd
+File: umsb.fd 2009/06/22 v3.00 AMS symbols B
+)
+(/usr/share/texmf-texlive/tex/latex/microtype/mt-msb.cfg
+File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
+)
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 26.
+
+(/usr/share/texmf-texlive/tex/latex/psnfss/ot1pcr.fd
+File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
+)
+LaTeX Font Info:    Try loading font information for OMS+pcr on input line 26.
+
+(/usr/share/texmf-texlive/tex/latex/psnfss/omspcr.fd
+File: omspcr.fd 
+)
+LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <12> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 26.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 28.
+ (./manual.toc
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 1.
+ [1
+
+
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}])
+\tf@toc=\write5
+\openout5 = `manual.toc'.
+
+ (./manual-intro.tex [2]
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 7.
+
+(/usr/share/texmf-texlive/tex/latex/psnfss/omsptm.fd
+File: omsptm.fd 
+)
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 7.
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 19.
+ (./versionfull.tex))
+(./diff-pils-smac.tex [3] [4]) (./commonly-used-options.tex
+Overfull \hbox (34.19952pt too wide) in paragraph at lines 14--14
+[]\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --executionMode ROAR --numRun
+ 0[] 
+ []
+
+
+Overfull \hbox (47.33951pt too wide) in paragraph at lines 22--22
+[]\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --adaptiveCapping true --numR
+un 0[] 
+ []
+
+
+Overfull \hbox (60.47949pt too wide) in paragraph at lines 33--33
+[]\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --runtimeLimit <seconds> --nu
+mRun 0 
+ []
+
+[5]
+Overfull \hbox (47.33951pt too wide) in paragraph at lines 60--60
+[]\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --stateSerializer NULL --numR
+un 0[] 
+ []
+
+
+Overfull \hbox (99.89944pt too wide) in paragraph at lines 66--66
+[]\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --maxConcurrentAlgoExecs <num
+> --numRun 0[] 
+ []
+
+[6]
+Overfull \hbox (80.18947pt too wide) in paragraph at lines 76--76
+[]\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --runGroupName <foldername> -
+-numRun 0[] 
+ []
+
+
+Overfull \hbox (14.48955pt too wide) in paragraph at lines 88--88
+[]\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --numSeedsPerTestInstance 50[
+] 
+ []
+
+[7]
+Overfull \hbox (53.9095pt too wide) in paragraph at lines 112--112
+[]\OT1/pcr/m/n/10.95 ./smac-validate --scenarioFile <file> --numValidationRuns 
+10000[] 
+ []
+
+
+Overfull \hbox (53.9095pt too wide) in paragraph at lines 113--113
+[]     \OT1/pcr/m/n/10.95 --configuration <config string> --maxConcurrentAlgoEx
+ecs 8[] 
+ []
+
+) (./file-formats.tex [8] [9]
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 88.
+ [10] [11]
+LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <10.95> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 146.
+ [12]
+Overfull \hbox (85.8015pt too wide) in paragraph at lines 219--220
+[]\OT1/pcr/m/n/10.95 dependentName | independentName operation \OMS/cmsy/m/n/10
+.95 f \OT1/pcr/m/n/10.95 value1, ... , value[]n\OMS/cmsy/m/n/10.95 g 
+ []
+
+
+Overfull \hbox (88.4295pt too wide) in paragraph at lines 225--226
+[]\OT1/pcr/m/n/10.95 sort-algo \OMS/cmsy/m/n/10.95 f \OT1/pcr/m/n/10.95 quick, 
+insertion, merge, heap, stooge, bogo \OMS/cmsy/m/n/10.95 g \OT1/pcr/m/n/10.95 [
+ bogo ] 
+ []
+
+[13]
+Overfull \hbox (73.53746pt too wide) in paragraph at lines 275--276
+[]\OT1/pcr/m/n/10.95 <algo[]executable> <instance[]name> <instance[]specific[]i
+nformation>
+ []
+
+
+Overfull \hbox (26.09651pt too wide) in paragraph at lines 275--276
+\OT1/pcr/m/n/10.95 <cutoff[]time> <cutoff[]length> <seed> <param> <param> <para
+m>\OT1/ptm/m/n/10.95 (-20) ... 
+ []
+
+
+LaTeX Font Warning: Font shape `OMS/ptm/bx/n' undefined
+(Font)              using `OMS/ptm/m/n' instead
+(Font)              for symbol `textbackslash' on input line 318.
+
+LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 318.
+LaTeX Font Info:    Font shape `OMS/ptm/bx/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 318.
+
+Underfull \hbox (badness 1796) in paragraph at lines 318--318
+[][]\OT1/ptm/m/n/9 (+20) ParamILS in not a typo. While other val-ues are pos-si
+-ble in-clud-ing SMAC, HAL.
+ []
+
+
+Underfull \hbox (badness 2582) in paragraph at lines 318--318
+\OT1/ptm/m/n/9 (+20) ParamILS is prob-a-bly the most portable. The ex-act Regex
+ that is used in this ver-
+ []
+
+
+Overfull \hbox (8.49457pt too wide) in paragraph at lines 322--323
+[]\OT1/pcr/m/n/10.95 Result for ParamILS: <solved>, <runtime>, <runlength>,
+ []
+
+[14]
+Underfull \hbox (badness 10000) in paragraph at lines 342--348
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 349--356
+
+ []
+
+[15] [16]) (./output.tex (./logging-blurb.tex) [17] [18] [19]
+Overfull \hbox (88.47893pt too wide) in paragraph at lines 143--164
+[][] 
+ []
+
+[20]) (./dev-ref.tex [21]
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 42.
+
+Underfull \hbox (badness 2809) in paragraph at lines 64--65
+[]\OT1/ptm/m/n/10 (+20) Aggregates many \OT1/pcr/m/n/10 RunObjective \OT1/ptm/m
+/n/10 (+20) val-ues un-der some statis-tic
+ []
+
+
+Overfull \hbox (109.52756pt too wide) in paragraph at lines 40--85
+[][] 
+ []
+
+[22]
+Underfull \hbox (badness 10000) in paragraph at lines 103--104
+[]\OT1/ptm/m/n/10 (+20) Interface that con-structs \OT1/pcr/m/n/10 StateSeriali
+zer \OT1/ptm/m/n/10 (+20) &
+ []
+
+
+Underfull \hbox (badness 4378) in paragraph at lines 103--104
+\OT1/pcr/m/n/10 StateDeserializer \OT1/ptm/m/n/10 (+20) to man-age sav-ing and 
+restor-ing state
+ []
+
+
+Overfull \hbox (109.52756pt too wide) in paragraph at lines 87--109
+[][] 
+ []
+
+[23]
+Underfull \hbox (badness 10000) in paragraph at lines 127--128
+[]\OT1/ptm/m/n/10 (+20) Class that sub-types
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 127--128
+\OT1/pcr/m/n/10 AbstractAlgorithmFramework
+ []
+
+
+Overfull \hbox (103.71652pt too wide) in paragraph at lines 112--137
+[][] 
+ []
+
+<tae.png, id=85, 1157.82562pt x 870.25125pt>
+File: tae.png Graphic file (type png)
+ <use tae.png>
+Overfull \hbox (83.79134pt too wide) in paragraph at lines 145--146
+[][] 
+ []
+
+[24]
+Overfull \hbox (81.8285pt too wide) in paragraph at lines 148--149
+\OT1/ptm/m/n/10.95 (-20) passed as in-put, and in the same or-der, via the \OT1
+/pcr/m/n/10.95 TargetAlgorithmEvaluator.evaluateRun()
+ []
+
+[25 <./tae.png>]
+Overfull \hbox (295.83344pt too wide) in paragraph at lines 152--153
+\OT1/ptm/m/n/10.95 (-20) tor (us-ing some glob-ally unique String as a key), fr
+om \OT1/pcr/m/n/10.95 TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluat
+or() 
+ []
+
+
+Overfull \hbox (52.47093pt too wide) in paragraph at lines 154--155
+[]\OT1/ptm/m/n/10.95 (-20) This in-vokes the sim-i-larly named method in \OT1/p
+cr/m/n/10.95 TargetAlgorithmEvaluatorLoader\OT1/ptm/m/n/10.95 (-20) ,
+ []
+
+
+Overfull \hbox (141.47348pt too wide) in paragraph at lines 154--155
+\OT1/ptm/m/n/10.95 (-20) which uses SPI (see 6.4[] for more in-for-ma-tion on S
+PI) to find the \OT1/pcr/m/n/10.95 TargetAlgorithmEvaluatorFactory
+ []
+
+
+Overfull \hbox (14.5199pt too wide) in paragraph at lines 156--157
+\OT1/ptm/m/n/10.95 (-20) shown un-der the \OT1/pcr/m/n/10.95 CommandLineTargetA
+lgorithmEvaluatorFactory
+ []
+
+
+Overfull \hbox (3.58276pt too wide) in paragraph at lines 158--159
+[]\OT1/ptm/m/n/10.95 (-20) Next the \OT1/pcr/m/n/10.95 getTargetAlgorithmEvalua
+tor() \OT1/ptm/m/n/10.95 (-20) method is in-voked which
+ []
+
+
+Overfull \hbox (50.59145pt too wide) in paragraph at lines 158--159
+\OT1/ptm/m/n/10.95 (-20) in the above di-a-gram would re-turn a \OT1/pcr/m/n/10
+.95 CommandLineTargetAlgorithmEvaluator 
+ []
+
+
+Overfull \hbox (19.71533pt too wide) in paragraph at lines 160--161
+[]\OT1/ptm/m/n/10.95 (-20) With this new in-stance in hand, the \OT1/pcr/m/n/10
+.95 TargetAlgorithmEvaluatorBuilder
+ []
+
+
+Overfull \hbox (74.44206pt too wide) in paragraph at lines 160--161
+\OT1/ptm/m/n/10.95 (-20) then wraps this ob-ject with var-i-ous dec-o-ra-tors (
+\OT1/ptm/m/it/10.95 (-20) e.g.\OT1/ptm/m/n/10.95 (-20) RetryCrashedRunTargetAlg
+orithmEvaluator)
+ []
+
+
+Overfull \hbox (60.61948pt too wide) in paragraph at lines 168--169
+[]\OT1/ptm/m/n/10.95 (-20) You can-not sup-ply op-tions to the user to con-fig-
+ure your \OT1/pcr/m/n/10.95 TargetAlgorithmEvaluator\OT1/ptm/m/n/10.95 (-20) . 
+
+ []
+
+
+Overfull \hbox (18.03821pt too wide) in paragraph at lines 182--184
+\OT1/ptm/m/n/10.95 (-20) Any plug-ins or changes to SMAC should con-tain an im-
+ple-men-ta-tion of \OT1/pcr/m/n/10.95 VersionInfo\OT1/ptm/m/n/10.95 (-20) ,
+ []
+
+[26]
+Overfull \hbox (47.7pt too wide) in paragraph at lines 191--191
+[]\OT1/pcr/m/n/10 [INFO ] Version of Automatic Configurator Library is v1.00.04
+dev-307[] 
+ []
+
+
+Overfull \hbox (10.6023pt too wide) in paragraph at lines 202--208
+\OT1/pcr/m/n/10.95 ./smac --scenarioFile <file> --runHashCodeFile <logfile>\OT1
+/ptm/m/n/10.95 (-20) , 
+ []
+
+) (./manual.bbl [27])
+Overfull \hbox (46.12741pt too wide) in paragraph at lines 70--89
+[][] 
+ []
+
+(./options-ref.tex [28] [29] [30]
+Overfull \hbox (82.34047pt too wide) in paragraph at lines 117--118
+[]\OT1/ptm/m/n/10.95 (-20) - $ $-numEIRandomConfigs, - $ $-numberOfRandomConfig
+sInEI, - $ $-numRandomConfigsInEI,
+ []
+
+[31] [32] [33] [34] [35] [36]
+Overfull \hbox (108.6083pt too wide) in paragraph at lines 368--369
+[]\OT1/ptm/m/n/10.95 (-20) - $ $-numConcurrentAlgoExecs, - $ $-maxConcurrentAlg
+oExecs, - $ $-numberOfConcurrentAlgoExecs 
+ []
+
+[37] [38] [39] [40]) [41] (./manual.aux)
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+
+LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
+
+ ) 
+Here is how much of TeX's memory you used:
+ 6008 strings out of 493848
+ 81325 string characters out of 1152823
+ 191541 words of memory out of 3000000
+ 8815 multiletter control sequences out of 15000+50000
+ 64467 words of font info for 321 fonts, out of 3000000 for 9000
+ 715 hyphenation exceptions out of 8191
+ 34i,9n,37p,792b,452s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/share/texmf-texlive/fonts/enc/dvips/base/8r.enc}</usr/share/texmf-texli
+ve/fonts/type1/public/amsfonts/cm/cmex10.pfb></usr/share/texmf-texlive/fonts/ty
+pe1/public/amsfonts/cm/cmmi10.pfb></usr/share/texmf-texlive/fonts/type1/public/
+amsfonts/cm/cmmi8.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/
+cmr10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr8.pfb></u
+sr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/te
+xmf-texlive/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/share/texmf-texlive/
+fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texmf-texlive/fonts/type1/
+public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-texlive/fonts/type1/urw/co
+urier/ucrr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></u
+sr/share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texli
+ve/fonts/type1/urw/times/utmri8a.pfb>
+Output written on manual.pdf (41 pages, 475635 bytes).
+PDF statistics:
+ 191 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 49158 words of extra memory for PDF output out of 51595 (max. 10000000)
+

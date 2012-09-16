@@ -55,7 +55,7 @@ Download and extract the SMAC archive from:\\
 }\\
 \\
 This will create a new folder named \texttt{smac-\input{versionfull}} containing SMAC and several example scenarios. 
-From \texttt{smac-\input{versionfull}}\unskip, you can run SMAC using the simple bash script \texttt{./smac}. If bash is not available (\eg{}, on Windows), you can run SMAC directly using \texttt{java}.\footnote{The main entry point class is \texttt{ca.ubc.cs.beta.smac.executors.AutomaticConfigurator} and you need to include every jar in the folder in the classpath. You would call it using: \texttt{java -cp <jar files> {ca.ubc.cs.beta.smac.executors.AutomaticConfigurator}.}}
+From \texttt{smac-\input{versionfull}}, you can run SMAC using the simple bash script \texttt{./smac}. If bash is not available (\eg{}, on Windows), you can run SMAC directly using \texttt{java}.\footnote{The main entry point class is \texttt{ca.ubc.cs.beta.smac.executors.AutomaticConfigurator} and you need to include every jar in the folder in the classpath. You would call it using: \texttt{java -cp <jar files> {ca.ubc.cs.beta.smac.executors.AutomaticConfigurator}.}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Basic Usage Example}
@@ -68,7 +68,7 @@ The simplest scenario
 example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt
 \end{verbatim}
 }
-configures the local search algorithm SAPS for a small training set of SAT instances.\footnote{Normally, to avoid over-tuning to the specific instances in the training set, one would use a much larger set of training instances -- we usually use 1\,000 instances if available.} From \texttt{smac-\input{versionfull}}\unskip, you can start SMAC on this scenario with the following command line:
+configures the local search algorithm SAPS for a small training set of SAT instances.\footnote{Normally, to avoid over-tuning to the specific instances in the training set, one would use a much larger set of training instances -- we usually use 1\,000 instances if available.} From \texttt{smac-\input{versionfull}}, you can start SMAC on this scenario with the following command line:
 {\small
 \begin{verbatim}
 ./smac --scenarioFile 
