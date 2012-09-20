@@ -10,3 +10,4 @@ paramfile = example_spear/spear-params.txt
 outdir = example_spear/paramils-out
 instance_file = example_data/SWGCP-satisfiable-small-train.txt
 test_instance_file = example_data/SWGCP-satisfiable-small-test.txt
+feature_file=example_spear/SWGCP-features.csv
