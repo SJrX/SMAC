@@ -399,8 +399,15 @@ public class AutomaticConfigurator
 				{
 				case RUNTIME:
 					config.adaptiveCapping = true;
+					break;
+					
 				case QUALITY:
 					config.adaptiveCapping = false;
+					break;
+					
+				default:
+					//You need to add something new here
+					throw new IllegalStateException("Not sure what to default too");
 				}
 			}
 			
