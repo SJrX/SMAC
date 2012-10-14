@@ -81,16 +81,16 @@ in and of itself, you will generally be implementing or modifying one of it's su
 
 \texttt{RunHistory}  & Interface that saves all the runs performed, and allows various queries against this information.\\
 \hline
-\end{tabular}
+%%\end{tabular}
 
-\small
-\begin{tabular}{ | c | p{10 cm} | }
-\hline
-\multicolumn{2}{|c|}{\textbf{Automatic Configurator Library Classes}} \\
-\hline
-Name  & Description \\
-\hline
-\hline
+%%\small
+%%\begin{tabular}{ | c | p{10 cm} | }
+%%\hline
+%%\multicolumn{2}{|c|}{\textbf{Automatic Configurator Library Classes}} \\
+%%\hline
+%%Name  & Description \\
+%%\hline
+%%\hline
 \texttt{RunObjective}  & Converts an \texttt{AlgorithmRun} into a scalar value for optimization \\
 \hline
 
@@ -142,7 +142,7 @@ Name  & Description \\
 
 The \textbf{Target Algorithm Evaluator} subsystem is the part of the code you will be modifying if you would like to change how target algorithms are run. On the next page is a UML class diagram showing most of how this part of the code works.
 
-\includegraphics[height=15cm,angle=270, trim=4cm 0cm 0cm 0cm clip=true]{tae.png} 
+\includegraphics[height=18cm,angle=270, trim=4cm 0cm 0cm 0cm clip=true]{tae.png} 
 
 \vspace{15pt}
 Once constructed, the \texttt{TargetAlgorithmEvaluator} interface is simple, it simply needs to return a new \texttt{AlgorithmRun} object, for each \texttt{RunConfig} object passed as input, and in the same order, via the \texttt{TargetAlgorithmEvaluator.evaluateRun()} method. The construction of these objects is where the complexity lies and so here is a run through of the construction.
