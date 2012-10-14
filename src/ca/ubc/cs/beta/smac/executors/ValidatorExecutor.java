@@ -20,8 +20,11 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
+import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -44,14 +47,29 @@ public class ValidatorExecutor {
 	{
 		
 		ValidationExecutorOptions options = new ValidationExecutorOptions();
-		
-		JCommander com = new JCommander(options);
+		/*
+		 * JCommander com = new JCommander(config, true, true);
+		com.setProgramName("smac");
+		try {
+			
+			
+			//JCommanderHelper.parse(com, args);
+			try {
+				checkArgsForUsageScreenValues(args,config);
+				com.parse(args);
+		 */
+		JCommander com = new JCommander(options, true, true);
 		com.setProgramName("validate");
 		try {
 			try {
 				
 				
 				com.parse( args);
+				
+				log.info("==========Configuration Options==========\n{}", options.toString());
+				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorBuilder.getClassLoader(options.scenarioConfig.algoExecOptions));
+				VersionTracker.logVersions();
+				
 				
 				if(options.incumbent != null && options.trajectoryFile != null)
 				{
@@ -63,7 +81,7 @@ public class ValidatorExecutor {
 				
 				if(options.trajectoryFile != null)
 				{
-					log.info("Using Trajectory File {} " + options.trajectoryFile.getAbsolutePath());
+					log.info("Using Trajectory File {} " , options.trajectoryFile.getAbsolutePath());
 					if(options.tunerTime == -1)
 					{
 						options.tunerTime = options.scenarioConfig.tunerTimeout;
@@ -92,8 +110,20 @@ public class ValidatorExecutor {
 				
 			
 		
-				log.info("Parsing test instances from {}", options.scenarioConfig.instanceFile );
-				InstanceListWithSeeds ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
+				log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
+				
+				String instanceFeatureFile = null;
+				
+				
+				instanceFeatureFile = options.scenarioConfig.instanceFeatureFile;
+				InstanceListWithSeeds ilws;
+				try {
+					 ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
+				} catch(FeatureNotFoundException e)
+				{
+					ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,null, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
+				}
+				
 				List<ProblemInstance> testInstances = ilws.getInstances();
 				InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 				
@@ -138,8 +168,12 @@ public class ValidatorExecutor {
 					
 					if(options.incumbent == null)
 					{
-						log.info("Validating Default Configuration");
+						log.warn("No configuration supplied");
+						
+						
 						configToValidate = configSpace.getDefaultConfiguration();
+						log.info("To validate the incumbent please use --configuration \"" + configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX) + "\"");
+						throw new ParameterException("Must supply a configuration to validate");
 					} else
 					{
 						log.info("Parsing Supplied Configuration");
@@ -185,10 +219,12 @@ public class ValidatorExecutor {
 				
 				if(options.useScenarioOutDir)
 				{
-					outputDir = options.scenarioConfig.outputDirectory + File.separator + "ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
+					outputDir = options.scenarioConfig.outputDirectory + File.separator;
 				}
 				File f = new File(outputDir);
-				if(!f.mkdirs())
+				
+				
+				if(!f.mkdirs() && !(f.exists() && f.isDirectory() && f.canWrite()))
 				{
 					throw new ParameterException("Couldn't make output Directory:" + outputDir);
 				}
@@ -208,7 +244,7 @@ public class ValidatorExecutor {
 						options.scenarioConfig.intraInstanceObj,
 						options.scenarioConfig.interInstanceObj,
 						tfes,
-						options.seed);
+						options.numRun);
 				
 				
 				log.info("Validation Completed Successfully");
@@ -216,7 +252,10 @@ public class ValidatorExecutor {
 				System.exit(SMACReturnValues.SUCCESS);
 			} catch(ParameterException e)
 			{
-				com.usage();
+				
+				
+				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(options));
+				
 				throw e;
 			}	
 		} catch(Throwable t)
