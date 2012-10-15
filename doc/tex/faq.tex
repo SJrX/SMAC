@@ -1,5 +1,6 @@
 \documentclass[11pt,letterpaper,oneside]{article}
 \include{fh_commands}
+\usepackage{fullpage}
 \usepackage{setspace}
 \usepackage{subfiles}
 
@@ -25,14 +26,15 @@ Vancouver, BC\ \ V6T~1Z4, Canada\\
 
 \section{My target algorithm fails to run, what should I do?}
 
-Consult the logs, and see what error messages are recorded, in some cases you may have to turn on additional options such as \textbf{-$~\!$-logAllProcessOutput}, and see what information is available.
+Consult the logs, and see what error messages are recorded. In some cases you may have to turn on additional options such as \textbf{-$~\!$-logAllProcessOutput}, and see what information is available.
 
-If it's not clear what the problem is consult the logs to determine the call string used, and try executing the target algorithm directly on the system that it failed on. If direct execution fails, then the algorithm should be able to diagnose the problem, whether it be instances or the parameter settings that were specified, or something non-SMAC Specific. If the call string is not in the correct format, you probably need to use a wrapper to format it, and you should consult the \emph{Algorithm executable / wrapper} section in the manual.
+If it's not clear what the problem is consult the logs to determine the call string used (available from the logs), and try executing the target algorithm directly on the environment that it failed on. If direct execution fails, then the problem is specific to the target algorithm and/or your scenario options \ie{ The algorithm executable cannot be found }. 
 
-If the call succeeds, the next step would be to replace the target algorithm with something that simply outputs everything that specifies the execution (\ie{the call string, and \textbf{environment variables}}) and try to replicate this call directly.
+If the call succeeds, the next step would be to replace the target algorithm that is being executed with a debug script/program that outputs all of the environment variables, and the call string it sees directly from SMAC. If nothing here seems to be relevant to your problem, then you will probably want to contact us for more advice.
 
-\textsc{Note:}In certain Java implementations (such as Sun's Java 6), there is a bug \footnote{See \url{http://bugs.sun.com/view_bug.do?bug_id=6670965}} that causes \texttt{LD\_LIBRARY\_PATH} variable is modified internally by Java, and then the target algorithm sees the modification. In most cases this is benign, as it merely is adding the location of the JVM libraries, and restating the location of the system libraries. However if library incompatibilities exist, this can cause problems
+\textsc{Note:} If the call string that SMAC is using is not in the correct format, you probably need to use a wrapper to format it, and you should consult the \emph{Algorithm executable / wrapper} section in the manual.
 
+\textsc{Note:} In certain Java implementations (such as Sun's Java 6) there is a bug \footnote{See \url{http://bugs.sun.com/view_bug.do?bug_id=6670965}} that causes the \texttt{LD\_LIBRARY\_PATH} variable to be modified internally by Java, and then the target algorithm sees the modification. In most cases this is benign, as it merely adds the location of the JVM libraries, and restates the location of the system libraries. However if library incompatibilities exist, this can cause problems. You will need to use a wrapper script to manually fix the LD\_LIBRARY\_PATH or upgrade Java.
 
 
 \section{How can I report a bug or documentation error?}
@@ -40,34 +42,36 @@ If the call succeeds, the next step would be to replace the target algorithm wit
 
 \section{Why does SMAC do weird things to my console (change colors, set the title, etc...)?}
 
-SMAC outputs a dump of the environment variables to console when DEBUG logging is enabled, if any of these characters are terminal escape sequences they may unintentionally cause the terminals behaviour to change.
+SMAC outputs a dump of the environment variables to console when DEBUG logging is enabled. If any of these characters are terminal escape sequences they may unintentionally cause the terminal's behaviour to change.
 
 \section{Should I make a parameter categorical or numeric integral?}
 
-	Numeric integral parameters are treated as numeric continuous parameters, and only when a call to the target algorithm is made, is the value rounded to an integer. 
+	Numeric integral parameters are internally treated as numeric continuous parameters, and only when a call to the target algorithm is made, is the value rounded to an integer. 
 	
-	To help inform the decision, there are two places in the code where this distinction will matter. The first is during neighbourhood searches. All numeric parameters will only have 4 neighbours selected, and those neighbours will be sampled from a distribution $N(\mu, 0.2)$ where $\mu$ is the existing (\emph{standardized} to [0, 1] value). Any samples that fall outside of this range will be rejected.
-	
-	The next distinction is within the random forest itself. Categorical values can be split arbitrarily but numeric values are always split at some values, with values $\geq$ than the cut going to one leaf, and values $<$ going to the other.
-	
-	There is no hard and fast rule governing which method is better. If the value really is numeric and smooth, then using a numeric integral is likely to result in better predictions. If on the other hand the value is used as an index to a switch, then categorical may be better. 
+	There is no hard and fast rule governing which method is better. If the value really is numeric and smooth, then using a numeric integral is likely to result in better predictions. If on the other hand the value is used as an index to a switch, then categorical should be better.
 	
 	To illustrate using extreme examples of this:
 	
-	If your value represents a bit-mask, used to control four separate options, where the most meaningful split would be based on the least significant bit (\ie{the best split would be into even and odd numbers}), a numeric integral value with domain [0,15] could never achieve this, nor would the model ever detect this. On the other extreme, if the value really is numeric integral (\eg{[0, 1024]}) then for values that have never been seen, they will be assigned randomly to leafs, making the predictions poorer for unseen values, and would probably never capture the smoothness.
+	If your value represents a bit-mask, used to control four separate options, where the most meaningful split would be based on the least significant bit (\ie{,the best split would be into even and odd numbers}), a numeric integral value with domain [0,15] could never capture this, nor would the model ever detect it. On the other extreme, if the value really is numeric integral (\eg{[0, 1024]}) then values that have never been seen will be randomly assigned to leafs, not capturing any smoothness.
 		
+	
+	To help inform the decision, from a SMAC internal point of view there are two places in the code where this distinction will matter. The first is during neighbourhood searches. All numeric parameters will only have 4 neighbours selected, and those neighbours will be sampled from a distribution $N(\mu, 0.2)$ where $\mu$ is the existing (\emph{standardized} to [0, 1]) value. Any samples that fall outside of this range will be rejected.
+	
+	The next distinction is within the random forest itself. Categorical values can be split arbitrarily but numeric values are always split at some constant $c$, with values $>$ than $c$ going to the right, and values $\leq$ going to the left.
+	
+	
 		
 \section{Should I use a wrapper or modify my program to execute directly?} 
 
-	Either will work, it may be easier to use a wrapper but this can introduce more overhead, which depending on the runtime of the target algorithm may be significant (we typically see a second or two of overhead). When using a wrapper it is important not to poll the output stream of the process, if the target algorithm outputs lots of data, this can result in a high degree of lock contention and significantly affect the runtime performance.
+	Either will work. It may be easier to use a wrapper but this can introduce more overhead, which (depending on the runtime of the target algorithm) may be significant (we typically see overheads up to a second). When using a wrapper it is important not to poll the output stream of the process: if the target algorithm outputs lots of data this can result in a high degree of lock contention and significantly affect the runtime performance.
 	
 \section{SMAC seems to take so much longer than tunerTimeout to execute, what can I do?}
 
-	Consider using the \textbf{-~$\!$-wallClockLimit} option to limit the amount of wall clock time that SMAC will execute for. Additionally consider looking at the \texttt{run\_and\_results} file for the run (See \emph{State Files} in the SMAC Manual) and see how large the difference between the recorded wall clock time, and the reported runtime is.
+	Consider using the \textbf{-~$\!$-wallClockLimit} option to limit the amount of wall clock time that SMAC will execute for. Additionally consider looking at the \texttt{run\_and\_results} file for the run (see \emph{State Files} in the SMAC Manual) and see how large the difference between the recorded wall clock time and the reported runtime is.
 
 \section{Does SMAC support validation?}
 
-	Yes, see XXX
+	Yes, see \emph{Offline Validation} in the manual.
 
 \section{Does SMAC support validating more than one incumbent?}
 
@@ -75,44 +79,46 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 
 \section{What are the performance consequences of executing in parallel (i.e. setting \textbf{-~$\!$-maxConcurrentAlgoExecs} $>$ 1)?}
 	
-	It largely depends on how SMAC ends up exploring the configuration space. The largest change one could expect for a series of $N$ algorithm executions, given infinite concurrent processors would be from $O(N)$ to $O(\lg(N))$. \textsc{Note:} This case would generally occur when we have lots of runs for the incumbent, and challengers perform very close to the incumbent's performance. If the configurations SMAC finds can be shown to preform poorly fairly quickly, then the runtime would still be about $O(N)$, and there would be no significant improvement.
+	It largely depends on how SMAC ends up exploring the configuration space. The largest change one could expect for a series of $N$ algorithm executions, given infinite concurrent processors would be from $O(N)$ to $O(\lg(N))$. \textsc{Note:} This case would generally occur when we have lots of runs for the incumbent, and challengers perform very close to the incumbent's performance. If the configurations SMAC finds can be shown to perform poorly fairly quickly, then the runtime would still be about $O(N)$, and there would be no significant improvement.
 	
-	Additionally when using adaptive capping with $M$ processors, all parallel will be scheduled as if the other runs took 0 seconds. In other words, if we want to exploit the parallelism of running on $M$ processors, we have to run each algorithm for $M$ times as long, thus nullifying any advantage.
+	Additionally when using adaptive capping with $M$ processors, all parallel runs will be scheduled as if the other runs took 0 seconds. In other words, if we want to exploit the parallelism of running on $M$ processors, we have to run each algorithm for $M$ times as long, thus nullifying any advantage.
 	
 	For validation however, given infinite processors the runtime would be $O(1)$, and depending on the scenario validation can be more than 50\% of the runtime.
 
-\section{SMAC crashed or ran out of time, is there a way to not have to continue the run?}
+\section{Can I continue a finished run of SMAC (\eg{, after a crash or running out of time})?}
 
-	Yes, see XXXX in the manual
+	Yes, see \emph{State Restoration} in the manual.
 
-\section{My environment can be flaky, I don't want to ABORT but don't want to blindly continue with CRASHED}
 
-	Consider using the \textbf{-$~\!$-abortOnCrash} option in conjunction with \textbf{-$~\!$-retryTargetAlgorithmRunCount}. This will allow you to retry several times before ultimately giving up.
+\section{SMAC's state files eat up alot of disk space, can I turn them off}?
 
+	Yes, set the \textbf{-$~\!$-stateSerializer} to \emph{NULL}.
 
 \section{How can I see what iterations I can restore SMAC to?}
 
 	Using the \texttt{smac-possible-restores} utility. Point it to the directory that contains the state you'd like to restore.
 
-\section{Can I change the settings of SMAC when restoring state (\eg{Add more instances, change objectives})?}
+\section{Can I change the settings of SMAC when restoring state (\eg{,add more instances, change objectives})?}
 
-	Yes, the only thing that is restored with the state is the runs, and the state of the random objects. Everything else comes from the configuration supplied. You may want to look at the source code of \texttt{LegacyStateDeserializer} to see exactly what can be changed and what can't. \textsc{Note:} some invariants of SMAC may no longer be in force, and care must be taken. The incumbent may no longer be the best found under the new objectives, and/or the incumbent may no longer have the most number of runs \footnote{If you don't include the \texttt{java\_obj\_dump} file the incumbent should be recalculated for you. The calculated incumbent will be the one that has the most runs, and performs the best on the objective. Additionally you also lose the random object state}. 
+	Yes, the only thing that is restored with the state is the runs, and the state of the random objects. Everything else comes from the configuration supplied. You may want to look at the source code of \texttt{LegacyStateDeserializer} to see exactly what can be changed and what can't. \textsc{Note:} some invariants of SMAC may no longer be in force, and care must be taken. The incumbent may no longer be the best found under the new objectives, and/or the incumbent may no longer have the most number of runs \footnote{If you don't include the \texttt{java\_obj\_dump} file the incumbent should be recalculated for you. The calculated incumbent will be the one that has the most runs, and performs the best on the objective. Additionally you also lose the random object state.}. 
+
+\section{My environment can be flaky, I don't want to ABORT but don't want to blindly continue with CRASHED}
+
+	Consider using the \textbf{-$~\!$-abortOnCrash} option in conjunction with \textbf{-$~\!$-retryTargetAlgorithmRunCount}. This will allow you to retry several times before ultimately giving up.
 
 \section{Is the source code for SMAC available?}
 
-	The source code for SMAC is included in the \texttt{smac-src.jar},\texttt{aclib-src.jar}, and \texttt{fastrf-src.jar}.
+	The source code for SMAC is included in the files \texttt{smac-src.jar},\texttt{aclib-src.jar}, and \texttt{fastrf-src.jar}.
 
 \section{I don't have any instance features, is there any benefit I can get from running SMAC?}
 
-	You have two options, one is that you can set \textbf{-~$\!$-executionMode} to ROAR, which doesn't require any features. Additionally we have noticed that the performance of the default configuration on all instances is a good instance feature in many situations.
+	Yes, SMAC can also run without features, and sometimes continues to show state-of-the-art performance. Additionally, we have noticed that the performance of the default configuration on all instances is a good instance feature in many situations.
 	
 \section{There is a lack of logging options available, I need something more specific}
 \label{sec:alternative-logging}
 	
 \input{logging-blurb}
 	
-\section{I have some other concern about logging}
-	See, Question \ref{sec:alternative-logging}.
 
 \section{Can I use a different logger for SMAC?}
 
@@ -120,15 +126,11 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 
 \section{What are the differences between SMAC and ParamILS?}
 
-%% Maybe talk about how ParamILS configures and how SMAC does
-%% Also talk about usage differences
+	See \emph{Differences Between SMAC and ParamILS} in the manual.
 
+\section{I would like to optimize something that doesn't lend itself to simple command line execution, and/or would like to use something more advanced (\eg{, database caching, running on remote machines, etc...})}
 
-
-
-\section{I would like to optimize something that doesn't lend itself to simple command line execution, and/or would like to use something more advanced (\eg{database caching, running on remote machines, etc...})}
-
-	You probably need to implement a \texttt{TargetAlgorithmEvaluator}, See the \emph{Target Algorithm Evaluator} section in the manual.
+	You probably need to implement a \texttt{TargetAlgorithmEvaluator}. See the \emph{Target Algorithm Evaluator} section in the manual.
 
 \section{I would like to use different objective functions than are provided}
 
@@ -137,7 +139,7 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 \section{Why doesn't SMAC support as many objective functions as ParamILS?}
 \label{sec:rf-objectives}
 
-	The Random Forests currently only optimize for \textbf{MEAN} and so other objective functions may have to deal with a poorer model quality. As we do not currently have other scenarios, we were unable to measure how bad the performance was and have disabled these options in the code. Theoretically when \textbf{-~$\!$-executionMode} is set to ROAR, this should not be an issue, but since we didn't have scenarios we didn't enable it.
+	The Random Forests currently only optimize for \textbf{MEAN} and so other objective functions may have to deal with a poorer model quality. As we do not currently have other scenarios, we were unable to measure how bad the performance was and have disabled these options in the code. When \textbf{-~$\!$-executionMode} is set to ROAR this shouldn't be an issue.
 
 \section{What are the relevant articles / papers about SMAC?}
 
@@ -145,7 +147,8 @@ Several papers led up to SMAC, but the most important/up-to-date ones are (in bi
 \begin{verbatim}
 @InProceedings{HutHooLey11-SMAC,
   author =	 {F. Hutter and H.~H. Hoos and K. Leyton-Brown},
-  title =	 {Sequential Model-Based Optimization for General Algorithm Configuration},
+  title =	 {Sequential Model-Based Optimization for General 
+             Algorithm Configuration},
   booktitle = {LION-5},
   series = {LNCS},
   year =	 {2011},
@@ -155,7 +158,8 @@ Several papers led up to SMAC, but the most important/up-to-date ones are (in bi
 @InProceedings{HutHooLey11-censoring,
   author = {F. Hutter and H.~H.~Hoos and K. Leyton-Brown},
   title = {Bayesian Optimization With Censored Response Data},
-  booktitle = {2011 NIPS workshop on Bayesian Optimization, Sequential Experimental Design, and Bandits},
+  booktitle = {2011 NIPS workshop on Bayesian Optimization, 
+              Sequential Experimental Design, and Bandits},
   year = {2011},
 	Note = {Published online}
 }
@@ -190,7 +194,7 @@ The short answer is you can use either, as SMAC makes no distinction. The reason
 
 \section{What is a Run Hash Code?}
 
-These are a mapping from the \texttt{<instance>,<seed>,<configuration setting>} to a hash. Primarily these are of use to developers, who want to ensure that a change in the code does not alter the trajectory of SMAC. Ignoring the random noise in target algorithm execution, when you restore state the values should be preserved.
+These are a mapping from the \texttt{<instance>,<seed>,<configuration setting>} to a hash. Primarily these are of use to developers, who want to ensure that a change in the code does not alter the trajectory of SMAC. Modulo the random noise in target algorithm execution, when you restore state the values should be preserved.
 
 
 

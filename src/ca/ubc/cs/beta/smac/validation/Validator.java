@@ -156,7 +156,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			}
 
 			
-			appendInstanceResultFile(outputDir, finalPerformance,  numRun);
+			appendInstanceResultFile(outputDir, finalPerformance,  numRun,options);
 			
 			return finalPerformance;
 		} catch(IOException e)
@@ -278,7 +278,7 @@ endloop:
 	/**
 	 * Writes a CSV File which has the matrix of runs 
 	 * @param runs
-	 * @param smacConfig
+	 * @param validationOptions
 	 * @param outputDir
 	 * @param cutoffTime
 	 * @param runObj
@@ -286,11 +286,12 @@ endloop:
 	 * @return - Overall objective over test set (For convinence)
 	 * @throws IOException
 	 */
-	private static Map<ParamConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, long numRun) throws IOException 
+	private static Map<ParamConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, long numRun) throws IOException 
 	{
 		
 		
-		File f = new File(outputDir +  File.separator + "validationResultsMatrix-run" + numRun + ".csv");
+		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
+		File f = new File(outputDir +  File.separator + "validationResultsMatrix"+suffix+"-run" + numRun + ".csv");
 		log.info("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
@@ -401,16 +402,17 @@ endloop:
 
 
 
-	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, RunObjective runObj, long numRun) throws IOException
+	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, String outputDir, RunObjective runObj, long numRun) throws IOException
 	{
 		
-		File f = new File(outputDir + "validationInstanceSeedResult-run" + numRun + ".csv");
+		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
+		File f = new File(outputDir + "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
 		
 		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
-		if(smacConfig.validationHeaders)
+		if(validationOptions.validationHeaders)
 		{
 			String[] args = {"Configuration","Seed","Instance","Response"};
 			writer.writeNext(args);
@@ -430,15 +432,15 @@ endloop:
 
 
 
-	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions smacConfig, String outputDir, long numRun) throws IOException
+	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, String outputDir, long numRun) throws IOException
 	{
-		
-		File f = new File(outputDir + "rawValidationExecutionResults-run" + numRun + ".csv");
+		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
+		File f = new File(outputDir + "rawValidationExecutionResults"+suffix+"-run" + numRun + ".csv");
 		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
-		if(smacConfig.validationHeaders)
+		if(validationOptions.validationHeaders)
 		{
 			String[] args = {"Configuration", "Seed", "Instance","Raw Result Line", "Result Line"};
 			writer.writeNext(args);
@@ -456,8 +458,10 @@ endloop:
 	}
 	
 
-	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun) throws IOException {
-		File f = new File(outputDir +  File.separator + "classicValidationResults-run" + numRun + ".csv");
+	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions) throws IOException {
+		
+		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
+		File f = new File(outputDir +  File.separator + "classicValidationResults"+suffix+"-run" + numRun + ".csv");
 	
 		if(!f.exists())
 		{
