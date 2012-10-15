@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  15 SEP 2012 15:01
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  14 OCT 2012 14:53
 entering extended mode
  %&-line parsing enabled.
 **quickstart.tex
@@ -264,6 +264,10 @@ Package color Info: Driver file: pdftex.def on input line 130.
 \c@thm=\count119
 \c@ex=\count120
 )
+(/usr/share/texmf-texlive/tex/latex/preprint/fullpage.sty
+Package: fullpage 1999/02/23 1.1 (PWD)
+\FP@margin=\skip67
+)
 (/usr/share/texmf-texlive/tex/latex/setspace/setspace.sty
 Package: setspace 2000/12/01 6.7 Contributed and Supported LaTeX2e package
 
@@ -273,19 +277,19 @@ Package: alltt 1997/06/16 v2.0g defines alltt environment
 ) (./quickstart.aux)
 \openout1 = `quickstart.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 6.
-LaTeX Font Info:    ... okay on input line 6.
-LaTeX Font Info:    Try loading font information for OT1+ptm on input line 6.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 7.
+LaTeX Font Info:    ... okay on input line 7.
+LaTeX Font Info:    Try loading font information for OT1+ptm on input line 7.
 
 (/usr/share/texmf-texlive/tex/latex/psnfss/ot1ptm.fd
 File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
@@ -303,7 +307,7 @@ File: ot1ptm.fd 2001/06/04 font definitions for OT1/ptm.
 \MPnumerator=\count125
 \everyMPtoPDFconversion=\toks22
 )
-LaTeX Info: Redefining \microtypecontext on input line 6.
+LaTeX Info: Redefining \microtypecontext on input line 7.
 Package microtype Info: Generating PDF output.
 Package microtype Info: Character protrusion enabled (level 2).
 Package microtype Info: Using default protrusion set `alltext'.
@@ -320,7 +324,7 @@ File: mt-ptm.cfg 2006/04/20 v1.7 microtype config. file: Times (RS)
 File: mt-cmr.cfg 2008/02/29 v1.9a microtype config. file: Computer Modern Roman
  (RS)
 )
-LaTeX Font Info:    Try loading font information for U+msa on input line 20.
+LaTeX Font Info:    Try loading font information for U+msa on input line 22.
 
 (/usr/share/texmf-texlive/tex/latex/amsfonts/umsa.fd
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
@@ -328,7 +332,7 @@ File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 (/usr/share/texmf-texlive/tex/latex/microtype/mt-msa.cfg
 File: mt-msa.cfg 2006/02/04 v1.1 microtype config. file: AMS symbols (a) (RS)
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 20.
+LaTeX Font Info:    Try loading font information for U+msb on input line 22.
 
 (/usr/share/texmf-texlive/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
@@ -336,25 +340,32 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 (/usr/share/texmf-texlive/tex/latex/microtype/mt-msb.cfg
 File: mt-msb.cfg 2005/06/01 v1.0 microtype config. file: AMS symbols (b) (RS)
 )
-LaTeX Font Info:    Try loading font information for OT1+pcr on input line 20.
+LaTeX Font Info:    Try loading font information for OT1+pcr on input line 22.
 
 (/usr/share/texmf-texlive/tex/latex/psnfss/ot1pcr.fd
 File: ot1pcr.fd 2001/06/04 font definitions for OT1/pcr.
 )
-LaTeX Font Info:    Try loading font information for OMS+pcr on input line 20.
+LaTeX Font Info:    Try loading font information for OMS+pcr on input line 22.
 
 (/usr/share/texmf-texlive/tex/latex/psnfss/omspcr.fd
 File: omspcr.fd 
 )
 LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <12> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 20.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 22.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <14.4> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 23.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 25.
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 30.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 32.
 
-Underfull \hbox (badness 10000) in paragraph at lines 51--52
+Underfull \hbox (badness 6876) in paragraph at lines 61--61
+[][]\OT1/ptm/m/n/9 (+20) The main en-try point class is \OT1/pcr/m/n/8 ca.ubc.c
+s.beta.smac.executors.AutomaticConfigurator \OT1/ptm/m/n/9 (+20) and you need
+ []
 
+
+Underfull \hbox (badness 5064) in paragraph at lines 61--61
+\OT1/ptm/m/n/9 (+20) to in-clude ev-ery jar in the folder in the class-path. Yo
+u would call it us-ing: \OT1/pcr/m/n/9 java -cp <jar files>
  []
 
 [1
@@ -362,115 +373,41 @@ Underfull \hbox (badness 10000) in paragraph at lines 51--52
 
 
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./versionfull.tex)
-(./versionfull.tex) (./versionfull.tex)
-Overfull \hbox (32.2317pt too wide) in paragraph at lines 58--58
-[][]\OT1/ptm/m/n/9 (-20) The main en-try point class is \OT1/pcr/m/n/9 ca.ubc.c
-s.beta.smac.executors.AutomaticConfigurator
- []
+[2]
+LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <9> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 197.
+ [3]
+LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 224.
+ [4]
+LaTeX Font Info:    Try loading font information for OMS+ptm on input line 264.
 
-
-Overfull \hbox (47.0pt too wide) in paragraph at lines 54--59
-[]\OT1/pcr/m/n/10 http://www.cs.ubc.ca/labs/beta/Projects/SMAC/smac-vDEV-000.ta
-r.gz 
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 54--59
-
- []
-
-
-Overfull \hbox (18.0pt too wide) in paragraph at lines 69--69
-[]\OT1/pcr/m/n/10 example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.t
-xt[] 
- []
-
-(./versionfull.tex)
-Overfull \hbox (18.0pt too wide) in paragraph at lines 77--77
-[]\OT1/pcr/m/n/10 example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.t
-xt[] 
- []
-
-
-Overfull \hbox (63.0pt too wide) in paragraph at lines 77--77
-[]\OT1/pcr/m/n/10 --runGroupName first_example_out --numRun 0 --numberOfValidat
-ionRuns 10[] 
- []
-
-(./versionfull.tex)
-Overfull \hbox (8.74971pt too wide) in paragraph at lines 79--85
-\OT1/pcr/m/n/10 smac-vDEV-000/first[]example[]out\OT1/ptm/m/n/10 (-20) .  \OT1/
-ptm/m/n/10.95 (-20) The \OT1/pcr/m/n/10.95 numRun \OT1/ptm/m/n/10.95 (-20) pa-r
-am-e-ter con-trols SMAC's
- []
-
-[2] (./versionfull.tex)
-Underfull \hbox (badness 10000) in paragraph at lines 90--100
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 90--100
-
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 90--100
-
- []
-
-
-Overfull \hbox (36.0pt too wide) in paragraph at lines 107--107
-[]\OT1/pcr/m/n/10 example\_data/SWGCP-satisfiable-instances/SWlin2006.8287.cnf 
-0 5.0[] 
- []
-
-
-Overfull \hbox (51.6pt too wide) in paragraph at lines 107--107
-[]\OT1/pcr/m/n/10 2147483647 3724427 -alpha '1.126' -ps '0.066' -rho '0.333' -w
-p '0.02'[] 
- []
-
-LaTeX Font Info:    Try loading font information for OMS+ptm on input line 130.
-
-(/usr/share/texmf-texlive/tex/latex/psnfss/omsptm.fd
+ (/usr/share/texmf-texlive/tex/latex/psnfss/omsptm.fd
 File: omsptm.fd 
 )
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 130.
-LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <10.95> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 130.
- [3]
-Overfull \hbox (52.04799pt too wide) in paragraph at lines 146--148
-\OT1/pcr/m/n/10.95 example[]saps/scenario-Saps-SWGCP-sat-small-train-small-test
-.txt\OT1/ptm/m/n/10.95 (-20) . 
- []
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 264.
 
-
-Overfull \hbox (23.14001pt too wide) in paragraph at lines 167--171
-\OT1/pcr/m/n/10.95 example[]saps/example[]data/SWGCP-satisfiable-small-train.tx
-t\OT1/ptm/m/n/10.95 (-20) .
- []
-
-[4] (./quickstart.bbl) [5] (./quickstart.aux) ) 
+(./quickstart.bbl) [5] (./quickstart.aux) ) 
 Here is how much of TeX's memory you used:
- 5686 strings out of 493848
- 77564 string characters out of 1152823
- 186795 words of memory out of 3000000
- 8715 multiletter control sequences out of 15000+50000
- 44119 words of font info for 167 fonts, out of 3000000 for 9000
+ 5721 strings out of 493848
+ 77965 string characters out of 1152823
+ 188852 words of memory out of 3000000
+ 8731 multiletter control sequences out of 15000+50000
+ 44232 words of font info for 184 fonts, out of 3000000 for 9000
  715 hyphenation exceptions out of 8191
- 34i,8n,37p,618b,287s stack positions out of 5000i,500n,10000p,200000b,50000s
-{/usr/share/texmf-texlive/fonts/
-enc/dvips/base/8r.enc}</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/
-cmmi10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb>
-</usr/share/texmf-texlive/fonts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-
-texlive/fonts/type1/urw/times/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/
-urw/times/utmr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmri8a.pf
-b>
-Output written on quickstart.pdf (5 pages, 94158 bytes).
+ 34i,8n,37p,890b,333s stack positions out of 5000i,500n,10000p,200000b,50000s
+{/usr/share/texmf-texlive/fonts/enc/
+dvips/base/8r.enc}</usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmmi
+10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr
+/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texm
+f-texlive/fonts/type1/public/amsfonts/cm/cmsy9.pfb></usr/share/texmf-texlive/fo
+nts/type1/urw/courier/ucrr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/time
+s/utmb8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/s
+hare/texmf-texlive/fonts/type1/urw/times/utmri8a.pfb>
+Output written on quickstart.pdf (5 pages, 113260 bytes).
 PDF statistics:
- 43 PDF objects out of 1000 (max. 8388607)
+ 51 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
- 36353 words of extra memory for PDF output out of 42996 (max. 10000000)
+ 32257 words of extra memory for PDF output out of 35830 (max. 10000000)
 
