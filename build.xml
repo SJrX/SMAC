@@ -28,24 +28,37 @@
 	
 	<!--<property name="software.dir" value="/ubc/cs/home/s/seramage/arrowspace/software/"/>-->
 
-	<path id="compile.classpath">
-		<fileset dir="lib" id="lib">
-			<include name="*.jar"/>
-		</fileset>
-		<!--<fileset dir="${software.dir}/fastrf/" id="fastrf">
-			<include name="fastrf.jar"/>
-		</fileset>-->
-		<fileset dir="${software.dir}/aclib/" id="aclib">
-			<include name="*.jar"/>
-		</fileset>
-	</path>	
 	
-	<target name="init" description="Initialize the project directories"> 
+	<target name="get-git-branch"> 
+			<exec executable="git" outputproperty="git.branch">
+				<arg value="rev-parse"/>
+				<arg value="--abbrev-ref"/>
+				<arg value="HEAD"/>
+			</exec>
+			<echo>${git.branch}</echo>
+	</target>
+		
+	
+	<target name="init" description="Initialize the project directories" depends="get-git-branch"> 
 		<mkdir dir="build/classes/"/>
 		<mkdir dir="dist"/>
 		<mkdir dir="dist/doc"/>
 				
 		<mkdir dir="${doc.buildpath}"/>
+		
+
+		<path id="compile.classpath">
+			<fileset dir="lib" id="lib">
+				<include name="*.jar"/>
+			</fileset>
+			<!--<fileset dir="${software.dir}/fastrf/" id="fastrf">
+				<include name="fastrf.jar"/>
+			</fileset>-->
+			<fileset dir="${software.dir}/aclib-${git.branch}/" id="aclib">
+				<include name="*.jar"/>
+			</fileset>
+		</path>	
+			
 	</target>
 	<target name="clean">
 		<delete dir="build"/>
@@ -59,11 +72,15 @@
 		
 		
 	</target>
-	<target name="archive" depends="compile, manual">
+	
+	
+			
+	
+	<target name="archive" depends="compile, manual, get-git-branch">
 		<buildnumber file="${buildnumberfile}"/>
-		<property name="version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${build.number}"/>
+		<property name="version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${git.branch}-${build.number}"/>
 		<property name="outputfilename" value="smac-${version.string}"/>
-		<property name="version.devstring" value="v${version.major}.${version.minor}.${version.revision}dev-${build.number}"/>
+		<property name="version.devstring" value="v${version.major}.${version.minor}.${version.revision}dev-${git.branch}-${build.number}"/>
 		<echo file="${version.file.dev}">${version.devstring}</echo>
 		<echo file="build/classes/${version.file}">${version.string}</echo>
 		<jar destfile="dist/smac.jar" basedir="build/classes"/>
@@ -109,13 +126,8 @@
 		</chmod>
 	</target>	
 	
-	<target name="zip" depends="archive">
-		<!--<zip destFile="${software.dir}/${outputfilename}.zip" >
-			<mappedresources>
-			<fileset dir="dist/" includes="**/*"/>
-				<globmapper from="*" to="${outputfilename}/*"/>
-			</mappedresources>
-		</zip>-->
+	<target name="zip" depends="archive" description="Makes tarball for this release">
+
 		<tar destFile="${software.dir}/${outputfilename}.tar.gz" longfile="gnu" compression="gzip">
 					<tarfileset dir="dist/" filemode="640" dirmode="750" prefix="${outputfilename}/">
 						<include name="**/*"/>
@@ -135,27 +147,9 @@
 					</tarfileset>
 		</tar>
 	</target>
-	<target name="deploy-release" depends="archive">
-		<!--
-		<mkdir dir="${deploy.dir}"/>
-		<copy todir="${deploy.dir}" force="true">
-			<fileset dir="dist/">
-				<include name="**/"/>
-			</fileset>
-		</copy>
-		<chmod perm="444">
-				<fileset dir="${deploy.dir}">
-						<include name="*"/>
-				</fileset>
-		</chmod>
-		<chmod perm="555">
-				<fileset dir="${deploy.dir}">
-						<include name="smac"/>
-						<include name="smac-possible-restores"/>
-				</fileset>
-		</chmod>-->
-		<!-- Does not preserve permissions -->
-		<!--<untar src="${software.dir}/smac-v${version.major}.${version.minor}${version.beta}.${build.number}.tar.gz" dest="${software.dir}" failOnEmptyArchive="true" compression="gzip"/> -->
+	
+	<target name="deploy-release" depends="archive" description="untars tarball in software.dir and creates symlink">
+	
 		<exec executable="tar" dir="${software.dir}" failonerror="true">
 			<arg value="-xzf"/>
 			<arg value="${software.dir}/${outputfilename}.tar.gz"/>
@@ -163,24 +157,13 @@
 		
 		<echo file="${lastdeployfile}" append="false">${software.dir}/${outputfilename}</echo>
 			
-		<symlink link="${deploy.dir}" overwrite="true" resource="${software.dir}/smac-${version.string}" failonerror="false"/>
+		<symlink link="${deploy.dir}-${git.branch}" overwrite="true" resource="${software.dir}/smac-${version.string}" failonerror="false"/>
 		<echo>Untar Successful to ${software.dir}/${outputfilename}</echo>
 	</target>
 	<target name="deploy" depends="zip, deploy-release"/>
-	<target name="matlab-deploy" depends="archive" description="Updates the directory stored in matlab.dir property with a new copy of jars">
-		<fail message="No matlab.dir property exists in ${private.buildfile}, not sure where to deploy to">
-				<condition>
-					<not>
-							<isset property="matlab.dir"/>
-					</not>
-				</condition>
-			</fail>
-		<copy todir="${matlab.dir}" force="true">
-			<fileset dir="dist/">
-				<include name="*.jar"/>
-			</fileset>
-		</copy>
-	</target>
+	
+	
+	
 	<target name="manual" depends="init" description="Make the manual">
 		<copy todir="${doc.buildpath}">
 			<fileset dir="doc/tex/"/>
@@ -188,9 +171,9 @@
 		
 		<property file="${buildnumberfile}" prefix="manual" />
 
-		<property name="doc.version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}" />
+		<property name="doc.version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${git.branch}" />
 		<echo message="${doc.version.string}" file="${doc.buildpath}/version.tex"/>
-		<property name="doc.version.full.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${manual.build.number}"/>
+		<property name="doc.version.full.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${git.branch}-${manual.build.number}"/>
 		<echo message="${doc.version.full.string}" file="${doc.buildpath}/versionfull.tex"/>
 		
 		
@@ -247,32 +230,6 @@
 		
 		
 	</target>	
-	<!--
-	<target name="deploy-wg" depends="archive">
-			
-			<mkdir dir="${deploy-wg.dir}"/>
-			<chmod perm="666">
-				<fileset dir="${deploy-wg.dir}">
-										<include name="*"/>
-								</fileset>
-			</chmod>
-			<copy todir="${deploy-wg.dir}" force="true">
-				<fileset dir="dist/">
-					<include name="*"/>
-				</fileset>
-			</copy>
-			<chmod perm="444">
-					<fileset dir="${deploy-wg.dir}">
-							<include name="*"/>
-					</fileset>
-			</chmod>
-			<chmod perm="555">
-					<fileset dir="${deploy-wg.dir}">
-							<include name="*.sh"/>
-					</fileset>
-			</chmod>
-		</target>
--->
-	
+
 	
 </project>
