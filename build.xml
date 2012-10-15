@@ -6,9 +6,16 @@
 	<property name="private.buildfile" value="build-resources/private/user-antbuild.properties"/>
 	<property file="${private.buildfile}"/>
 	<property file="build-resources/antbuild.properties"/>
+	
+	<!-- If you don't specify a buildnumber file we will use this -->
+		<property name="buildnumberpath" value="build/classes/"/>
+	
 	<property name="version.file.dev" value="version/${version.file}"/>
+	
+	
+	
 	<property name="doc.buildpath" value="doc/build" />
-	<property name="buildnumberfile" value="/ubc/cs/project/arrow/seramage/software/build-numbers/buildnumber-${ant.project.name}"/>
+	<property name="buildnumberfile" value="${buildnumberpath}/buildnumber-${ant.project.name}"/>
 	<fail message="No Software Directory specified, a private build file should exist in ${private.buildfile} this should specify at the very least 'software.dir'">
 		<condition>
 			<not>
