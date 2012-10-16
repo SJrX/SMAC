@@ -76,11 +76,14 @@ import org.slf4j.MarkerFactory;
 public class AutomaticConfigurator 
 {
 
-	private static List<ProblemInstance> instances;
-	private static List<ProblemInstance> testInstances;
+	
 	private static Logger logger;
 	private static Marker exception;
 	private static Marker stackTrace;
+	
+	private static List<ProblemInstance> instances;
+	private static List<ProblemInstance> testInstances;
+	
 	private static InstanceSeedGenerator instanceSeedGen;
 	private static InstanceSeedGenerator testInstanceSeedGen;
 	
@@ -212,10 +215,10 @@ public class AutomaticConfigurator
 			switch(options.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(options,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen, rand);
+					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand);
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, testInstances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");

@@ -72,7 +72,6 @@ public class AbstractAlgorithmFramework {
 	protected final double cutoffTime;
 	
 	protected final List<ProblemInstance> instances;
-	protected final List<ProblemInstance> testInstances;
 	
 	protected final TargetAlgorithmEvaluator algoEval;
 	
@@ -104,10 +103,10 @@ public class AbstractAlgorithmFramework {
 	
 	
 	
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
 	{
 		this.instances = instances;
-		this.testInstances = testInstances;
+		
 		this.cutoffTime = smacOptions.scenarioConfig.cutoffTime;
 		this.options = smacOptions;
 		this.rand = rand;		

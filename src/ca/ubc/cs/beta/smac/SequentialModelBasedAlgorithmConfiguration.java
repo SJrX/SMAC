@@ -69,8 +69,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
-		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen, rand);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
