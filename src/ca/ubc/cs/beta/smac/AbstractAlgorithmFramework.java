@@ -745,10 +745,6 @@ public class AbstractAlgorithmFramework {
 
 	
 	private void challengeIncumbent(ParamConfiguration challenger) {
-
-		
-		
-		
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 			log.debug("Performing additional run with the incumbent ");
@@ -760,17 +756,15 @@ public class AbstractAlgorithmFramework {
 			log.debug("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
 		}
 		
-		
 		if(challenger.equals(incumbent))
 		{
 			Object[] args = { runHistory.getThetaIdx(challenger), challenger,  runHistory.getThetaIdx(incumbent), incumbent };
-			log.info("Challenger {} ({})  is equal to the incumbent {} ({}); not evaluating it further ", args);
+			log.info("Challenger {} ({}) is equal to the incumbent {} ({}); not evaluating it further ", args);
 			return;
 		}
 		
 		int N=1;
 		while(true){
-
 			/*
 			 * Get all the <instance,seed> pairs the incumbent has run (get them in a set).
 			 * Then remove all the <instance,seed> pairs the challenger has run on from that set.
@@ -783,15 +777,17 @@ public class AbstractAlgorithmFramework {
 			
 			//DO NOT SHUFFLE AS MATLAB DOESN'T
 			int runsToMake = Math.min(N, aMissing.size());
+			if (runsToMake == 0){
+		        log.info("Aborting challenge of incumbent. Incumbent has " + runHistory.getTotalNumRunsOfConfig(incumbent) + " runs, challenger has " + runHistory.getTotalNumRunsOfConfig(challenger) + " runs, and the maximum runs for any config is set to " + MAX_RUNS_FOR_INCUMBENT + ".");
+		        return;
+			}
 			
 			Collections.sort(aMissing);
-			
 			
 			//=== Sort aMissing in the order that we want to evaluate <instance,seed> pairs.
 			int[] permutations = SeedableRandomSingleton.getPermutation(aMissing.size(), 0);
 			SeedableRandomSingleton.permuteList(aMissing, permutations);
 			aMissing = aMissing.subList(0, runsToMake);
-			
 			
 			//=== Only bother with this loop if tracing is enabled (facilitates stepping through the code).
 			if(log.isTraceEnabled())
@@ -801,10 +797,7 @@ public class AbstractAlgorithmFramework {
 					log.trace("Missing Problem Instance Seed Pair {}", pisp);
 				}
 			}
-			
-			
-			
-			
+		
 			log.trace("Permuting elements according to {}", Arrays.toString(permutations));
 			
 			//TODO: refactor adaptive capping.
@@ -826,7 +819,6 @@ public class AbstractAlgorithmFramework {
 				piCommon.retainAll( runHistory.getInstancesRan( challenger ));
 				missingPlusCommon.addAll(piCommon);
 				
-				
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
 			}
 			Object[] args2 = { N,  runHistory.getThetaIdx(challenger), challenger, bound_inc } ;
@@ -834,8 +826,7 @@ public class AbstractAlgorithmFramework {
 			
 			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.scenarioConfig.algoExecOptions.maxConcurrentAlgoExecs); 
 			
-			
-			if(options.adaptiveCapping && runsToMake > 0 && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
+			if(options.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
 				log.info("Challenger cannot beat incumbent => scheduling empty run");
 				runsToEval.add(getBoundedRunConfig(aMissing.get(0), 0, challenger));
@@ -852,8 +843,6 @@ public class AbstractAlgorithmFramework {
 					ProblemInstanceSeedPair pisp = aMissing.get(0);
 					if(options.adaptiveCapping)
 					{
-						
-						
 						double capTime = computeCap(challenger, pisp, aMissing, missingPlusCommon, cutoffTime, bound_inc);
 						if(capTime < cutoffTime)
 						{
@@ -882,27 +871,20 @@ public class AbstractAlgorithmFramework {
 						runsToEval.clear();
 					} 
 				}
-				
-				
 			}
 			if(runsToEval.size() > 0)
 			{
 				evaluateRun(runsToEval);
 				runsToEval.clear();
 			}
-			//
-			
-			
+						
 			//=== Get performance of incumbent and challenger on their common instances.
 			Set<ProblemInstance> piCommon = runHistory.getInstancesRan(incumbent);
 			piCommon.retainAll( runHistory.getInstancesRan( challenger ));
 			
-			
-			
 			double incCost = runHistory.getEmpiricalCost(incumbent, piCommon,cutoffTime);
 			double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
 			
-
 			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), runHistory.getThetaIdx(challenger), challenger.getFriendlyIDHex(), chalCost,runHistory.getThetaIdx(incumbent),  incumbent, incCost  };
 			log.info("Based on {} common runs on (up to) {} instances, challenger {} ({})  has a lower bound {} and incumbent {} ({}) has obj {}",args);
 			
@@ -923,14 +905,11 @@ public class AbstractAlgorithmFramework {
 				break;
 			} else
 			{
-				
 				N *= 2;
 				Object[] args3 = { runHistory.getThetaIdx(challenger), challenger, N};
 				log.trace("Increasing additional number of runs for challenger {} ({}) to : {} ", args3);
 			}
 		}
-		
-		
 	}
 	
 	
