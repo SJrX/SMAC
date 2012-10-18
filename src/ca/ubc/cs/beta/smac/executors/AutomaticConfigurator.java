@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.events.EventManager;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
@@ -209,16 +210,16 @@ public class AutomaticConfigurator
 				parseModelHashCodes(options.modelHashCodeFile);
 			}
 			
-			
+			EventManager eventManager = new EventManager();
 			
 			AbstractAlgorithmFramework smac;
 			switch(options.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand);
+					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, eventManager);
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, eventManager);
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");

@@ -26,6 +26,7 @@ import com.beust.jcommander.ParameterException;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.events.EventManager;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
@@ -60,11 +61,19 @@ public class SMACBuilder {
 
 	private static transient Logger log = LoggerFactory.getLogger(SMACBuilder.class);
 	
+	private final EventManager eventManager; 
+	
+	
 	public SMACBuilder()
 	{
-		
+		this.eventManager = new EventManager();
 	}
 	
+	
+	public EventManager getEventManager()
+	{
+		return eventManager;
+	}
 	
 	private List<ProblemInstance> instances = null;
 	
@@ -220,10 +229,10 @@ public class SMACBuilder {
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand);
+				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, eventManager);
 				break;
 			case SMAC:
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, eventManager);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");

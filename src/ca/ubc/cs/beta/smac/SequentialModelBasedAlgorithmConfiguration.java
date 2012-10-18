@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.events.EventManager;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
@@ -66,15 +67,18 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private SanitizedModelData sanitizedData;
 	private final ExpectedImprovementFunction ei;
 	
+	private final EventManager eventManager;
+	
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, EventManager eventManager) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand, eventManager);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
 		this.ei = ei;
+		this.eventManager = eventManager; 
 		
 	}
 
