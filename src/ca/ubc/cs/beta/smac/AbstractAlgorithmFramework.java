@@ -66,9 +66,6 @@ public class AbstractAlgorithmFramework {
 
 	protected final ParamConfigurationSpace configSpace;
 	
-	
-	
-	
 	protected final double cutoffTime;
 	
 	protected final List<ProblemInstance> instances;
@@ -555,6 +552,12 @@ public class AbstractAlgorithmFramework {
 				saveState("it", true);
 				
 				log.info("SMAC Completed");
+				
+				if(options.cleanOldStatesOnSuccess)
+				{
+					log.info("Cleaning old states");
+					stateFactory.purgePreviousStates();
+				}
 				
 			} catch(RuntimeException e)
 			{
