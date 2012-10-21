@@ -173,7 +173,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			// but matlab sure does
 			if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
 			{	
-				runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+				runResponseValues[j] = options.scenarioConfig.cutoffTime * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
 			}
 		}
 	
