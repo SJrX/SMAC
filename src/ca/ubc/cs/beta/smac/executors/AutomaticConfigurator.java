@@ -249,7 +249,7 @@ public class AutomaticConfigurator
 			
 			
 			
-			logger.info("SMAC Completed Successfully. Log: (" + logLocation+  ")");
+			logger.info("SMAC Completed Successfully. Log: " + logLocation);
 			
 			
 			return SMACReturnValues.SUCCESS;
@@ -258,7 +258,7 @@ public class AutomaticConfigurator
 			System.out.flush();
 			System.err.flush();
 			
-			System.err.println("Error occured running SMAC (" + t.getClass().getSimpleName() + ":"+ t.getMessage() +  ")\nError Log: " + logLocation);
+			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + ":"+ t.getMessage() +  " )\nError Log: " + logLocation);
 			System.err.flush();
 			
 				if(logger != null)
@@ -280,7 +280,7 @@ public class AutomaticConfigurator
 						
 					
 					
-					logger.info("Exiting SMAC with failure. Log:(" + logLocation+  ")");
+					logger.info("Exiting SMAC with failure. Log: " + logLocation);
 					t = t.getCause();
 				} else
 				{
