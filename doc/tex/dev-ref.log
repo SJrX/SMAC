@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  14 OCT 2012 14:52
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  24 OCT 2012 21:26
 entering extended mode
  %&-line parsing enabled.
 **dev-ref.tex
@@ -136,8 +136,7 @@ subscribe by emailing sympa@lirmm.fr with 'subscribe <list> <firstname name>'
 \algocf@algobox=\box30
 ) (/usr/share/texmf-texlive/tex/latex/psnfss/times.sty
 Package: times 2005/04/12 PSNFSS-v9.2a (SPQR) 
-)
-(/usr/share/texmf-texlive/tex/latex/doublestroke/dsfont.sty
+) (./dsfont.sty
 Package: dsfont 1995/08/01 v0.1 Double stroke roman fonts
 )
 (/usr/share/texmf-texlive/tex/latex/natbib/natbib.sty
@@ -444,8 +443,8 @@ LaTeX Warning: There were undefined references.
 
  ) 
 Here is how much of TeX's memory you used:
- 5737 strings out of 493848
- 78162 string characters out of 1152823
+ 5736 strings out of 493848
+ 78020 string characters out of 1152823
  194432 words of memory out of 3000000
  8754 multiletter control sequences out of 15000+50000
  44134 words of font info for 180 fonts, out of 3000000 for 9000
@@ -457,7 +456,7 @@ pe1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/type1/urw/cou
 rier/ucrr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></us
 r/share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texliv
 e/fonts/type1/urw/times/utmri8a.pfb>
-Output written on dev-ref.pdf (6 pages, 317475 bytes).
+Output written on dev-ref.pdf (6 pages, 312397 bytes).
 PDF statistics:
  49 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)

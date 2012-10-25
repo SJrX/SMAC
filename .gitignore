@@ -2,3 +2,10 @@
 /dist
 /bin
 /smac-output
+*.pdf
+*.cb
+*.synctex.gz
+*.log
+*.cb2
+*.toc
+

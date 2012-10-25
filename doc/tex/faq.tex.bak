@@ -58,8 +58,6 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 	To help inform the decision, from a SMAC internal point of view there are two places in the code where this distinction will matter. The first is during neighbourhood searches. All numeric parameters will only have 4 neighbours selected, and those neighbours will be sampled from a distribution $N(\mu, 0.2)$ where $\mu$ is the existing (\emph{standardized} to [0, 1]) value. Any samples that fall outside of this range will be rejected.
 	
 	The next distinction is within the random forest itself. Categorical values can be split arbitrarily but numeric values are always split at some constant $c$, with values $>$ than $c$ going to the right, and values $\leq$ going to the left.
-	
-	
 		
 \section{Should I use a wrapper or modify my program to execute directly?} 
 
@@ -76,6 +74,9 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 \section{Does SMAC support validating more than one incumbent?}
 
 	Yes, by setting \textbf{-~$\!$-validateOnlyLastIncumbent} to false. Additionally see {Validation Options} in the SMAC Manual appendix for options that control which incumbents can be selected.
+	
+\section{What does the name after the dash in version refer to?}
+	The name refers to the git branch, almost every public release should be \textit{master}. Development releases are \textit{development}. 
 
 \section{What are the performance consequences of executing in parallel (i.e. setting \textbf{-~$\!$-maxConcurrentAlgoExecs} $>$ 1)?}
 	
@@ -90,9 +91,12 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 	Yes, see \emph{State Restoration} in the manual.
 
 
-\section{SMAC's state files eat up alot of disk space, can I turn them off}?
+\section{SMAC's state files eat up alot of disk space, can I turn them off?}
 
-	Yes, set the \textbf{-$~\!$-stateSerializer} to \emph{NULL}.
+	Yes, set the \textbf{-$~\!$-stateSerializer} to \emph{NULL}. Beginning in version 2.02, the default was to only save the files needed to restore the final set of runs, and not necessarily every iteration before hand.
+	
+\section{Can I save more than just the final set of runs?}
+	Yes, set the \textbf{-$~\!$-cleanOldStateOnSuccess} option to false, and a complete state will be saved on every $2^n$  $n\in\mathbb{N}$ iteration.
 
 \section{How can I see what iterations I can restore SMAC to?}
 

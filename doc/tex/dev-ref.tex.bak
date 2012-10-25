@@ -22,7 +22,7 @@ The scope of this document governs only the first two projects. At the time of w
 
 
 \begin{itemize}
-\item 	A sizable portion of the ~30 or so classes is only to support the porting process of SMAC from MATLAB to Java.
+\item 	A sizable portion of the ~30 or so classes exist only for the porting process of SMAC from MATLAB to Java, and will be removed in future.
 
 \item	The bulk of the code necessary to run SMAC lives in three classes \\ \texttt{AbstractAlgorithmFramework}, \\
  \texttt{SequentialModelBasedAlgorithmConfiguration} and finally, \\ \texttt{AutomaticConfigurator}. Each of these three classes has problems with poor cohesion (\ie{They are all basically doing too much, and could easily be broken up into smaller classes}).

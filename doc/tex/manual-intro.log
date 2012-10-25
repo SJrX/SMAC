@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  15 SEP 2012 14:50
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  24 OCT 2012 21:27
 entering extended mode
  %&-line parsing enabled.
 **manual-intro.tex
@@ -1231,10 +1231,10 @@ Missing character: There is no S in font nullfont!
 Missing character: There is no M in font nullfont!
 Missing character: There is no A in font nullfont!
 Missing character: There is no C in font nullfont!
+Missing character: There is no w in font nullfont!
 Missing character: There is no i in font nullfont!
-Missing character: There is no s in font nullfont!
-Missing character: There is no t in font nullfont!
-Missing character: There is no o in font nullfont!
+Missing character: There is no l in font nullfont!
+Missing character: There is no l in font nullfont!
 Missing character: There is no b in font nullfont!
 Missing character: There is no e in font nullfont!
 Missing character: There is no r in font nullfont!
@@ -1615,7 +1615,9 @@ Missing character: There is no - in font nullfont!
 Missing character: There is no 0 in font nullfont!
 Missing character: There is no 0 in font nullfont!
 Missing character: There is no 0 in font nullfont!
-))
+)
+Missing character: There is no . in font nullfont!
+)
 ! Emergency stop.
 <*> manual-intro.tex
                     

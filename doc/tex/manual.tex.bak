@@ -89,7 +89,7 @@ Value & Error Name & Description \\
 \end{tabular}
 \end{table}
 
-\textsc{NOTE:} All error conditions for besides 255, are fixed. However in future some exceptions that previously reported 255 may be changed to a non 255 value as needed.
+\textsc{NOTE:} All error conditions besides 255 are fixed. However in future some exceptions that previously reported 255 may be changed to a non 255 value as needed / requested
 
 \subsection{Version History of Java SMAC}
 	\begin{description}

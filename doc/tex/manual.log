@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  14 OCT 2012 14:54
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.8.17)  24 OCT 2012 21:27
 entering extended mode
  %&-line parsing enabled.
 **manual.tex
@@ -127,8 +127,7 @@ subscribe by emailing sympa@lirmm.fr with 'subscribe <list> <firstname name>'
 \algocf@algobox=\box30
 ) (/usr/share/texmf-texlive/tex/latex/psnfss/times.sty
 Package: times 2005/04/12 PSNFSS-v9.2a (SPQR) 
-)
-(/usr/share/texmf-texlive/tex/latex/doublestroke/dsfont.sty
+) (./dsfont.sty
 Package: dsfont 1995/08/01 v0.1 Double stroke roman fonts
 )
 (/usr/share/texmf-texlive/tex/latex/natbib/natbib.sty
@@ -382,15 +381,20 @@ LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <10.95> not available
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <12> not available
 (Font)              Font shape `OT1/ptm/b/n' tried instead on input line 19.
  (./versionfull.tex))
-(./diff-pils-smac.tex [3]) (./commonly-used-options.tex [4] [5])
-(./file-formats.tex [6] [7]
+(./diff-pils-smac.tex [3]) (./commonly-used-options.tex [4] [5]
+Overfull \hbox (16.4244pt too wide) in paragraph at lines 114--114
+[]     \OT1/pcr/m/n/10.95 --configuration <config string> --maxConcurrentAlgoEx
+ecs 8 --numRun 0[] 
+ []
+
+) (./file-formats.tex [6] [7]
 LaTeX Font Info:    Font shape `OT1/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 88.
+(Font)              Font shape `OT1/ptm/b/n' tried instead on input line 87.
  [8]
 LaTeX Font Info:    Font shape `OMS/pcr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 146.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 145.
  [9] [10]
-Overfull \hbox (53.13432pt too wide) in paragraph at lines 275--276
+Overfull \hbox (53.13432pt too wide) in paragraph at lines 274--275
 []\OT1/pcr/m/n/10.95 <algo[]executable> <instance[]name> <instance[]specific[]i
 nformation> <cutoff[]time>
  []
@@ -398,30 +402,29 @@ nformation> <cutoff[]time>
 
 LaTeX Font Warning: Font shape `OMS/ptm/bx/n' undefined
 (Font)              using `OMS/ptm/m/n' instead
-(Font)              for symbol `textbackslash' on input line 318.
+(Font)              for symbol `textbackslash' on input line 317.
 
 LaTeX Font Info:    Font shape `OMS/ptm/m/n' in size <9> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 318.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 317.
 LaTeX Font Info:    Font shape `OMS/ptm/bx/n' in size <9> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 318.
-
-Overfull \hbox (99.12431pt too wide) in paragraph at lines 322--323
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 317.
+[11]
+Overfull \hbox (23.5694pt too wide) in paragraph at lines 320--321
 []\OT1/pcr/m/n/10.95 Result for ParamILS: <solved>, <runtime>, <runlength>, <qu
-ality>, <seed>,<additional
+ality>, <seed>,
  []
 
-[11]
+
+Underfull \hbox (badness 10000) in paragraph at lines 335--341
+
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 342--348
 
  []
 
-
-Underfull \hbox (badness 10000) in paragraph at lines 349--356
-
- []
-
-[12]) (./output.tex (./logging-blurb.tex) [13] [14] [15]) (./dev-ref.tex
-[16]
+[12]) (./output.tex (./logging-blurb.tex [13]) [14] [15] [16]) (./dev-ref.tex
 Overfull \hbox (5.06833pt too wide) in paragraph at lines 14--15
 []\OT1/ptm/m/n/10.95 (-20) Contains all of the pri-mary ab-strac-tions/models u
 sed by SMAC (\OT1/ptm/m/it/10.95 (-20) e.g.\OT1/ptm/m/n/10.95 (-20) Object
@@ -447,11 +450,11 @@ Underfull \hbox (badness 4378) in paragraph at lines 103--104
 restor-ing state
  []
 
-[17]
+[17] [18]
 Overfull \vbox (8.06987pt too high) has occurred while \output is active []
 
 
-[18]
+[19]
 Underfull \hbox (badness 10000) in paragraph at lines 127--128
 []\OT1/ptm/m/n/10 (+20) Class that sub-types
  []
@@ -461,14 +464,14 @@ Underfull \hbox (badness 10000) in paragraph at lines 127--128
 \OT1/pcr/m/n/10 AbstractAlgorithmFramework
  []
 
-<tae.png, id=69, 1157.82562pt x 870.25125pt>
+<tae.png, id=73, 1157.82562pt x 870.25125pt>
 File: tae.png Graphic file (type png)
  <use tae.png>
 Overfull \hbox (59.39458pt too wide) in paragraph at lines 145--146
 [][] 
  []
 
-[19] [20 <./tae.png>]
+[20] [21 <./tae.png>]
 Overfull \hbox (81.17857pt too wide) in paragraph at lines 152--153
 \OT1/ptm/m/n/10.95 (-20) unique String as a key), from \OT1/pcr/m/n/10.95 Targe
 tAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator() 
@@ -488,33 +491,33 @@ e of it (\OT1/ptm/m/it/10.95 (-20) i.e.\OT1/ptm/m/n/10.95 (-20) Create a new \O
 T1/pcr/m/n/10.95 TargetAlgorithmEvaluatorFactory
  []
 
-[21]) (./manual.bbl)
+[22]) (./manual.bbl)
 
 LaTeX Warning: `h' float specifier changed to `ht'.
 
-[22] (./options-ref.tex [23] [24] [25] [26] [27] [28] [29] [30] [31] [32]
+[23] (./options-ref.tex [24] [25] [26] [27] [28] [29] [30] [31] [32] [33]
 Overfull \hbox (68.98532pt too wide) in paragraph at lines 496--497
 []\OT1/ptm/m/n/10.95 (-20) base of the ge-o-met-ric pro-gres-sion of times-tamp
 s to val-i-date (times-tamps se-lected are: maxTime$\OMS/cmsy/m/n/10.95 ^^B$\OT
 1/ptm/m/n/10.95 (-20) multFactor$[]$
  []
 
-[33]
+[34]
 Overfull \hbox (6.04146pt too wide) in paragraph at lines 538--539
 []\OT1/ptm/m/n/10.95 (-20) selects whether to round the num-ber of val-i-da-tio
 n (to next mul-ti-ple of numTestIn-
  []
 
-) [34] (./manual.aux)
+) [35] (./manual.aux)
 
 LaTeX Font Warning: Some font shapes were not available, defaults substituted.
 
  ) 
 Here is how much of TeX's memory you used:
  6022 strings out of 493848
- 81623 string characters out of 1152823
- 194594 words of memory out of 3000000
- 8830 multiletter control sequences out of 15000+50000
+ 81497 string characters out of 1152823
+ 195607 words of memory out of 3000000
+ 8831 multiletter control sequences out of 15000+50000
  64211 words of font info for 317 fonts, out of 3000000 for 9000
  715 hyphenation exceptions out of 8191
  34i,9n,37p,792b,452s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -530,9 +533,9 @@ public/amsfonts/symbols/msbm10.pfb></usr/share/texmf-texlive/fonts/type1/urw/co
 urier/ucrr8a.pfb></usr/share/texmf-texlive/fonts/type1/urw/times/utmb8a.pfb></u
 sr/share/texmf-texlive/fonts/type1/urw/times/utmr8a.pfb></usr/share/texmf-texli
 ve/fonts/type1/urw/times/utmri8a.pfb>
-Output written on manual.pdf (34 pages, 468170 bytes).
+Output written on manual.pdf (35 pages, 464443 bytes).
 PDF statistics:
- 167 PDF objects out of 1000 (max. 8388607)
+ 170 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  49158 words of extra memory for PDF output out of 51595 (max. 10000000)
 
