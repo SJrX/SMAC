@@ -424,7 +424,7 @@ public class AbstractAlgorithmFramework {
 	private void writeIncumbent(double tunerTime, double empericalPerformance)
 	{
 		
-		if(incumbent.equals(tunerTime) && lastEmpericalPerformance == empericalPerformance)
+		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empericalPerformance)
 		{
 			return;
 		} else
