@@ -43,7 +43,7 @@
   
   
   
-  
+  <!-- 
   <appender name="FILE-RAW" class="ch.qos.logback.core.FileAppender">
   <file>${OUTPUTDIR}/${RUNGROUPDIR}/raw-run${NUMRUN}.txt</file>
   <append>false</append>
@@ -51,6 +51,7 @@
       <pattern>%msg%n</pattern>
     </encoder>
   </appender>
+   -->
  
  
   <appender name="RUNHASHLOG" class="ch.qos.logback.core.FileAppender">
@@ -82,7 +83,7 @@
   <root level="${ROOT-LEVEL}">
     <appender-ref ref="STDOUT" />
     <appender-ref ref="FILE" />
-    <appender-ref ref="FILE-RAW" />
+    <!-- <appender-ref ref="FILE-RAW" />-->
     <appender-ref ref="FILE-WARN"/>
     <appender-ref ref="RUNHASHLOG"/>
     <appender-ref ref="FILE-ERR"/>

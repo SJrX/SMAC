@@ -13,11 +13,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
-import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
@@ -32,7 +29,6 @@ import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
@@ -173,7 +169,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			// but matlab sure does
 			if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
 			{	
-				runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+				runResponseValues[j] = options.scenarioConfig.cutoffTime * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
 			}
 		}
 	

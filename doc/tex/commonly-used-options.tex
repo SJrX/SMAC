@@ -52,7 +52,7 @@ If the original run crashed, additional information is saved, often allowing you
 To check the available iterations that can be restored from a saved
 directory, use:
 \begin{verbatim}
-./smac-possible-restores <dir> --numRun 0
+./smac-possible-restores <dir>
 \end{verbatim}
 
 To disable saving any state information to disk, use 
@@ -83,7 +83,7 @@ All output is written to the folder \texttt{$<$foldername$>$}; runs differing in
 SMAC includes a tool for the offline assessment of incumbents selected during the configuration process.
 By default, given a test instance file with $N$ instances, SMAC performs $\approx$ 1\,000 target algorithm validation runs per configuration (rounded up to the nearest multiple of N).
 
-By default, SMAC limits the number of seeds used in validation runs to 1\,000 seeds per instance. This number can be changed by e.g. using 
+By default, SMAC limits the number of seeds used in validation runs to 1\,000 seeds per instance. This number can be changed as in the following example:
 \begin{verbatim}
 ./smac --scenarioFile <file> --numSeedsPerTestInstance 50
 \end{verbatim}
@@ -106,17 +106,18 @@ Validation can be skipped alltogether as follows:
 
 \subsubsection{Standalone Validation}
 SMAC also includes a method of validating configurations outside of a smac run.
-You can supply a configuration using the \textbf{-~$\!$-configuration} option; apart from this directive the rest of the options are a subset of those from SMAC.
+You can supply a configuration using the \textbf{-~$\!$-configuration} option. All scenario options are applicable to the standalone validator, but check the usage screen to see all the options available \textsc{NOTE:} Some options while present are not applicable for validation but are presented anyway.
+
 Here is an example call:
 \begin{verbatim}
 ./smac-validate --scenarioFile <file> --numValidationRuns 10000 
-     --configuration <config string> --maxConcurrentAlgoExecs 8
+     --configuration <config string> --maxConcurrentAlgoExecs 8 --numRun 0
 \end{verbatim}
 %
 Usage notes for the offline validation tool:
 \begin{enumerate}
-\item If no configuration is specified the default configuration is validated.
-\item This validates against the test set only; the training instance set is of no consequence here.
+\item This validates against the test set only; the training instance set is not used.
 \item By default this outputs into the current directory; you can change the output directory with the option \textbf{-~$\!$-runGroupName}.
+\item You can also validate against a trajectory file issued by \textbf{-$~\!$-trajectoryFile} option. 
 \end{enumerate}
 

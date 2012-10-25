@@ -30,4 +30,8 @@ public class NullStateFactory implements StateFactory {
 		throw new UnsupportedOperationException("Can not deseialize a null state");
 	}
 
+	@Override
+	public void purgePreviousStates() {
+	}
+
 }
