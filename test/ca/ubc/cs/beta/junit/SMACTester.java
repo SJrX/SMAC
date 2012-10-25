@@ -356,7 +356,7 @@ public class SMACTester {
 					{
 						System.out.println(" [SUCCESS]");
 						resultFound = true;
-					} if(line.contains("Exiting Application with failure"))
+					} if(line.contains("Exiting SMAC with failure"))
 					{
 						System.out.println(" [FAILURE DETECTED]");
 						for(String s : last10Lines)
@@ -492,63 +492,63 @@ public class SMACTester {
 			
 		}
 		
-//	
-//		
-//		@Test
-//		public void testSPEARSurrogateWeirdSeed()
-//		{
-//			
-//			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/spear/spear-surrogate-weirdseeds.txt";
-//			testFailSMAC(scenarioFile,"ERROR", "All Training Instances must have the same number of seeds in this version of SMAC",18);
-//		
-//			
-//		}
-//		
-//		@Test
-//		public void testCPLEXMini()
-//		{
-//
-//			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
-//			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true, false, true);
-//		}
-//		
-//		@Test
-//		/**
-//		 * Related to Bug 1346 
-//		 */
-//		public void testCPLEXRelativePath()
-//		{
-//			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini-relativeInstances.txt";
-//			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true, true, true);
-//		}
-//		
-//		
-//		
-//		@Test
-//		public void testSPEARSurrogate()
-//		{
-//			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/spear/spear-surrogate.txt";
-//			testSMAC(scenarioFile," ", " ", true, false, true);
-//		
-//			
-//		}
-//		
-//		
-//		
-//		/*
-//		private void testSMAC(String scenarioFile, boolean verifyHashCodes) {
-//			testSMAC(scenarioFile, " ", " ", verifyHashCodes );
-//			
-//		}*/
-//
-//		@Test
-//		public void testSATENSTEIN()
-//		{
-//			
-//			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/satenstein/satenstein.txt";
-//			testSMAC(scenarioFile);
-//		}
-//		
+	
+		
+		@Test
+		public void testSPEARSurrogateWeirdSeed()
+		{
+			
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/spear/spear-surrogate-weirdseeds.txt";
+			testFailSMAC(scenarioFile,"ERROR", "All Training Instances must have the same number of seeds in this version of SMAC",18);
+		
+			
+		}
+		
+		@Test
+		public void testCPLEXMini()
+		{
+
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
+			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true, false, true);
+		}
+		
+		@Test
+		/**
+		 * Related to Bug 1346 
+		 */
+		public void testCPLEXRelativePath()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini-relativeInstances.txt";
+			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true, true, true);
+		}
+		
+		
+		
+		@Test
+		public void testSPEARSurrogate()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/spear/spear-surrogate.txt";
+			testSMAC(scenarioFile," ", " ", true, false, true);
+		
+			
+		}
+		
+		
+		
+		/*
+		private void testSMAC(String scenarioFile, boolean verifyHashCodes) {
+			testSMAC(scenarioFile, " ", " ", verifyHashCodes );
+			
+		}*/
+
+		@Test
+		public void testSATENSTEIN()
+		{
+			
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/satenstein/satenstein.txt";
+			testSMAC(scenarioFile);
+		}
+		
 		@Test
 		public void testSPEAR()
 		{
@@ -565,15 +565,15 @@ public class SMACTester {
 			testSMAC(scenarioFile);
 		}
 		
-//		@Test
-//		public void testCPLEXSurrogate()
-//		{
-//			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX.txt";
-//			testSMAC(scenarioFile," ", " ", true, false, true);
-//		}
-//		
-//		
-//		
+		@Test
+		public void testCPLEXSurrogate()
+		{
+			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX.txt";
+			testSMAC(scenarioFile," ", " ", true, false, true);
+		}
+		
+		
+		
 		/*
 	}
 	*/

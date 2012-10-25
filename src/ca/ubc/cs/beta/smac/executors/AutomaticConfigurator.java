@@ -247,7 +247,9 @@ public class AutomaticConfigurator
 				
 			}
 			
-			logger.info("SMAC Completed Successfully");
+			
+			
+			logger.info("SMAC Completed Successfully. Log: (" + logLocation+  ")");
 			
 			
 			return SMACReturnValues.SUCCESS;
@@ -266,18 +268,19 @@ public class AutomaticConfigurator
 
 					if(!(t instanceof ParameterException))
 					{
+						logger.info("Maybe try running in DEBUG mode if you are missing information");
 						logger.error(exception, "Exception:{}", t.getClass().getCanonicalName());
 						StringWriter sWriter = new StringWriter();
 						PrintWriter writer = new PrintWriter(sWriter);
 						t.printStackTrace(writer);
 						logger.error(stackTrace, "StackTrace:{}",sWriter.toString());
+						
 					}
 					
 						
 					
 					
-					
-					logger.info("Exiting Application with failure");
+					logger.info("Exiting SMAC with failure. Log:(" + logLocation+  ")");
 					t = t.getCause();
 				} else
 				{

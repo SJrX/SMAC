@@ -335,13 +335,13 @@ public class AbstractAlgorithmFramework {
 		
 		if (iteration > 0)
 		{
-			writeIncumbent();
 			Object[] arr = {iteration, runHistory.getThetaIdx(incumbent), incumbent};		
 			log.info("At end of iteration {}, incumbent is {} ({}) ",arr);
 		} else
 		{
 			log.info("Incumbent currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
 		}				
+		writeIncumbent();
 		
 	}
 	private String lastLogMessage = "No statistics logged";
