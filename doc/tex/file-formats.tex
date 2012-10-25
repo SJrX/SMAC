@@ -111,7 +111,7 @@ The possible formats are as follows, and depend on what information you'd like t
 
 
 
-The \textbf{feature\_file} specifies features that are to be used for instances. Feature Files are specified in CSV format, the first column of every row should list an \textbf{Instance Name} as it appears in the \textbf{instance\_file}. The subsequent columns should list \textt{double} values specifying a computed continuous feature. By convention the value $-512$, and $-1024$ are used to signify that a feature value is missing or not applicable. All instances must have the same number of features.
+The \textbf{feature\_file} specifies features that are to be used for instances. Feature Files are specified in CSV format, the first column of every row should list an \textbf{Instance Name} as it appears in the \textbf{instance\_file}. The subsequent columns should list \texttt{double} values specifying a computed continuous feature. By convention the value $-512$, and $-1024$ are used to signify that a feature value is missing or not applicable. All instances must have the same number of features.
 
 At the top of the file there \textsc{must} appear a header row, the cell that appears above the instance names is unimportant, but for each feature a unique and \emph{non-numeric} feature name must be specified.
 
