@@ -23,7 +23,8 @@ By default SMAC writes the following logging files out to disk (\textsc{Note:} T
 except only from warning and higher level messages.
 \item [{log-err$N$.txt}] Contains the same information as the above file,
 except only from error messages.
-\item [{raw-run$N$.txt}] Only the actual logging messages (this is easier to grep for needed information).
+%% Removed in 2.0.2
+%% \item [{raw-run$N$.txt}] Only the actual logging messages (this is easier to grep for needed information).
 \item [{runhashes-run$N$.txt}] A file that contains only the Run Hash Codes for a given run see the corresponding entry in the \textbf{FAQ}.
 
 \end{description}
@@ -35,9 +36,9 @@ except only from error messages.
 
 SMAC basically goes through three phases when executing:
 \begin{itemize}
-\item Setup Phase Input files are read, and their arguments validated. Everything necessary to execute the Automatic Configuration Phase, is constructed. This phase ends (baring anything that must be lazily loaded), once \texttt{Automatic Configurator Started} is logged.
+\item Setup Phase Input files are read, and their arguments validated. Everything necessary to execute the Automatic Configuration Phase is constructed. This phase ends (baring anything that must be lazily loaded), once the message \texttt{Automatic Configurator Started} is logged.
 
-\item Automatic Configuration Phase, SMAC is now actively configuring the target algorithm. SMAC will spend most of it's time here, and outputs it's progress. The most important output is the Runtime Statistics which will appear like:
+\item Automatic Configuration Phase: SMAC is now actively configuring the target algorithm. SMAC will spend most of it's time here, and outputs it's progress. The most important output is the Runtime Statistics which will appear like:
 \scriptsize{
 \begin{verbatim}
 [INFO ] *****Runtime Statistics*****
@@ -71,7 +72,7 @@ While most of the fields are self-explanatory some deserve special attention:
 
 \texttt{Incumbent ID}
 
-The second ID (0x18824F) is a hex-code that represents the configuration anywhere / everywhere it is logged. The first ID, 64, occurs in context where we know the configuration is intended to be run. This ID will corresponding to the ID in the state files The first ID should always appear with the second, but not conversely. The second ID roughly represents the specific configuration in memory \footnote{Specifically every time a configuration is modified, this number is incremented. In cases where the configuration space is small,or we are examining a small part of it, SMAC may end up back at the same configuration again. As far as the behaviour of SMAC is concerned these are identical, the ID is only ever used for logging.}.
+The second ID (0x18824F) is a hex-code that represents the configuration anywhere / everywhere it is logged. The first ID, 64, occurs in context where we know the configuration is intended to be run. This ID will corresponding to the ID in the state files. The second ID will always associate with a unique first ID, but not conversely. The second ID roughly represents the specific configuration in memory \footnote{Specifically every time a configuration is modified, this number is incremented. In cases where the configuration space is small,or we are examining a small part of it, SMAC may end up back at the same configuration again. As far as the behaviour of SMAC is concerned these are identical, the ID is only ever used for logging.}.
 
 \texttt{Performance of the Incumbent}
 

@@ -7,8 +7,7 @@
 Option Files are a way of saving a different set of values 
 frequently used with SMAC without having to specify them on every execution. 
 The general format for an option file is the name
-of the configuration option (without the two dashes), an equal sign
-, and then the value (for booleans it should be true or false, lowercase). Currently options that take multiple arguments are not supported. Additionally you can not use aliases that are single dashed (\eg{ to override the Experiment Directory, you must use -~$\!\!$-experimentDir and not -e})  
+of the configuration option (without the two dashes), an equal sign, and then the value (for booleans it should be true or false, lowercase). Currently options that take multiple arguments are not supported. Additionally you can not use aliases that are single dashed (\eg{ to override the Experiment Directory, you must use \textbf{-~$\!\!$-experimentDir} and not \textbf{-e}})  
 
 When using Option Files it is important that no two files (including the Scenario File), specify the same option, the resulting configuration is undefined, and in general this will not throw an error.
 
@@ -29,7 +28,7 @@ in section \ref{sec:exec-spec}. The string here should be invokable via the syst
 
 \item [{run\_obj}] Determines how to convert the resulting output line
 into a scalar quantifying how ``good'' a single algorithm execution
-is, (\eg{how long it took to execute, how good of a solution it found,
+is, (\eg{ how long it took to execute, how good of a solution it found,
 etc...}). Currently implemented objectives are the following:
 \item [{
 \begin{tabular}{|c|c|}
@@ -70,12 +69,12 @@ on easy instances only.
 %value is up to the target algorithm. NOT SUPPORTED IN THIS VERSION)
 \item [{tunerTimeout}] The limit of the CPU time allowed for configuration (\ie{The sum of all algorithm runtimes, and by default the sum of the CPU time of SMAC itself}).
 \item [{paramfile}] Specifies the file with the parameters of the algorithm.
-The format of this file is covered in section \ref{sec:paramfile}
+The format of this file is covered in Section \ref{sec:paramfile}.
 \item [{outdir}] Specifies the directory SMAC should write its results
 to. 
 \item [{instance\_file}] Specifies the file containing the list of problem instances (and possibly seeds) for SMAC to use during the \emph{Automatic Configuration Phase}. The ParamILS parameter \textbf{instance\_seed\_file} aliases this one and the format is auto-detected. The format of these files is covered in section \ref{sec:instance_file_format}.
 \item [{test\_instance\_file}] Specifies the file containing the list of problem instances (and possibly seeds) for SMAC to use during \emph{Validation Phase}. The ParamILS parameter \textbf{test\_instance\_seed\_file} aliases this one and the format is auto-detected. The format of these files is covered in section \ref{sec:instance_file_format}.
-\item [{feature\_file}] Specifies the file with a list of test instances. The format of this files is covered in section \ref{sec:feature_file_format}.
+\item [{feature\_file}] Specifies the a file with the features for the instances in the \textbf{instance\_file} and possibly the \textbf{test\_instance\_file} \footnote{The Validator will load features into memory for test instances if they exist.}. The format of this file is covered in section \ref{sec:feature_file_format}.
 
 \end{description}
 
@@ -112,7 +111,7 @@ The possible formats are as follows, and depend on what information you'd like t
 
 
 
-The \textbf{feature\_file} specifies features that are to be used for instances. When executing in \emph{ROAR} mode, feature files are not necessary. Feature Files are specified in CSV format, the first column of every row should list an \textbf{Instance Name} as it appears in the \textbf{instance\_file}. The subsequent columns should list real values specifying a computed continuous feature. By convention the value $-512$, and $-1024$ are used to signify that a feature value is missing or not applicable. All instances must have the same number of features.
+The \textbf{feature\_file} specifies features that are to be used for instances. Feature Files are specified in CSV format, the first column of every row should list an \textbf{Instance Name} as it appears in the \textbf{instance\_file}. The subsequent columns should list \textt{double} values specifying a computed continuous feature. By convention the value $-512$, and $-1024$ are used to signify that a feature value is missing or not applicable. All instances must have the same number of features.
 
 At the top of the file there \textsc{must} appear a header row, the cell that appears above the instance names is unimportant, but for each feature a unique and \emph{non-numeric} feature name must be specified.
 
@@ -134,7 +133,7 @@ The file consists of three types of statements:
 \begin{description}
 \item[Parameter Declaration Clauses] specifies the name of parameters, and their domains.
 \item[Conditional Parameter Clauses] specify when a parameter is active.
-\item[Forbidden Parameter Clauses] specify when a combination of parameter settings is illegal and shouldn't be ignored.
+\item[Forbidden Parameter Clauses] specify when a combination of parameter settings is illegal and should be ignored.
 \end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,7 +166,7 @@ Numeric Parameters (both continuous and integral) are specified as follows:
 
 We have specified timeout as numeric with a default
 value of 500. Any value is legally permitted so long as it's in the
-real interval of {[}1, 10000{]}. When drawing a random configuration out of
+Real interval of {[}1, 10000{]}. When drawing a random configuration out of
 this space they are drawn uniformly.
 
 \vspace{5pt}
@@ -203,7 +202,7 @@ so on a $\log_{10}$ scale.
 
 \item[Integer] Numeric integral parameters must have all values specified as integers, even though strictly speaking the notation should permit fractional values. Additionally the default value must be a integer.
 
-\item[Log] Log parameters must start at strictly greater than zero.
+\item[Log] Log parameters must have strictly positive lower and upper bounds.
 
 \end{description}
 
@@ -242,21 +241,21 @@ parameter configuration, will not be explored \footnote{Specifying a large numbe
 
 The Syntax is as follows:
 
-\texttt{\{name1=val1,name2=val2...\}}
+\texttt{\{~name1=val1~,~name2=val2,~...\}}
 
 \vspace{2pt}
 \textbf{Example}
 \vspace{5pt}
 
-\texttt{quick-sort~\{~on,~off\}~{[}on{]}}
+\texttt{quick-sort~\{~on,~off~\}~{[}on{]}}
 
-\texttt{bubble-sort~\{~on,~off\}~{[}off{]}}
+\texttt{bubble-sort~\{~on,~off~\}~{[}off{]}}
 
-\texttt{\{quick-sort=on,~bubble-sort=on\}}
+\texttt{\{~quick-sort=on,~bubble-sort=on~\}}
 
-\texttt{\{quick-sort=off,~bubble-sort=off\}}
+\texttt{\{~quick-sort=off,~bubble-sort=off~\}}
 
-The above example implements an exclusive-or \footnote{admittedly it could be
+The above example implements an exclusive-or \footnote{Admittedly it could be
 better modelled with a simple categorical parameter.}. The first forbidden parameter clause prevents both sort techniques from being on at the same time. The second ensures that atleast one of them is on. \textsc{Note:} The default parameter setting cannot itself be a forbidden parameter setting.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -292,7 +291,7 @@ algorithm execution time (wall clock time) be below this value (\eg{If the algor
 \item [{cutoff\_length}] A domain specific measure of when the algorithm should consider itself done.
 
 \item [{seed}] A positive integer that the algorithm should use to seed
-itself (for reproducability). ``-1'' is used when the algorithm is \textbf{deterministic}
+itself (for reproducibility). ``-1'' is used when the algorithm is \textbf{deterministic}
 
 \item [{param}] A setting of an active parameter for the selected configuration
 as specified in the Algorithm Parameter File. SMAC will only pass
@@ -306,7 +305,7 @@ each parameter is:\\
 All of the arguments above will always be passed, even if they are inapplicable, in which case a dummy value will be passed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Output}
+\subsubsection{Output}\label{sec:wrapper_output}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The Target Algorithm is free to output anything, which will be ignored
@@ -318,18 +317,12 @@ that is used in this version is: \textbf{\^\textbackslash{}s{*}(Final)?\textback
 wrapper))}} %
 
 
-\texttt{Result for ParamILS: <solved>, <runtime>, <runlength>, <quality>,
-<seed>,<additional rundata>}
+\texttt{Result for ParamILS: <solved>, <runtime>, <runlength>, <quality>, <seed>, <additional rundata>}
 \begin{description}
 
-\item [{solved}] Must be one of \textbf{SAT} (signifying a successful run that was satisfiable), \textbf{UNSAT} (signifying a successful run that was unsatisfiable), \textbf{TIMEOUT} if the algorithm didn't finish within the allotted time, \textbf{CRASHED} if something untoward happened during the algorithm
-run, or \textbf{ABORT} if something prevents the target algorithm
-for successfully executing and it is believed that further attempts
-would be futile. 
+\item [{solved}] Must be one of \textbf{SAT} (signifying a successful run that was satisfiable), \textbf{UNSAT} (signifying a successful run that was unsatisfiable), \textbf{TIMEOUT} if the algorithm didn't finish within the allotted time, \textbf{CRASHED} if something untoward happened during the algorithm run, or \textbf{ABORT} if something prevents the target algorithm for successfully executing and it is believed that further attempts would be futile. 
 
-SMAC does not differentiate between \textbf{SAT} and \textbf{UNSAT} responses, and the primary use of these is to serve
-as a check that the algorithm is executing correctly by allowing the
-algorithm to output a yes / no output that can be checked.
+SMAC does not differentiate between \textbf{SAT} and \textbf{UNSAT} responses, and the primary use of these is historical and serves as a check that the algorithm is executing correctly by outputting whether the instance in question is satisfiable or not.
 
 SMAC also supports reporting \textbf{SATISFIABLE} for \textbf{SAT} and \textbf{UNSATISFIABLE} for \textbf{UNSAT}. \textsc{Note:} These are only aliases and SMAC will not preserve which alias was used in the log or state files.
 
@@ -337,7 +330,7 @@ SMAC also supports reporting \textbf{SATISFIABLE} for \textbf{SAT} and \textbf{U
 \textbf{ABORT} can be useful in
 cases where the target algorithm cannot find required files, or a
 permission problem prevents access to them. This will cause SMAC to
-stop running immediately. Use this option with care, it should only be reported when the algorithm knows for \textsc{certain} that subsequent results may fail. For things like sporadic network failures, and other cosmic-ray induced failures, one should consider using \textbf{CRASHED} in combination with the \textbf{-$~\!\!$-retryTargetAlgorithmRunCount}  and {-$~\!\!$-abortOnCrash} options, to mitigate these.
+stop running immediately. Use this option with care, it should only be reported when the algorithm knows for \textsc{certain} that subsequent results may fail. For things like sporadic network failures, and other cosmic-ray induced failures, one should consider using \textbf{CRASHED} in combination with the \textbf{-$\!~$-retryTargetAlgorithmRunCount}  and \textbf{-$~\!\!$-abortOnCrash} options, to mitigate these.
 
 \item [{runtime}] The amount of CPU time used during this algorithm run.
 SMAC does not measure the CPU time directly, and this is the amount
@@ -351,8 +344,7 @@ than the requested \textbf{cutoff\_time } when reporting \textbf{SAT
 }or \textbf{UNSAT}. 
 \\
 \\
-If an algorithm reports \textbf{TIMEOUT} or \textbf{CRASHED} the algorithm
-can report the actual CPU time usage, and SMAC will correctly treat it as the cap time. 
+If an algorithm reports \textbf{TIMEOUT} or \textbf{CRASHED} the algorithm can report the actual CPU time used, and SMAC will treat it correctly as a timeout for optimization purposes, but count the actual time for \textbf{$-\!~-$tunerTimeout} purposes.
 
 \item [{runlength}] A domain specific measure of how far the algorithm
 progressed.
@@ -361,6 +353,8 @@ progressed.
 \textsc{Note:} This seed \textsc{Must} match the seed that the algorithm was
 called with. This is used as fail-safe check to ensure that the output
 we are parsing really matches the call we requested.
+\item[{additional rundata}] A string that will be associated with the run as far as SMAC is concerned. This string will be saved in run and results file (Section \ref{subsec:state-files}).
+
 \end{description}
 Like invocation, all fields are mandatory, when not applicable 0's
 can be substituted. 
@@ -381,7 +375,7 @@ and for smaller execution times have a large amount of overhead that
 may not be accounted for as far as the \textbf{tunerTimeout} limit is concerned. Most of the examples included in SMAC use this approach, and the wrappers included can be adapted for your own
 projects.
 
-\textsc{Note:} When writing wrappers it's important not to poll the output stream of the target algorithm, especially if there is lots of output. Doing so often results in lock-contention and significantly modifies the runtime performance of the algorithm enough that the resulting configuration is not well tuned to the real algorithm performance.
+\textsc{Note:} When writing wrappers it is important not to poll the output stream of the target algorithm, especially if there is lots of output. Doing so often results in lock-contention and significantly modifies the runtime performance of the algorithm enough that the resulting configuration is not well tuned to the real algorithm's performance.
 
 \item [{Native~Libraries~Augmentation}] Libraries exist (See: \textbf{TBD}) for C and Java currently that facilitate adding the required functionality directly to the code. While
 parsing the arguments into the necessary data structures is still required, they do manage the timing and output requirements in most cases. Unlike the previous approach however, certain crashes may not allow the the values to be outputted (\eg{ a segmentation fault occurs}).

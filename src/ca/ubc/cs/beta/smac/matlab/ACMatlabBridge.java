@@ -2,8 +2,6 @@ package ca.ubc.cs.beta.smac.matlab;
 
 import java.util.Random;
 
-import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
-import ca.ubc.cs.beta.aclib.model.builder.ModelBuilder;
 import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.options.RandomForestOptions;
 

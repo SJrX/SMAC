@@ -6,16 +6,16 @@
 \contentsline {section}{\numberline {3}Commonly Used Options}{4}
 \contentsline {subsection}{\numberline {3.1}ROAR Mode}{4}
 \contentsline {subsection}{\numberline {3.2}Adaptive Capping}{4}
-\contentsline {subsection}{\numberline {3.3}Wall-Clock Limit}{4}
+\contentsline {subsection}{\numberline {3.3}Wall-Clock Limit}{5}
 \contentsline {subsection}{\numberline {3.4}State Restoration}{5}
 \contentsline {subsection}{\numberline {3.5}Concurrent Algorithm Execution Requests}{5}
 \contentsline {subsection}{\numberline {3.6}Named Rungroups}{5}
-\contentsline {subsection}{\numberline {3.7}Offline Validation}{5}
+\contentsline {subsection}{\numberline {3.7}Offline Validation}{6}
 \contentsline {subsubsection}{\numberline {3.7.1}Limiting the Number of Instances Used in a Validation Run}{6}
 \contentsline {subsubsection}{\numberline {3.7.2}Disabling Validation}{6}
 \contentsline {subsubsection}{\numberline {3.7.3}Standalone Validation}{6}
-\contentsline {section}{\numberline {4}File Format Reference}{6}
-\contentsline {subsection}{\numberline {4.1}Option Files}{6}
+\contentsline {section}{\numberline {4}File Format Reference}{7}
+\contentsline {subsection}{\numberline {4.1}Option Files}{7}
 \contentsline {subsubsection}{\numberline {4.1.1}Scenario File}{7}
 \contentsline {subsection}{\numberline {4.2}Instance File Format}{8}
 \contentsline {subsection}{\numberline {4.3}Feature File Format}{9}
@@ -25,29 +25,29 @@
 \contentsline {subsubsection}{\numberline {4.4.3}Forbidden Parameter Clauses}{10}
 \contentsline {subsection}{\numberline {4.5}Algorithm executable / wrapper}{11}
 \contentsline {subsubsection}{\numberline {4.5.1}Invocation}{11}
-\contentsline {subsubsection}{\numberline {4.5.2}Output}{11}
-\contentsline {subsubsection}{\numberline {4.5.3}Wrappers \& Native Libraries}{12}
+\contentsline {subsubsection}{\numberline {4.5.2}Output}{12}
+\contentsline {subsubsection}{\numberline {4.5.3}Wrappers \& Native Libraries}{13}
 \contentsline {section}{\numberline {5}Interpreting SMAC's Output}{13}
 \contentsline {subsection}{\numberline {5.1}Logging Output}{13}
 \contentsline {subsubsection}{\numberline {5.1.1}Interpreting the Log File}{14}
 \contentsline {subsection}{\numberline {5.2}State Files}{15}
 \contentsline {subsection}{\numberline {5.3}Trajectory File}{16}
 \contentsline {subsection}{\numberline {5.4}Validation Output}{16}
-\contentsline {section}{\numberline {6}Developer Reference}{16}
+\contentsline {section}{\numberline {6}Developer Reference}{17}
 \contentsline {subsection}{\numberline {6.1}Design Overview}{17}
-\contentsline {subsection}{\numberline {6.2}Class Overview}{17}
-\contentsline {subsection}{\numberline {6.3}Target Algorithm Evaluator}{19}
-\contentsline {subsection}{\numberline {6.4}Plugin Versioning}{21}
-\contentsline {subsection}{\numberline {6.5}Run Hash Codes}{22}
-\contentsline {section}{\numberline {7}Acknowledgements}{22}
-\contentsline {section}{\numberline {8}References}{22}
-\contentsline {section}{\numberline {9}Appendix}{22}
-\contentsline {subsection}{\numberline {9.1}Return Codes}{22}
-\contentsline {subsection}{\numberline {9.2}Version History of Java SMAC}{22}
-\contentsline {subsection}{\numberline {9.3}Known Issues}{23}
-\contentsline {subsection}{\numberline {9.4}Options Reference}{23}
-\contentsline {subsubsection}{\numberline {9.4.1}SMAC Options}{23}
-\contentsline {subsubsection}{\numberline {9.4.2}Scenario Options}{27}
-\contentsline {subsubsection}{\numberline {9.4.3}Algorithm Execution Options}{29}
-\contentsline {subsubsection}{\numberline {9.4.4}Random Forest Options}{31}
-\contentsline {subsubsection}{\numberline {9.4.5}Validation Options}{33}
+\contentsline {subsection}{\numberline {6.2}Class Overview}{18}
+\contentsline {subsection}{\numberline {6.3}Target Algorithm Evaluator}{20}
+\contentsline {subsection}{\numberline {6.4}Plugin Versioning}{22}
+\contentsline {subsection}{\numberline {6.5}Run Hash Codes}{23}
+\contentsline {section}{\numberline {7}Acknowledgements}{23}
+\contentsline {section}{\numberline {8}References}{23}
+\contentsline {section}{\numberline {9}Appendix}{23}
+\contentsline {subsection}{\numberline {9.1}Return Codes}{23}
+\contentsline {subsection}{\numberline {9.2}Version History of Java SMAC}{23}
+\contentsline {subsection}{\numberline {9.3}Known Issues}{24}
+\contentsline {subsection}{\numberline {9.4}Options Reference}{24}
+\contentsline {subsubsection}{\numberline {9.4.1}SMAC Options}{24}
+\contentsline {subsubsection}{\numberline {9.4.2}Scenario Options}{28}
+\contentsline {subsubsection}{\numberline {9.4.3}Algorithm Execution Options}{30}
+\contentsline {subsubsection}{\numberline {9.4.4}Random Forest Options}{32}
+\contentsline {subsubsection}{\numberline {9.4.5}Validation Options}{34}
