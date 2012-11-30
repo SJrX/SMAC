@@ -33,6 +33,7 @@ import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
 import ca.ubc.cs.beta.aclib.misc.logging.LoggingMarker;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
@@ -145,15 +146,19 @@ public class AutomaticConfigurator
 					break;
 				}catch(IllegalStateException e)
 				{ 
-				
+					//We don't care about this, because we are trying a bunch of possibilities 
 				}
 			}
-			
 			
 			if(configSpace == null)
 			{
 				throw new ParameterException("Could not find param file");
 			}
+			
+		
+			
+			
+			
 			
 			String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
 			File f2 = new File(algoExecDir);
@@ -185,6 +190,32 @@ public class AutomaticConfigurator
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
+			
+			
+			if(options.scenarioConfig.algoExecOptions.verifySAT == null)
+			{
+				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
+				if(verifySATCompatible)
+				{
+					logger.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
+					options.scenarioConfig.algoExecOptions.verifySAT = true;
+				} else
+				{
+					logger.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
+					options.scenarioConfig.algoExecOptions.verifySAT = false;
+				}
+				
+			
+			} else if(options.scenarioConfig.algoExecOptions.verifySAT == true)
+			{
+				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
+				if(!verifySATCompatible)
+				{
+					logger.warn("Verify SAT set to true, but some instances have instance specific information that isn't in {SAT, SATISFIABLE, UNKNOWN, UNSAT, UNSATISFIABLE}");
+				}
+					
+			}
+			
 			
 			
 			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
@@ -252,7 +283,7 @@ public class AutomaticConfigurator
 			logger.info("SMAC Completed Successfully. Log: (" + logLocation+  ")");
 			
 			
-			return SMACReturnValues.SUCCESS;
+			return ACLibReturnValues.SUCCESS;
 		} catch(Throwable t)
 		{
 			System.out.flush();
@@ -298,20 +329,20 @@ public class AutomaticConfigurator
 				
 				if(t instanceof ParameterException)
 				{
-					return SMACReturnValues.PARAMETER_EXCEPTION;
+					return ACLibReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 				if(t instanceof StateSerializationException)
 				{
-					return SMACReturnValues.SERIALIZATION_EXCEPTION;
+					return ACLibReturnValues.SERIALIZATION_EXCEPTION;
 				}
 				
 				if(t instanceof TrajectoryDivergenceException)
 				{
-					return SMACReturnValues.TRAJECTORY_DIVERGENCE;
+					return ACLibReturnValues.TRAJECTORY_DIVERGENCE;
 				}
 				
-				return SMACReturnValues.OTHER_EXCEPTION;
+				return ACLibReturnValues.OTHER_EXCEPTION;
 		}
 		
 		
@@ -607,7 +638,7 @@ public class AutomaticConfigurator
 				if(possibleValues.contains(helpName))
 				{
 					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config));
-					System.exit(SMACReturnValues.SUCCESS);
+					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}
 			
@@ -618,7 +649,7 @@ public class AutomaticConfigurator
 				if(possibleValues.contains(helpName))
 				{
 					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config), true);
-					System.exit(SMACReturnValues.SUCCESS);
+					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}
 			
@@ -634,7 +665,7 @@ public class AutomaticConfigurator
 					System.out.println(VersionTracker.getVersionInformation());
 					
 					
-					System.exit(SMACReturnValues.SUCCESS);
+					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}
 			
