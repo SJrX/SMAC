@@ -224,6 +224,9 @@ public class AbstractAlgorithmFramework {
 		return have_to_stop(iteration, 0);
 	}
 	
+	
+	//Last runtime that we saw
+	double unaccountedRunTime = 0;
 	/**
 	 * Function that determines whether we should stop processing or not
 	 * @param iteration - number of iterations we have done
@@ -232,10 +235,15 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected boolean have_to_stop(int iteration, double nextRunTime)
 	{
+		
 		if(getTunerTime() + nextRunTime > options.scenarioConfig.tunerTimeout)
 		{
+			unaccountedRunTime = nextRunTime;
 			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost() + nextRunTime, options.scenarioConfig.tunerTimeout);
 			return true;
+		} else
+		{
+			unaccountedRunTime = 0;
 		}
 		
 		if(iteration > options.numIteratations)
@@ -406,7 +414,7 @@ public class AbstractAlgorithmFramework {
 	
 	private void writeIncumbent()
 	{
-		writeIncumbent(getTunerTime(),runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime));
+		writeIncumbent(getTunerTime()+unaccountedRunTime,runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime));
 	}
 	
 	private double lastEmpericalPerformance = Double.NaN;
