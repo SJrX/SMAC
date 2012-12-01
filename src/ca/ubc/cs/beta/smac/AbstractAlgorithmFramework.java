@@ -227,6 +227,7 @@ public class AbstractAlgorithmFramework {
 	
 	//Last runtime that we saw
 	double unaccountedRunTime = 0;
+	boolean outOfTime = false;
 	/**
 	 * Function that determines whether we should stop processing or not
 	 * @param iteration - number of iterations we have done
@@ -235,7 +236,7 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected boolean have_to_stop(int iteration, double nextRunTime)
 	{
-		
+		outOfTime = true;
 		if(getTunerTime() + nextRunTime > options.scenarioConfig.tunerTimeout)
 		{
 			unaccountedRunTime = nextRunTime;
@@ -257,7 +258,7 @@ public class AbstractAlgorithmFramework {
 			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), options.totalNumRunsLimit);
 			return true;
 		}
-		
+		outOfTime = false;
 		return false;
 	}
 	
@@ -432,7 +433,7 @@ public class AbstractAlgorithmFramework {
 	private void writeIncumbent(double tunerTime, double empericalPerformance)
 	{
 		
-		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empericalPerformance)
+		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empericalPerformance && !outOfTime)
 		{
 			return;
 		} else
