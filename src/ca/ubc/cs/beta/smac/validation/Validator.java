@@ -87,7 +87,15 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		if(options.validateOnlyLastIncumbent)
 		{
-			tfesToUse.add(tfes.get(tfes.size() - 1));
+			
+			TrajectoryFileEntry tfe = tfes.get(tfes.size() - 1);
+			
+			double tunerTime = (tfe.getTunerTime() > options.maxTimestamp) ? options.maxTimestamp : tfe.getTunerTime();
+			
+			TrajectoryFileEntry newTfe = new TrajectoryFileEntry(tfe.getConfiguration(), tunerTime, tfe.getEmpericalPerformance(), tfe.getACOverhead());
+			
+			tfesToUse.add(newTfe);
+			
 		} else
 		{
 			ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = new ConcurrentSkipListMap<Double, TrajectoryFileEntry>();
