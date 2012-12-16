@@ -1,5 +1,6 @@
 package ca.ubc.cs.beta.smac.state.nullFactory;
 
+import java.io.File;
 import java.util.List;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
@@ -32,6 +33,10 @@ public class NullStateFactory implements StateFactory {
 
 	@Override
 	public void purgePreviousStates() {
+	}
+
+	@Override
+	public void copyFileToStateDir(String name, File f) {
 	}
 
 }

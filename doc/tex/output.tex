@@ -130,6 +130,18 @@ The following files are saved in this state directory (ignoring the suffix):
 	\item[\texttt{Censored}] Indicates whether the \texttt{Cutoff Time Used} field is less than the \textbf{cutoff\_time} in the original run. 0 means \texttt{false}, 1 means \texttt{true}.
 	\item[\texttt{Run Result Code}]	This is a mapping from the \texttt{Run Result} to an integer for use with previous versions.
 	\end{enumerate}
+	
+	\item[param-file] If \textbf{-$~\!$-saveContext} is enabled, a copy of the \textbf{paramfile} will be in the state folder 
+	
+	\item[instances] If \textbf{-$~\!$-saveContext} is enabled, a copy of the \textbf{instance\_file} will be in the state folder 
+	
+	\item[instance-features] If \textbf{-$~\!$-saveContext} is enabled, and SMAC is running with features, then a copy of the \textbf{feature\_file} will be in the state folder.
+
+	\item[scenario] If \textbf{-$~\!$-saveContext} is enabled, and SMAC is using a scenario file, then a copy of the  \textbf{-$~\!$-scenarioFile} will be in the state folder.
+	
+	
+		
+	
 \end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

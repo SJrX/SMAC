@@ -41,6 +41,10 @@ If the call succeeds, the next step would be to replace the target algorithm tha
 This is caused by a bug in earlier versions of Java 6 and Java 7. When SMAC executes the program in these versions, the system calls \texttt{fork()} and \texttt{exec()} which causes the entire address space footprint of SMAC to be duplicated, while this is done with traditional copy-on-write semantics, in systems which will not over commit resources, this causes the fork to fail. For more information see: \texttt{http://bugs.sun.com/bugdatabase/view\_bug.do?bug\_id=7034935}
 
 
+\section{How can I change the amount of memory SMAC uses?}
+
+If you are using the supplied shell scripts, you can set the SMAC\_MEMORY environment variable to a positive integer corresponding to amount of memory in MB SMAC will use. If you are using some other mechanism of execution, the \texttt{-Xmx} java option is the only other way.
+
 \section{How can I report a bug or documentation error?}
  Please e-mail both of the developers above.
 

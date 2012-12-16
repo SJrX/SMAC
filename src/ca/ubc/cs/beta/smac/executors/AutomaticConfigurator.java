@@ -2,6 +2,7 @@ package ca.ubc.cs.beta.smac.executors;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -76,6 +77,10 @@ public class AutomaticConfigurator
 	private static InstanceSeedGenerator testInstanceSeedGen;
 	private static String logLocation = "<NO LOG LOCATION SPECIFIED, FAILURE MUST HAVE OCCURED EARLY>";
 	
+	
+	private static String instanceFileAbsolutePath;
+	private static String instanceFeatureFileAbsolutePath;
+	
 	/**
 	 * Executes SMAC then exits the JVM {@see System.exit()}
 	 *  
@@ -136,23 +141,32 @@ public class AutomaticConfigurator
 			ParamConfigurationSpace configSpace = null;
 			
 			
-			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
+			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile };
+			String lastParamFilePath = null;
 			for(String path : possiblePaths)
 			{
 				try {
 					logger.debug("Trying param file in path {} ", path);
-					
+					lastParamFilePath = path;
 					configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
 					break;
 				}catch(IllegalStateException e)
 				{ 
-					//We don't care about this, because we are trying a bunch of possibilities 
+					if(e.getCause() instanceof FileNotFoundException)
+					{
+						//We don't care about this because we will just toss an exception if we don't find it
+					} else
+					{
+						logger.warn("Error occured while trying to parse is {}"  , e.getMessage() );
+					}
+					
+ 
 				}
 			}
 			
 			if(configSpace == null)
 			{
-				throw new ParameterException("Could not find param file");
+				throw new ParameterException("Could not find a valid parameter file, please check if there was a previous error");
 			}
 			
 		
@@ -190,6 +204,7 @@ public class AutomaticConfigurator
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
+			
 			
 			
 			if(options.scenarioConfig.algoExecOptions.verifySAT == null)
@@ -242,6 +257,32 @@ public class AutomaticConfigurator
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
 			}
 			
+			
+
+			if(options.saveContextWithState)
+			{
+				sf.copyFileToStateDir("param-file.txt", new File(lastParamFilePath));
+				
+				if(instanceFileAbsolutePath != null)
+				{
+					sf.copyFileToStateDir("instances.txt", new File(instanceFileAbsolutePath));
+				}
+				
+				if(instanceFeatureFileAbsolutePath != null)
+				{
+					sf.copyFileToStateDir("instance-features.txt", new File(instanceFeatureFileAbsolutePath));
+				}
+				
+				if ((options.scenarioConfig.scenarioFile != null) && (options.scenarioConfig.scenarioFile.exists()))
+				{
+					sf.copyFileToStateDir("scenario.txt", options.scenarioConfig.scenarioFile);
+				}
+				
+				
+				
+			}
+			
+			
 			if(options.restoreIteration != null)
 			{
 				restoreState(options, restoreSF, smac, configSpace,options.scenarioConfig.intraInstanceObj,options.scenarioConfig.interInstanceObj,options.scenarioConfig.runObj, instances, execConfig);
@@ -289,7 +330,7 @@ public class AutomaticConfigurator
 			System.out.flush();
 			System.err.flush();
 			
-			System.err.println("Error occured running SMAC (" + t.getClass().getSimpleName() + ":"+ t.getMessage() +  ")\nError Log: " + logLocation);
+			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
 			System.err.flush();
 			
 				if(logger != null)
@@ -521,6 +562,10 @@ public class AutomaticConfigurator
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+1, (config.scenarioConfig.algoExecOptions.deterministic));
+			
+			instanceFileAbsolutePath = ilws.getInstanceFileAbsolutePath();
+			instanceFeatureFileAbsolutePath = ilws.getInstanceFeatureFileAbsolutePath();
+			
 			instanceSeedGen = ilws.getSeedGen();
 			
 			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
