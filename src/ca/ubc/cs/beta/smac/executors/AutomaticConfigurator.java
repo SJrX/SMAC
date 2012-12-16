@@ -407,7 +407,7 @@ public class AutomaticConfigurator
 				
 				logLocation = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "log-run" + config.numRun+ ".txt";
 				
-				System.out.println("*****************************\nLogging to: " + logLocation +  ".txt\n*****************************");
+				System.out.println("*****************************\nLogging to: " + logLocation +  "\n*****************************");
 				//${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
 				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");

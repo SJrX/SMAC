@@ -49,7 +49,7 @@ public class SMACTester {
 			try {
 				BufferedReader r = new BufferedReader(new FileReader(f));
 				smacDeployment = r.readLine();
-				
+				System.out.println("SMAC DEPLOYMENT: " + smacDeployment);
 			} catch (FileNotFoundException e) {
 				throw new AssertionError("Could open the deployment file lastbuild-deploy.txt");
 			} catch (IOException e) {
