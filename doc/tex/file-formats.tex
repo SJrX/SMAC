@@ -322,7 +322,7 @@ wrapper))}} %
 
 \item [{solved}] Must be one of \textbf{SAT} (signifying a successful run that was satisfiable), \textbf{UNSAT} (signifying a successful run that was unsatisfiable), \textbf{TIMEOUT} if the algorithm didn't finish within the allotted time, \textbf{CRASHED} if something untoward happened during the algorithm run, or \textbf{ABORT} if something prevents the target algorithm for successfully executing and it is believed that further attempts would be futile. 
 
-SMAC does not differentiate between \textbf{SAT} and \textbf{UNSAT} responses, and the primary use of these is historical and serves as a check that the algorithm is executing correctly by outputting whether the instance in question is satisfiable or not.
+SMAC does not differentiate between \textbf{SAT} and \textbf{UNSAT} responses, and the primary use of these is historical and serves as a check that the algorithm is executing correctly by outputting whether the instance in question is satisfiable or not. See the \textbf{$-\!\!$-verifySAT} option for information on how to utilize this feature.
 
 SMAC also supports reporting \textbf{SATISFIABLE} for \textbf{SAT} and \textbf{UNSATISFIABLE} for \textbf{UNSAT}. \textsc{Note:} These are only aliases and SMAC will not preserve which alias was used in the log or state files.
 

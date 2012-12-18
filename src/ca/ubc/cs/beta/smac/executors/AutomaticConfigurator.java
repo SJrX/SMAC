@@ -2,6 +2,7 @@ package ca.ubc.cs.beta.smac.executors;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -33,6 +34,7 @@ import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
 import ca.ubc.cs.beta.aclib.misc.logging.LoggingMarker;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
@@ -74,6 +76,10 @@ public class AutomaticConfigurator
 	private static InstanceSeedGenerator instanceSeedGen;
 	private static InstanceSeedGenerator testInstanceSeedGen;
 	private static String logLocation = "<NO LOG LOCATION SPECIFIED, FAILURE MUST HAVE OCCURED EARLY>";
+	
+	
+	private static String instanceFileAbsolutePath;
+	private static String instanceFeatureFileAbsolutePath;
 	
 	/**
 	 * Executes SMAC then exits the JVM {@see System.exit()}
@@ -135,25 +141,38 @@ public class AutomaticConfigurator
 			ParamConfigurationSpace configSpace = null;
 			
 			
-			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
+			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile };
+			String lastParamFilePath = null;
 			for(String path : possiblePaths)
 			{
 				try {
 					logger.debug("Trying param file in path {} ", path);
-					
+					lastParamFilePath = path;
 					configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
 					break;
 				}catch(IllegalStateException e)
 				{ 
-				
+					if(e.getCause() instanceof FileNotFoundException)
+					{
+						//We don't care about this because we will just toss an exception if we don't find it
+					} else
+					{
+						logger.warn("Error occured while trying to parse is {}"  , e.getMessage() );
+					}
+					
+ 
 				}
 			}
 			
-			
 			if(configSpace == null)
 			{
-				throw new ParameterException("Could not find param file");
+				throw new ParameterException("Could not find a valid parameter file, please check if there was a previous error");
 			}
+			
+		
+			
+			
+			
 			
 			String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
 			File f2 = new File(algoExecDir);
@@ -187,6 +206,33 @@ public class AutomaticConfigurator
 			}
 			
 			
+			
+			if(options.scenarioConfig.algoExecOptions.verifySAT == null)
+			{
+				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
+				if(verifySATCompatible)
+				{
+					logger.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
+					options.scenarioConfig.algoExecOptions.verifySAT = true;
+				} else
+				{
+					logger.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
+					options.scenarioConfig.algoExecOptions.verifySAT = false;
+				}
+				
+			
+			} else if(options.scenarioConfig.algoExecOptions.verifySAT == true)
+			{
+				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
+				if(!verifySATCompatible)
+				{
+					logger.warn("Verify SAT set to true, but some instances have instance specific information that isn't in {SAT, SATISFIABLE, UNKNOWN, UNSAT, UNSATISFIABLE}");
+				}
+					
+			}
+			
+			
+			
 			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
 			
 
@@ -210,6 +256,32 @@ public class AutomaticConfigurator
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
 			}
+			
+			
+
+			if(options.saveContextWithState)
+			{
+				sf.copyFileToStateDir("param-file.txt", new File(lastParamFilePath));
+				
+				if(instanceFileAbsolutePath != null)
+				{
+					sf.copyFileToStateDir("instances.txt", new File(instanceFileAbsolutePath));
+				}
+				
+				if(instanceFeatureFileAbsolutePath != null)
+				{
+					sf.copyFileToStateDir("instance-features.txt", new File(instanceFeatureFileAbsolutePath));
+				}
+				
+				if ((options.scenarioConfig.scenarioFile != null) && (options.scenarioConfig.scenarioFile.exists()))
+				{
+					sf.copyFileToStateDir("scenario.txt", options.scenarioConfig.scenarioFile);
+				}
+				
+				
+				
+			}
+			
 			
 			if(options.restoreIteration != null)
 			{
@@ -252,13 +324,13 @@ public class AutomaticConfigurator
 			logger.info("SMAC Completed Successfully. Log: " + logLocation);
 			
 			
-			return SMACReturnValues.SUCCESS;
+			return ACLibReturnValues.SUCCESS;
 		} catch(Throwable t)
 		{
 			System.out.flush();
 			System.err.flush();
 			
-			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + ":"+ t.getMessage() +  " )\nError Log: " + logLocation);
+			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
 			System.err.flush();
 			
 				if(logger != null)
@@ -298,20 +370,20 @@ public class AutomaticConfigurator
 				
 				if(t instanceof ParameterException)
 				{
-					return SMACReturnValues.PARAMETER_EXCEPTION;
+					return ACLibReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 				if(t instanceof StateSerializationException)
 				{
-					return SMACReturnValues.SERIALIZATION_EXCEPTION;
+					return ACLibReturnValues.SERIALIZATION_EXCEPTION;
 				}
 				
 				if(t instanceof TrajectoryDivergenceException)
 				{
-					return SMACReturnValues.TRAJECTORY_DIVERGENCE;
+					return ACLibReturnValues.TRAJECTORY_DIVERGENCE;
 				}
 				
-				return SMACReturnValues.OTHER_EXCEPTION;
+				return ACLibReturnValues.OTHER_EXCEPTION;
 		}
 		
 		
@@ -376,7 +448,7 @@ public class AutomaticConfigurator
 				
 				logLocation = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "log-run" + config.numRun+ ".txt";
 				
-				System.out.println("*****************************\nLogging to: " + logLocation +  ".txt\n*****************************");
+				System.out.println("*****************************\nLogging to: " + logLocation +  "\n*****************************");
 				//${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
 				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");
@@ -490,6 +562,10 @@ public class AutomaticConfigurator
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+1, (config.scenarioConfig.algoExecOptions.deterministic));
+			
+			instanceFileAbsolutePath = ilws.getInstanceFileAbsolutePath();
+			instanceFeatureFileAbsolutePath = ilws.getInstanceFeatureFileAbsolutePath();
+			
 			instanceSeedGen = ilws.getSeedGen();
 			
 			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
@@ -607,7 +683,7 @@ public class AutomaticConfigurator
 				if(possibleValues.contains(helpName))
 				{
 					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config));
-					System.exit(SMACReturnValues.SUCCESS);
+					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}
 			
@@ -618,7 +694,7 @@ public class AutomaticConfigurator
 				if(possibleValues.contains(helpName))
 				{
 					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config), true);
-					System.exit(SMACReturnValues.SUCCESS);
+					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}
 			
@@ -634,7 +710,7 @@ public class AutomaticConfigurator
 					System.out.println(VersionTracker.getVersionInformation());
 					
 					
-					System.exit(SMACReturnValues.SUCCESS);
+					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}
 			

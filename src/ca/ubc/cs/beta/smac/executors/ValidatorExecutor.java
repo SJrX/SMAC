@@ -21,6 +21,7 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
+import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions;
@@ -209,6 +210,30 @@ public class ValidatorExecutor {
 				
 				
 				
+				if(options.scenarioConfig.algoExecOptions.verifySAT == null)
+				{
+					boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(testInstances);
+					if(verifySATCompatible)
+					{
+						log.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
+						options.scenarioConfig.algoExecOptions.verifySAT = true;
+					} else
+					{
+						log.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
+						options.scenarioConfig.algoExecOptions.verifySAT = false;
+					}
+					
+				
+				} else if(options.scenarioConfig.algoExecOptions.verifySAT == true)
+				{
+					boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(testInstances);
+					if(!verifySATCompatible)
+					{
+						log.warn("Verify SAT set to true, but some instances have instance specific information that isn't in {SAT, SATISFIABLE, UNKNOWN, UNSAT, UNSATISFIABLE}");
+					}
+						
+				}
+				
 				TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
 				
 				
@@ -246,7 +271,7 @@ public class ValidatorExecutor {
 				
 				log.info("Validation Completed Successfully");
 				validatingTae.notifyShutdown();
-				System.exit(SMACReturnValues.SUCCESS);
+				System.exit(ACLibReturnValues.SUCCESS);
 			} catch(ParameterException e)
 			{
 				
@@ -258,7 +283,7 @@ public class ValidatorExecutor {
 		} catch(Throwable t)
 		{
 
-			int returnValue = SMACReturnValues.OTHER_EXCEPTION;
+			int returnValue = ACLibReturnValues.OTHER_EXCEPTION;
 			if(log != null)
 			{
 				
@@ -276,7 +301,7 @@ public class ValidatorExecutor {
 					PrintWriter writer = new PrintWriter(sWriter);
 					t.printStackTrace(writer);
 					log.error(stackTrace, "StackTrace:{}",sWriter.toString());
-					returnValue = SMACReturnValues.PARAMETER_EXCEPTION;
+					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 					
@@ -290,11 +315,11 @@ public class ValidatorExecutor {
 			{
 				if(t instanceof ParameterException )
 				{
-					returnValue = SMACReturnValues.PARAMETER_EXCEPTION;
+					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
 					System.err.println(t.getMessage());
 				} else
 				{
-					returnValue = SMACReturnValues.OTHER_EXCEPTION;
+					returnValue = ACLibReturnValues.OTHER_EXCEPTION;
 					t.printStackTrace();
 				}
 				

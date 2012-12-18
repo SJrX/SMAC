@@ -9,4 +9,6 @@
 *.log
 *.cb2
 *.toc
+*.aux
+*.tex.bak
 

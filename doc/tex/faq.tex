@@ -36,6 +36,14 @@ If the call succeeds, the next step would be to replace the target algorithm tha
 
 \textsc{Note:} In certain Java implementations (such as Sun's Java 6) there is a bug \footnote{See \url{http://bugs.sun.com/view_bug.do?bug_id=6670965}} that causes the \texttt{LD\_LIBRARY\_PATH} variable to be modified internally by Java, and then the target algorithm sees the modification. In most cases this is benign, as it merely adds the location of the JVM libraries, and restates the location of the system libraries. However if library incompatibilities exist, this can cause problems. You will need to use a wrapper script to manually fix the LD\_LIBRARY\_PATH or upgrade Java.
 
+\section{SMAC gets a java.io.IOException: error=12, Cannot allocate memory when trying to execute the target algorithm}
+
+This is caused by a bug in earlier versions of Java 6 and Java 7. When SMAC executes the program in these versions, the system calls \texttt{fork()} and \texttt{exec()} which causes the entire address space footprint of SMAC to be duplicated, while this is done with traditional copy-on-write semantics, in systems which will not over commit resources, this causes the fork to fail. For more information see: \texttt{http://bugs.sun.com/bugdatabase/view\_bug.do?bug\_id=7034935}
+
+
+\section{How can I change the amount of memory SMAC uses?}
+
+If you are using the supplied shell scripts, you can set the SMAC\_MEMORY environment variable to a positive integer corresponding to amount of memory in MB SMAC will use. If you are using some other mechanism of execution, the \texttt{-Xmx} java option is the only other way.
 
 \section{How can I report a bug or documentation error?}
  Please e-mail both of the developers above.
@@ -194,6 +202,10 @@ Please contact us regarding licensing options.
 \section{What is the difference between SAT and UNSAT in the algorithm responses?}
 
 The short answer is you can use either, as SMAC makes no distinction. The reason two responses are used is a historical hold over for debugging. Essentially it was used as a cross check to ensure that some unknown bug didn't crop up, as a result of the running configuration that would break the solver. SMAC itself doesn't do anything with this information, but it's possible to use the \texttt{run\_and\_results} file to check the responses against the instances, and ensure that no errors were made.
+
+\section{What does the RANDOM Target Algorithm Evaluator do?}
+
+This Target Algorithm Evaluator basically outputs random responses, it is useful for debugging SMAC in conjunction with the \textbf{example\_random} scenario.
 
 
 \section{What is a Run Hash Code?}

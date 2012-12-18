@@ -1,0 +1,17 @@
+#Scenario generates random responses
+#Does nothing interesting but useful for debugging
+
+#Random TAE uses the algo to select uniform runtimes between 0 and algo
+algo = 150
+execdir = example_random
+tae = RANDOM
+deterministic = 0
+run_obj = runtime
+overall_obj = mean
+cutoff_time = 3600
+tunerTimeout = 86400
+paramfile = example_random/random-params.txt
+outdir = example_random/paramils-out
+feature_file = example_random/random-inst-features.txt
+instance_file = example_random/random-inst.txt
+test_instance_file = example_random/random-inst-test.txt

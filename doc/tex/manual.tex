@@ -93,13 +93,27 @@ Value & Error Name & Description \\
 
 \subsection{Version History of Java SMAC}
 	\begin{description}
-		\item[Version 2.00] First Java release of SMAC (this is a port and extension of the original Matlab version).
+		\item[Version 2.00 (Aug-2012)] First Internal Release of Java SMAC (this is a port and extension of the original Matlab version).
+		\item[Version 2.02 (Oct-2012)] First Public Release of SMAC v2 and contained many fixes from the previous release.
+		\item[Version 2.04 (TBD)] Second Release of Java SMAC including the following improvements:
+			\begin{enumerate}
+			\item Validation file output times consistent with Tuner Times
+			\item Some \textbf{INFO} log statements have been moved to \textbf{DEBUG} and some \textbf{DEBUG} to \textbf{TRACE}
+			\item Added support for verifying whether responses of SAT and UNSAT are consistent with Instance Specific Information see \textbf{-$~\!$-verifySAT} option for more information
+			\item Added support for the SMAC\_MEMORY environment variable to control how much RAM (in MB) SMAC will use when  executed via the supplied shell scripts. 
+			\item Context is now added to the state folders to make it easier to debug issues later, to disable consult the \textbf{-$~\!$-saveContext} option.
+			
+			\end{enumerate}
+		
 	\end{description}
 \subsection{Known Issues}
+
 \begin{enumerate}
+\item SMAC may crash with a \texttt{ConvergenceException} when \textbf{-$~\!$-adaptiveCapping} is \texttt{true}, this has happened only once out of thousands of Runs, but we have no fix at this time other than trying a different seed.
 \item Trajectory file does not output standard deviation
-\item Using any alias for -$~\!$-showHiddenParameters, -$~\!$-help, or -$~\!$-version as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
+\item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
+\item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
 \end{enumerate}
 
 \subsection{Options Reference}
