@@ -115,11 +115,22 @@ public class ValidatorExecutor {
 				
 				instanceFeatureFile = options.scenarioConfig.instanceFeatureFile;
 				InstanceListWithSeeds ilws;
+				
+				
+				String instanceFile ;
+				if(options.validateTestInstances)
+				{
+					instanceFile = options.scenarioConfig.testInstanceFile;
+				} else
+				{
+					instanceFile = options.scenarioConfig.instanceFile;
+				}
+				
 				try {
-					 ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
+					 ilws = ProblemInstanceHelper.getInstances(instanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
 				} catch(FeatureNotFoundException e)
 				{
-					ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,null, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
+					ilws = ProblemInstanceHelper.getInstances(instanceFile, options.experimentDir,null, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
 				}
 				
 				List<ProblemInstance> testInstances = ilws.getInstances();
@@ -175,18 +186,25 @@ public class ValidatorExecutor {
 					} else
 					{
 						log.info("Parsing Supplied Configuration");
-						try {
-							configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_SYNTAX);
-						} catch(RuntimeException e)
+						
+						if(options.incumbent.trim().equals("<DEFAULT>"))
+						{
+							configToValidate = configSpace.getDefaultConfiguration();
+						} else
 						{
 							try {
-								log.info("Being nice and checking if this is a STATEFILE encoded configuration");
-								configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.STATEFILE_SYNTAX);
-							} catch(RuntimeException e2)
+								configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_SYNTAX);
+							} catch(RuntimeException e)
 							{
-								throw e;
+								try {
+									log.info("Being nice and checking if this is a STATEFILE encoded configuration");
+									configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.STATEFILE_SYNTAX);
+								} catch(RuntimeException e2)
+								{
+									throw e;
+								}
+								
 							}
-							
 						}
 					}
 					
