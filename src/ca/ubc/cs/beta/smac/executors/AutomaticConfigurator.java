@@ -610,12 +610,7 @@ public class AutomaticConfigurator
 			
 			
 				
-			List<String> names = TargetAlgorithmEvaluatorBuilder.getAvailableTargetAlgorithmEvaluators(config.scenarioConfig.algoExecOptions);
 			
-			for(String name : names)
-			{
-				logger.debug("Target Algorithm Evaluator Available {} ", name);
-			}
 			
 			try {
 				//We don't handle this more gracefully because this seems like a super rare incident.

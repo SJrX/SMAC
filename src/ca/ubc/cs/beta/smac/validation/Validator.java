@@ -193,9 +193,9 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		validatingTae.evaluateRunsAsync(runConfigs, callback);
 		
 		
-		if(!validatingTae.areRunsPersisteted() || waitForRuns)
+		if(!validatingTae.areRunsPersisted() || waitForRuns)
 		{
-			log.info("Waiting until completion");
+			log.info("Waiting until validation completion");
 			callback.waitForCompletion();
 		}
 		
