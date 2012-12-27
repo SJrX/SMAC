@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -34,6 +35,8 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.seedgenerator.RandomInstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.seedgenerator.SetInstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.deferred.TAECallback;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.deferred.WaitableTAECallback;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
 
@@ -50,10 +53,10 @@ public class Validator {
 		*/
 		
 	
-public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, ValidationOptions options,double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
-		String outputDir,
-		RunObjective runObj,
-		OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective,  List<TrajectoryFileEntry> tfes, long numRun) 
+public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
+		final String outputDir,
+		final RunObjective runObj,
+		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns) 
 		{
 
 		int testInstancesCount = Math.min(options.numberOfTestInstances, testInstances.size());
@@ -121,7 +124,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			}
 		}
 		
-		List<TrajectoryFileEntry> tfesToRun = new ArrayList<TrajectoryFileEntry>(tfesToUse.size());
+		final List<TrajectoryFileEntry> tfesToRun = new ArrayList<TrajectoryFileEntry>(tfesToUse.size());
 		tfesToRun.addAll(tfesToUse);
 		
 		
@@ -129,46 +132,81 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		
 		log.info("Validation needs {} algorithm runs  to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
-		List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
+		//List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
 		
-		try
-		{
-			writeInstanceRawResultsFile(runs, options, outputDir, numRun);
-		} catch(IOException e)
-		{
-			log.error("Could not write results file", e);
-		}
+		final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
 		
+		final SortedMap<TrajectoryFileEntry, Double> finalPerformance = new ConcurrentSkipListMap<TrajectoryFileEntry, Double>();
 		
-		try
+		WaitableTAECallback callback = new WaitableTAECallback(new TAECallback()
 		{
-			writeInstanceSeedResultFile(runs, options, outputDir, runObj, numRun);
-		} catch(IOException e)
-		{
-			log.error("Could not write results file", e);
-		}
-		
-		
-		try
-		{
-			Map<ParamConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, outputDir, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, numRun);
-			
-			SortedMap<TrajectoryFileEntry, Double> finalPerformance = new TreeMap<TrajectoryFileEntry, Double>();
-			for(TrajectoryFileEntry tfe : tfesToRun)
-			{
-				finalPerformance.put(tfe, testSetPerformance.get(tfe.getConfiguration()));
+
+			@Override
+			public void onSuccess(List<AlgorithmRun> runs) {
+				// TODO Auto-generated method stub
+				try
+				{
+					writeInstanceRawResultsFile(runs, options, outputDir, numRun);
+				} catch(IOException e)
+				{
+					log.error("Could not write results file", e);
+				}
+				
+				
+				try
+				{
+					writeInstanceSeedResultFile(runs, options, outputDir, runObj, numRun);
+				} catch(IOException e)
+				{
+					log.error("Could not write results file", e);
+				}
+				
+				
+				try
+				{
+					Map<ParamConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, outputDir, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, numRun);
+					
+					
+					for(TrajectoryFileEntry tfe : tfesToRun)
+					{
+						finalPerformance.put(tfe, testSetPerformance.get(tfe.getConfiguration()));
+					}
+
+					appendInstanceResultFile(outputDir, finalPerformance,  numRun,options);
+					
+					
+				} catch(IOException e)
+				{
+					log.error("Could not write results file:", e);
+				}
+				
 			}
 
+			@Override
+			public void onFailure(RuntimeException t) {
+				exception.set(t);
+			}
 			
-			appendInstanceResultFile(outputDir, finalPerformance,  numRun,options);
-			
-			return finalPerformance;
-		} catch(IOException e)
+		});
+
+		
+		validatingTae.evaluateRunsAsync(runConfigs, callback);
+		
+		
+		if(!validatingTae.areRunsPersisteted() || waitForRuns)
 		{
-			log.error("Could not write results file:", e);
+			log.info("Waiting until completion");
+			callback.waitForCompletion();
 		}
 		
-		return new TreeMap<TrajectoryFileEntry, Double>();
+	
+		if(exception.get() != null)
+		{
+			throw exception.get();
+		}
+		
+		return finalPerformance;
+
 		
 		
 		

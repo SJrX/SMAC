@@ -284,7 +284,8 @@ public class ValidatorExecutor {
 						options.scenarioConfig.intraInstanceObj,
 						options.scenarioConfig.interInstanceObj,
 						tfes,
-						options.numRun);
+						options.numRun,
+						options.waitForPersistedRunCompletion);
 				
 				
 				log.info("Validation Completed Successfully");
