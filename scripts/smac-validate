@@ -12,4 +12,4 @@ done
 
 jarconcat=${jarconcat:1}
 
-exec java -Xmx"$SMACMEM"m -cp "$jarconcat" $EXEC "$@"
+exec java -Xmx"$SMACMEM"m -cp "$DIR/conf/:$jarconcat" $EXEC "$@"

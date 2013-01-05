@@ -26,6 +26,13 @@ import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.events.AlgorithmRunCompletedEvent;
+import ca.ubc.cs.beta.aclib.events.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aclib.events.ConfigurationTimeLimits;
+import ca.ubc.cs.beta.aclib.events.EventManager;
+import ca.ubc.cs.beta.aclib.events.IncumbentChangeEvent;
+import ca.ubc.cs.beta.aclib.events.ModelBuildEndEvent;
+import ca.ubc.cs.beta.aclib.events.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
@@ -69,7 +76,6 @@ public class AbstractAlgorithmFramework {
 	protected final double cutoffTime;
 	
 	protected final List<ProblemInstance> instances;
-	protected final List<ProblemInstance> testInstances;
 	
 	protected final TargetAlgorithmEvaluator algoEval;
 	
@@ -100,11 +106,13 @@ public class AbstractAlgorithmFramework {
 	protected final InstanceSeedGenerator instanceSeedGen;
 	
 	
+	private final EventManager eventManager;
 	
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
+	
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, EventManager manager)
 	{
 		this.instances = instances;
-		this.testInstances = testInstances;
+		
 		this.cutoffTime = smacOptions.scenarioConfig.cutoffTime;
 		this.options = smacOptions;
 		this.rand = rand;		
@@ -113,6 +121,7 @@ public class AbstractAlgorithmFramework {
 		this.configSpace = configSpace;
 		this.runHistory = new NewRunHistory(instanceSeedGen,smacOptions.scenarioConfig.intraInstanceObj, smacOptions.scenarioConfig.interInstanceObj, smacOptions.scenarioConfig.runObj);
 		this.instanceSeedGen = instanceSeedGen;
+		this.eventManager = manager;
 		
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);
@@ -149,8 +158,6 @@ public class AbstractAlgorithmFramework {
 		}
 		
 	}
-	
-	
 	
 	
 	public ParamConfiguration getIncumbent()
@@ -504,10 +511,14 @@ public class AbstractAlgorithmFramework {
 						runHistory.incrementIteration();
 						iteration++;
 						log.info("Starting Iteration {}", iteration);
+						
+						eventManager.fireEvent(new ModelBuildStartEvent(eventManager.getUUID(), getConfigurationTimeLimits()));
+						
 						StopWatch t = new AutoStartStopWatch();
 						learnModel(runHistory, configSpace);
 						log.info("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
+						eventManager.fireEvent(new ModelBuildEndEvent(eventManager.getUUID(), getConfigurationTimeLimits()));
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 						challengers.addAll(selectConfigurations());
 						
@@ -552,6 +563,9 @@ public class AbstractAlgorithmFramework {
 		} finally
 		{
 			try {
+				
+				eventManager.fireEvent(new AutomaticConfigurationEnd(eventManager.getUUID(), incumbent, getConfigurationTimeLimits(), currentIncumbentCost));
+				
 				trajectoryFileWriter.close();
 			} catch (IOException e) {
 				log.error("Trying to close Trajectory File failed with exception {}", e);
@@ -733,6 +747,8 @@ public class AbstractAlgorithmFramework {
 			ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
 			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 			evaluateRun(incumbentRunConfig);
+			
+			eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent));
 		} else
 		{
 			log.debug("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
@@ -911,7 +927,7 @@ public class AbstractAlgorithmFramework {
 
 
 
-	private static Object currentIncumbentCost;
+	private static double currentIncumbentCost;
 
 	private void changeIncumbentTo(ParamConfiguration challenger) {
 		// TODO Auto-generated method stub
@@ -919,10 +935,8 @@ public class AbstractAlgorithmFramework {
 		updateIncumbentCost();
 		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
 		logConfiguration("New Incumbent", challenger);
-
 		
-		
-
+		eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), currentIncumbentCost, challenger));
 	}
 
 	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
@@ -1092,6 +1106,9 @@ public class AbstractAlgorithmFramework {
 			
 			
 			log.info("Iteration {}: Completed run for config {} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
+			
+			eventManager.fireEvent(new AlgorithmRunCompletedEvent(eventManager.getUUID(), run, getConfigurationTimeLimits()));
+
 		}
 		
 		
@@ -1123,5 +1140,12 @@ public class AbstractAlgorithmFramework {
 	public List<TrajectoryFileEntry> getTrajectoryFileEntries()
 	{
 		return Collections.unmodifiableList(tfes);
+	}
+	
+	public ConfigurationTimeLimits getConfigurationTimeLimits()
+	{
+		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
+		double tunerTime = getTunerTime();
+		return new ConfigurationTimeLimits(tunerTime, wallTime ,iteration);
 	}
 }
