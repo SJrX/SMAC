@@ -1,9 +1,13 @@
 package ca.ubc.cs.beta.smac.executors;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -74,11 +78,11 @@ public class ValidatorExecutor {
 					throw new ParameterException("You cannot specify both a configuration and a trajectory file");
 				}
 				
-				ParamConfiguration configToValidate; 
 				
 				
+				//Set some default options
 				if(options.trajectoryFile != null)
-				{
+				{ 
 					log.info("Using Trajectory File {} " , options.trajectoryFile.getAbsolutePath());
 					if(options.tunerTime == -1)
 					{
@@ -103,7 +107,7 @@ public class ValidatorExecutor {
 						
 					}
 					
-					log.info("Using configuration specified on Command Line");
+					log.info("Using manually set configurations");
 				}
 				
 			
@@ -146,13 +150,17 @@ public class ValidatorExecutor {
 				{
 					try {
 						log.debug("Trying param file in path {} ", path);
-						configSpace = ParamFileHelper.getParamFileParser(path,1234);
+						configSpace = ParamFileHelper.getParamFileParser(path,options.configurationSeed);
 						break;
 					} catch(IllegalStateException e)
 					{ 
-	
-						
-					
+						if(e.getCause() instanceof FileNotFoundException)
+						{
+							//We don't care about this because we will just toss an exception if we don't find it
+						} else
+						{
+							log.warn("Error occured while trying to parse is {}"  , e.getMessage() );
+						}
 					}
 				}
 				
@@ -160,55 +168,93 @@ public class ValidatorExecutor {
 				List<TrajectoryFileEntry> tfes;
 				if(options.trajectoryFile != null)
 				{
-					
+					log.info("Parsing trajectory file");
 					 tfes = TrajectoryFileParser.parseTrajectoryFileAsList(options.trajectoryFile, configSpace);
 					 
 					 if(options.validationOptions.maxTimestamp == -1)
 					 {
 						 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
 					 }
-				
+					 
+					 if(options.randomConfigurations > 0) throw new ParameterException("Cannot validate both a trajectory file and random configurations");
+					 if(options.configurationList != null) throw new ParameterException("Cannot validate both a trajectory file and a configuration list");
+					 if(options.incumbent != null) throw new ParameterException("Cannot validate both a trajectory and a given configuration");
+					 
 				} else
 				{
 					if (options.tunerOverheadTime == -1)
 					{
 						options.tunerOverheadTime = 0;	
 					}
+					//We are explicitly setting configurations so validate all
+					options.validationOptions.validateAll = true;
 					
-					if(options.incumbent == null)
-					{
-						log.warn("No configuration supplied");
-						
-						
-						configToValidate = configSpace.getDefaultConfiguration();
-						log.info("To validate the incumbent please use --configuration \"" + configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX) + "\"");
-						throw new ParameterException("Must supply a configuration to validate");
-					} else
-					{
+					
+					List<ParamConfiguration> configToValidate = new ArrayList<ParamConfiguration>(); 
+					//==== Parse the supplied configuration;
+					int optionsSet=0;
+					if(options.incumbent != null)
+					{					
 						log.info("Parsing Supplied Configuration");
+						configToValidate.add(configFromString(options.incumbent, configSpace));
+						optionsSet++;
+					}
+					if(options.randomConfigurations > 0)
+					{
 						
-						if(options.incumbent.trim().equals("<DEFAULT>"))
+						log.info("Generating {} random configurations to validate");
+						for(int i=0; i < options.randomConfigurations; i++)
 						{
-							configToValidate = configSpace.getDefaultConfiguration();
-						} else
-						{
-							try {
-								configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_SYNTAX);
-							} catch(RuntimeException e)
+							if(options.includeRandomAsFirstDefault && i==0)
 							{
-								try {
-									log.info("Being nice and checking if this is a STATEFILE encoded configuration");
-									configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.STATEFILE_SYNTAX);
-								} catch(RuntimeException e2)
-								{
-									throw e;
-								}
-								
+								log.debug("Using the default as the first configuration");
+								configToValidate.add(configSpace.getDefaultConfiguration());
+							} else
+							{
+								configToValidate.add(configSpace.getRandomConfiguration());
 							}
 						}
+						optionsSet++;
+						
+					}
+					if(options.configurationList != null)
+					{
+						BufferedReader reader = new BufferedReader(new FileReader(options.configurationList));
+						
+						String line; 
+						while((line = reader.readLine()) != null)
+						{
+							
+							if(line.trim().isEmpty()) 
+							{
+								continue;
+							}
+							configToValidate.add(configFromString(line, configSpace));
+						}
+						
+						optionsSet++;
 					}
 					
-					tfes = Collections.singletonList(new TrajectoryFileEntry(configToValidate, options.tunerTime, options.empericalPerformance, options.tunerOverheadTime));
+					if(optionsSet == 0)
+					{
+						throw new ParameterException("You must set one of --trajectoryFile, --configuration, --configurationList, --randomConfiguration options");
+					}
+					if(optionsSet > 1)
+					{
+						throw new ParameterException("You can only set one of --trajectoryFile, --configuration, --configurationList, --randomConfiguration options");
+					}
+					
+							
+					
+					tfes = new ArrayList<TrajectoryFileEntry>();
+					for(ParamConfiguration config : configToValidate)
+					{
+						tfes.add(new TrajectoryFileEntry(config, options.tunerTime, options.empericalPerformance, options.tunerOverheadTime));
+					}
+					
+					
+					
+				
 					
 				}
 				
@@ -223,9 +269,6 @@ public class ValidatorExecutor {
 			
 				
 				//AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime);
-				
-				
-				
 				
 				
 				if(options.scenarioConfig.algoExecOptions.verifySAT == null)
@@ -347,5 +390,41 @@ public class ValidatorExecutor {
 			System.exit(returnValue);
 		}
 		/*(new Validator()).validate(testInstances, smac.getIncumbent(),options, testInstanceSeedGen, validatingTae);*/
+	}
+	
+	
+	public static ParamConfiguration configFromString(String input, ParamConfigurationSpace configSpace)
+	{
+		
+		if(input.toUpperCase().equals("DEFAULT") || input.toUpperCase().equals("<DEFAULT>"))
+		{
+			log.debug("Input is asking for the default configuration");
+			ParamConfiguration config = configSpace.getDefaultConfiguration();
+			log.debug("Configuration generated {}", config.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			return configSpace.getRandomConfiguration();
+		}
+		
+		if(input.toUpperCase().equals("RANDOM") || input.toUpperCase().equals("<RANDOM>"))
+		{
+			log.debug("Input is asking for a random configuration");
+			ParamConfiguration config = configSpace.getRandomConfiguration();
+			log.debug("Configuration generated {}", config.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			return configSpace.getRandomConfiguration();
+		}
+		
+		try {
+			return configSpace.getConfigurationFromString(input, StringFormat.NODB_SYNTAX);
+		} catch(RuntimeException e)
+		{
+			try {
+				log.info("Being nice and checking if this is a STATEFILE encoded configuration");
+				return configSpace.getConfigurationFromString(input, StringFormat.STATEFILE_SYNTAX);
+			} catch(RuntimeException e2)
+			{
+				throw e;
+			}
+			
+		}
+		
 	}
 }

@@ -88,8 +88,13 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		Set<TrajectoryFileEntry> tfesToUse = new TreeSet<TrajectoryFileEntry>();
 		
-		if(options.validateOnlyLastIncumbent)
+		if(options.validateAll)
 		{
+			tfesToUse.addAll(tfes);
+		} else if(options.validateOnlyLastIncumbent)
+		{
+			
+			log.debug("Validating only the last incumbent");
 			
 			TrajectoryFileEntry tfe = tfes.get(tfes.size() - 1);
 			
@@ -99,7 +104,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			
 			tfesToUse.add(newTfe);
 			
-		} else
+		}  else 
 		{
 			ConcurrentSkipListMap<Double,TrajectoryFileEntry> skipList = new ConcurrentSkipListMap<Double, TrajectoryFileEntry>();
 			
