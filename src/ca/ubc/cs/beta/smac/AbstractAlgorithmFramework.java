@@ -564,7 +564,7 @@ public class AbstractAlgorithmFramework {
 		{
 			try {
 				
-				eventManager.fireEvent(new AutomaticConfigurationEnd(eventManager.getUUID(), incumbent, getConfigurationTimeLimits(), currentIncumbentCost));
+				eventManager.fireEvent(new AutomaticConfigurationEnd(eventManager.getUUID(), incumbent, getConfigurationTimeLimits(), currentIncumbentCost, applicationStartTime, getTunerTime()));
 				
 				trajectoryFileWriter.close();
 			} catch (IOException e) {
@@ -748,7 +748,7 @@ public class AbstractAlgorithmFramework {
 			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 			evaluateRun(incumbentRunConfig);
 			
-			eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent));
+			eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
 		} else
 		{
 			log.debug("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
@@ -936,7 +936,7 @@ public class AbstractAlgorithmFramework {
 		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
 		logConfiguration("New Incumbent", challenger);
 		
-		eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), currentIncumbentCost, challenger));
+		eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), currentIncumbentCost, challenger, runHistory.getTotalNumRunsOfConfig(challenger)));
 	}
 
 	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
