@@ -83,6 +83,10 @@
 		<property name="version.devstring" value="v${version.major}.${version.minor}.${version.revision}dev-${git.branch}-${build.number}"/>
 		<echo file="${version.file.dev}">${version.devstring}</echo>
 		<echo file="build/classes/${version.file}">${version.string}</echo>
+		
+		
+		<delete dir="dist"/>
+		<mkdir dir="dist"/>
 		<jar destfile="dist/smac.jar" basedir="build/classes"/>
 		
 		<jar destfile="dist/smac-src.jar">
@@ -92,6 +96,7 @@
 				</jar>
 			
 		<copy todir="dist/" force="true">
+			
 			<fileset dir="deployables">
 				<include name="*"/>
 				<include name="**/"/>
@@ -227,7 +232,8 @@
 		<echo>Manual Phase 1 Complete</echo>
 		<echo></echo>
 		
-		
+		<!-- For some reason a file-formats.pdf gets built we will nuke it -->
+		<delete file="${doc.buildpath}/file-formats.pdf" failonerror="true"/>
 		
 	</target>	
 

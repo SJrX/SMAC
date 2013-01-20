@@ -321,7 +321,7 @@ public class AutomaticConfigurator
 			
 			
 			
-			logger.info("SMAC Completed Successfully. Log: (" + logLocation+  ")");
+			logger.info("SMAC Completed Successfully. Log: " + logLocation);
 			
 			
 			return ACLibReturnValues.SUCCESS;
@@ -352,7 +352,7 @@ public class AutomaticConfigurator
 						
 					
 					
-					logger.info("Exiting SMAC with failure. Log:(" + logLocation+  ")");
+					logger.info("Exiting SMAC with failure. Log: " + logLocation);
 					t = t.getCause();
 				} else
 				{
