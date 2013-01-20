@@ -94,10 +94,7 @@ public class StaticMethodWrapper implements Serializable{
 		return SeedableRandomSingleton.getPermutation(n, 1);
 	}
 	
-	public int getNextSeed(int instanceID)
-	{
-		return instanceSeedGenerator.getNextSeed(instanceID);
-	}
+
 	
 	public void setInstanceCount(int instanceCount)
 	{
