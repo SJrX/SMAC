@@ -423,12 +423,12 @@ public class AbstractAlgorithmFramework {
 		double stdDevInc = -1;
 		
 		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
-		
-		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, empericalPerformance, acTime);
+		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
+		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, wallTime,   empericalPerformance, acTime);
 		
 		this.tfes.add(tfe);
 		
-		String outLine = tunerTime + ", " + empericalPerformance + ", " + stdDevInc + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
+		String outLine = tunerTime + ", " + empericalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
 		try 
 		{
 			trajectoryFileWriter.write(outLine);
@@ -1327,6 +1327,7 @@ public class AbstractAlgorithmFramework {
 		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
 		logConfiguration("New Incumbent", challenger);
 		
+		
 		eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), currentIncumbentCost, challenger, runHistory.getTotalNumRunsOfConfig(challenger)));
 	}
 
@@ -1349,20 +1350,13 @@ public class AbstractAlgorithmFramework {
 	private double computeCapBinSearch(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> missingInstances, double cutofftime, double bound_inc,  double lowerBound, double upperBound)
 	{
 	
-		
-		
 		if(upperBound - lowerBound < Math.pow(10,-6))
 		{
 			double capTime = upperBound + Math.pow(10, -3);
 			return capTime * options.capSlack + options.capAddSlack;
 		}
 		
-		
-		
 		double mean = (upperBound + lowerBound)/2;
-		
-			
-		
 		
 		double predictedPerformance = lowerBoundOnEmpiricalPerformance(challenger, pisp, aMissing, missingInstances, cutofftime, mean); 
 		if(predictedPerformance < bound_inc)

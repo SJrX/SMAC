@@ -92,6 +92,12 @@ public class ValidatorExecutor {
 						
 					}
 					
+					if(options.wallTime == -1)
+					{
+						options.wallTime = options.tunerTime;
+						//options.wallTime = options.scenarioConfig.
+						
+					}
 					
 					
 				} else
@@ -99,6 +105,11 @@ public class ValidatorExecutor {
 					if(options.tunerTime == -1)
 					{
 						options.tunerTime = 0;
+					}
+					
+					if(options.wallTime == -1)
+					{
+						options.wallTime = 0;
 					}
 					
 					if(options.empericalPerformance == -1)
@@ -169,11 +180,17 @@ public class ValidatorExecutor {
 				if(options.trajectoryFile != null)
 				{
 					log.info("Parsing trajectory file");
-					 tfes = TrajectoryFileParser.parseTrajectoryFileAsList(options.trajectoryFile, configSpace);
+					 tfes = TrajectoryFileParser.parseTrajectoryFileAsList(options.trajectoryFile, configSpace, options.useTunerTimeIfNoWallTime);
 					 
 					 if(options.validationOptions.maxTimestamp == -1)
 					 {
-						 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+						 if(options.validationOptions.useWallClockTime)
+						 {
+							 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+						 } else
+						 {
+							 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+						 }
 					 }
 					 
 					 if(options.randomConfigurations > 0) throw new ParameterException("Cannot validate both a trajectory file and random configurations");
@@ -249,7 +266,7 @@ public class ValidatorExecutor {
 					tfes = new ArrayList<TrajectoryFileEntry>();
 					for(ParamConfiguration config : configToValidate)
 					{
-						tfes.add(new TrajectoryFileEntry(config, options.tunerTime, options.empericalPerformance, options.tunerOverheadTime));
+						tfes.add(new TrajectoryFileEntry(config, options.tunerTime,options.wallTime , options.empericalPerformance, options.tunerOverheadTime));
 					}
 					
 					
