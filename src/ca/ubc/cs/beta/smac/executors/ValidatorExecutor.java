@@ -217,6 +217,7 @@ public class ValidatorExecutor {
 						optionsSet++;
 						
 					}
+					
 					if(options.configurationList != null)
 					{
 						BufferedReader reader = new BufferedReader(new FileReader(options.configurationList));
@@ -247,9 +248,17 @@ public class ValidatorExecutor {
 							
 					
 					tfes = new ArrayList<TrajectoryFileEntry>();
+					int i=0;
 					for(ParamConfiguration config : configToValidate)
 					{
-						tfes.add(new TrajectoryFileEntry(config, options.tunerTime, options.empericalPerformance, options.tunerOverheadTime));
+						
+						
+						tfes.add(new TrajectoryFileEntry(config, options.tunerTime + i, options.empericalPerformance, options.tunerOverheadTime + i));
+						
+						if(options.autoIncrementTunerTime)
+						{
+							i++;
+						}
 					}
 					
 					

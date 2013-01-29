@@ -408,7 +408,7 @@ endloop:
 			
 		
 			if(runs == null) continue;
-			if(pisps.isEmpty() )
+			if(pisps.isEmpty())
 			{
 				pisps.addAll(runs.keySet());
 				
