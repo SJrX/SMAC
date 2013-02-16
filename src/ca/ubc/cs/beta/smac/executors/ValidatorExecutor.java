@@ -401,10 +401,10 @@ public class ValidatorExecutor {
 		/*(new Validator()).validate(testInstances, smac.getIncumbent(),options, testInstanceSeedGen, validatingTae);*/
 	}
 	
-	
+	@Deprecated
 	public static ParamConfiguration configFromString(String input, ParamConfigurationSpace configSpace)
 	{
-		
+		//You can just read DEFAULT and RANDOM as a configuration now 
 		if(input.toUpperCase().equals("DEFAULT") || input.toUpperCase().equals("<DEFAULT>"))
 		{
 			log.debug("Input is asking for the default configuration");
