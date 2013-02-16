@@ -411,7 +411,8 @@ public class AbstractAlgorithmFramework {
 		double acTime = getCPUTime() / 1000.0 / 1000 / 1000;
 		
 		//-1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
-		double stdDevInc = -1;
+		
+		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
 		
 		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
 		
@@ -419,7 +420,7 @@ public class AbstractAlgorithmFramework {
 		
 		this.tfes.add(tfe);
 		
-		String outLine = tunerTime + ", " + empericalPerformance + ", " + stdDevInc + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
+		String outLine = tunerTime + ", " + empericalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
 		try 
 		{
 			trajectoryFileWriter.write(outLine);
