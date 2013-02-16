@@ -202,7 +202,8 @@
 		<copy todir="${doc.buildpath}">
 			<fileset dir="doc/tex/"/>
 		</copy>
-		<copy file="dist/git-hashes.tex" todir="${doc.buildpath}"/>
+		
+		<copy file="dist/git-hashes.tex" todir="${doc.buildpath}" overwrite="true"/>
 		
 		<property file="${buildnumberfile}" prefix="manualfile" />
 		<property name="manual.build.number" value="${build.number}"/>
