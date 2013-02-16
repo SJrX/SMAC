@@ -99,9 +99,9 @@ public class AbstractAlgorithmFramework {
 
 	protected final InstanceSeedGenerator instanceSeedGen;
 	
+	private final ParamConfiguration initialIncumbent;
 	
-	
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand)
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances,List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialIncumbent)
 	{
 		this.instances = instances;
 		this.testInstances = testInstances;
@@ -113,7 +113,7 @@ public class AbstractAlgorithmFramework {
 		this.configSpace = configSpace;
 		this.runHistory = new NewRunHistory(instanceSeedGen,smacOptions.scenarioConfig.intraInstanceObj, smacOptions.scenarioConfig.interInstanceObj, smacOptions.scenarioConfig.runObj);
 		this.instanceSeedGen = instanceSeedGen;
-		
+		this.initialIncumbent = initialIncumbent;
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);
 		DateFormat df = DateFormat.getDateTimeInstance();	
@@ -151,6 +151,10 @@ public class AbstractAlgorithmFramework {
 	}
 	
 	
+	public ParamConfiguration getInitialIncumbent()
+	{
+		return initialIncumbent;
+	}
 	
 	
 	public ParamConfiguration getIncumbent()
@@ -407,7 +411,8 @@ public class AbstractAlgorithmFramework {
 		double acTime = getCPUTime() / 1000.0 / 1000 / 1000;
 		
 		//-1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
-		double stdDevInc = -1;
+		
+		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
 		
 		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
 		
@@ -415,7 +420,7 @@ public class AbstractAlgorithmFramework {
 		
 		this.tfes.add(tfe);
 		
-		String outLine = tunerTime + ", " + empericalPerformance + ", " + stdDevInc + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
+		String outLine = tunerTime + ", " + empericalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
 		try 
 		{
 			trajectoryFileWriter.write(outLine);
@@ -442,8 +447,8 @@ public class AbstractAlgorithmFramework {
 				
 				if(iteration == 0)
 				{ 
-					incumbent = configSpace.getDefaultConfiguration();
-					log.info("Default Configuration set as Incumbent: {}", incumbent);
+					incumbent = initialIncumbent;
+					log.info("Initial Incumbent set as Incumbent: {}", incumbent);
 					
 					iteration = 0;
 					
@@ -452,12 +457,12 @@ public class AbstractAlgorithmFramework {
 					
 					N = Math.min(N, instances.size());
 					N = Math.min(N, options.maxIncumbentRuns);
-					log.debug("Scheduling default configuration for {} runs",N);
+					log.debug("Scheduling initial configuration for {} runs",N);
 					for(int i=0; i <N; i++)
 					{
 						
 						/**
-						 * Evaluate Default Configuration
+						 * Evaluate initial Configuration
 						 */
 						ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
 						log.trace("New Problem Instance Seed Pair generated {}", pisp);
@@ -470,7 +475,7 @@ public class AbstractAlgorithmFramework {
 					
 						} catch(OutOfTimeException e)
 						{
-							log.warn("Ran out of time while evaluating the default configuration on the first run, this is most likely a configuration error");
+							log.warn("Ran out of time while evaluating the initial configuration on the first run, this is most likely a configuration error");
 							//Ignore this exception
 							//Force the incumbent to be logged in RunHistory and then we will timeout next
 							try {

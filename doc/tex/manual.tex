@@ -105,11 +105,17 @@ Value & Error Name & Description \\
 			\item Greatly improved memory usage in State Serialization code, and now we free the existing model prior to building a new one, so for some JVMs this may improve memory usage.
 			\end{enumerate}
 
-			\item[Version 2.04.01 (Jan-2013)] Minor Bug Fix of Java SMAC
+			\item[Version 2.04.01 (Feb-2013)] Minor Bug Fix of Java SMAC
 				\begin{enumerate}
  			\item Added option to validate over training set instances 
 			\item Can now use $<$DEFAULT$>$ as a configuration to validate against
 			\item Fixed bug where \textbf{TIMEOUT} runs below our requested cutoff time are not counted properly when considering incumbent changes
+			\item Can now specify the initial incumbent with the \textbf{-$~\!$-initialIncumbent} option.
+			\item Wallclock time is now saved in the trajectory file instead of -1
+			\item FAQ Improvements
+			\item Git commit hash is now documented in Manual, FAQ, and Version strings
+			
+			
 			\end{enumerate}
 		
 	\end{description}

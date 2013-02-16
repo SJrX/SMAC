@@ -24,6 +24,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
@@ -233,6 +235,18 @@ public class AutomaticConfigurator
 			
 			
 			
+			ParamConfiguration initialIncumbent = configSpace.getConfigurationFromString(options.initialIncumbent, StringFormat.NODB_SYNTAX);
+		
+			
+			if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
+			{
+				logger.info("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			} else
+			{
+				logger.info("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			}
+			
+			
 			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
 			
 
@@ -248,10 +262,10 @@ public class AutomaticConfigurator
 			switch(options.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(options,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen, rand);
+					smac = new AbstractAlgorithmFramework(options,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent);
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, testInstances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, testInstances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, initialIncumbent);
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
@@ -348,11 +362,16 @@ public class AutomaticConfigurator
 						logger.error(stackTrace, "StackTrace:{}",sWriter.toString());
 						
 					}
-					
 						
-					
-					
 					logger.info("Exiting SMAC with failure. Log: " + logLocation);
+				
+					logger.info("Please see above for the available options. Further information is available in the following documents:");
+					logger.info("- The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
+					logger.info("- The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
+					logger.info("- The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
+
+					
+					
 					t = t.getCause();
 				} else
 				{
