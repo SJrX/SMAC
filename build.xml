@@ -139,6 +139,29 @@
 		<echo file="dist/git-hashes.tex" append="true">${ant.project.name} &amp; ${version.string} &amp; ${git.commit} &amp; ${git.dirty} \\${line.separator}\hline${line.separator}</echo>
 	
 		<echo>I am probably copying the lastdeployfile as well, this should be fixed one day :)</echo>
+		
+		<mkdir dir="dist/util"/>
+		
+		<java classname="ca.ubc.cs.beta.aclib.misc.options.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions"/>
+			<arg value="--commandName"/>
+			<arg value="smac-validate"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
+		
+		<java classname="ca.ubc.cs.beta.aclib.misc.options.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+					<arg value="--class"/>
+					<arg value="ca.ubc.cs.beta.aclib.options.SMACOptions"/>
+					<arg value="--commandName"/>
+					<arg value="smac"/>
+					<arg value="--outputFile"/>
+					<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
+					
+		
+			
 		<chmod perm="750">
 			<fileset dir="dist/">
 				<include name="smac"/>
@@ -146,6 +169,7 @@
 				<include name="smac-validate"/>
 				<include name="example_saps/ubcsat"/>
 				<include name="example_spear/Spear-32_1.2.1"/>
+				<include name="util/bash_autocomplete.sh"/>
 			</fileset>
 		</chmod>
 	</target>	
@@ -155,6 +179,7 @@
 		<tar destFile="${software.dir}/${outputfilename}.tar.gz" longfile="gnu" compression="gzip">
 					<tarfileset dir="dist/" filemode="640" dirmode="750" prefix="${outputfilename}/">
 						<include name="**/*"/>
+					
 						<exclude name="${lastdeployfile}"/> <!--The previous exclude didn't work so maybe try here-->
 						<exclude name="smac"/>
 						<exclude name="smac-possible-restores"/>
@@ -164,6 +189,7 @@
 					</tarfileset>
 					<tarfileset dir="dist/" filemode="750" prefix="${outputfilename}/">
 						<include name="smac"/>
+						<include name="util/bash_autocomplete.sh"/>
 						<include name="smac-possible-restores"/>
 						<include name="smac-validate"/>
 						<include name="example_saps/ubcsat*"/>
