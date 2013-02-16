@@ -90,7 +90,12 @@ Value & Error Name & Description \\
 \end{table}
 
 \textsc{NOTE:} All error conditions besides 255 are fixed. However in future some exceptions that previously reported 255 may be changed to a non 255 value as needed / requested
-
+\\
+\\
+\\
+\\
+\\
+\\
 \subsection{Version History of Java SMAC}
 	\begin{description}
 		\item[Version 2.00 (Aug-2012)] First Internal Release of Java SMAC (this is a port and extension of the original Matlab version).
@@ -114,6 +119,11 @@ Value & Error Name & Description \\
 			\item Wallclock time is now saved in the trajectory file instead of -1
 			\item FAQ Improvements
 			\item Git commit hash is now documented in Manual, FAQ, and Version strings
+			\item \textbf{(BETA)} Support for bash auto-completion of arguments for \texttt{smac} and \texttt{smac-validate}. You can load the file by running: 
+\begin{verbatim}
+. ./util/bash_autocomplete.sh
+\end{verbatim}
+
 			
 			
 			\end{enumerate}
