@@ -367,6 +367,10 @@ public class AutomaticConfigurator
 					
 					
 					logger.info("Exiting SMAC with failure. Log: " + logLocation);
+					logger.info("The FAQ (doc/faq.pdf) contains commonly asked questions with troubleshooting, and usage.");
+					logger.info("The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
+					logger.info("The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
+					
 					t = t.getCause();
 				} else
 				{
