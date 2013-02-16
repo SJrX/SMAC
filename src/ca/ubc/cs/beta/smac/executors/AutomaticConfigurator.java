@@ -362,14 +362,15 @@ public class AutomaticConfigurator
 						logger.error(stackTrace, "StackTrace:{}",sWriter.toString());
 						
 					}
-					
 						
-					
-					
 					logger.info("Exiting SMAC with failure. Log: " + logLocation);
-					logger.info("The FAQ (doc/faq.pdf) contains commonly asked questions with troubleshooting, and usage.");
-					logger.info("The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
-					logger.info("The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
+				
+					logger.info("Please see above for the available options. Further information is available in the following documents:");
+					logger.info("- The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
+					logger.info("- The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
+					logger.info("- The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
+
+					
 					
 					t = t.getCause();
 				} else
