@@ -65,8 +65,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand) {
-		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen, rand);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, List<ProblemInstance> testInstances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialConfiguration) {
+		super(smacConfig, instances, testInstances, algoEval,sf, configSpace, instanceSeedGen, rand, initialConfiguration);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
@@ -93,7 +93,6 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	@Override
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) 
 	{
-		
 		
 		
 		if(options.randomForestOptions.subsampleValuesWhenLowMemory)
