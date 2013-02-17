@@ -59,6 +59,7 @@
 			</fileset>
 		</path>	
 			
+		<buildnumber file="${buildnumberfile}"/>
 	</target>
 	<target name="clean">
 		<delete dir="build"/>
@@ -69,15 +70,12 @@
 		<javac srcdir="src" destdir="build/classes" debug="true">
 		<classpath refid="compile.classpath"/>
 		</javac>
-		
-		
 	</target>
 	
 	
 			
 	
-	<target name="archive" depends="compile, manual, get-git-branch">
-		<buildnumber file="${buildnumberfile}"/>
+	<target name="archive" depends="init, compile, manual, get-git-branch">
 		<property name="version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${git.branch}-${build.number}"/>
 		<property name="outputfilename" value="smac-${version.string}"/>
 		<property name="version.devstring" value="v${version.major}.${version.minor}.${version.revision}dev-${git.branch}-${build.number}"/>

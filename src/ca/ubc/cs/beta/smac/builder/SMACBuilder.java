@@ -3,6 +3,7 @@ package ca.ubc.cs.beta.smac.builder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.Reader;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -23,6 +24,8 @@ import org.slf4j.MarkerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
+
+import ec.util.MersenneTwister;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
@@ -63,12 +66,17 @@ public class SMACBuilder {
 	
 	private final EventManager eventManager; 
 	
+    private AlgorithmExecutionConfig execConfig = null;
+
+    private ParamConfigurationSpace configSpace;
+
+    private SMACOptions options;
 	
-	public SMACBuilder()
+	public SMACBuilder(SMACOptions options)
 	{
 		this.eventManager = new EventManager();
+        this.options = options;
 	}
-	
 	
 	public EventManager getEventManager()
 	{
@@ -90,6 +98,11 @@ public class SMACBuilder {
 	{
 		this.instanceSeedGen = insc;
 	}
+
+    public void parseParamSpace(Reader paramFileReader)
+    {
+        configSpace = new ParamConfigurationSpace(paramFileReader, new MersenneTwister(options.numRun + options.seedOffset +1000000), paramFileReader.toString());
+    }
 	
 	
 	public List<ProblemInstance> getInstances()
@@ -98,7 +111,7 @@ public class SMACBuilder {
 	}
 	
 	
-	public void setInstancesAndSeedGenFromOptions(SMACOptions options) throws IOException
+	public void setInstancesAndSeedGenFromOptions() throws IOException
 	{
 		InstanceListWithSeeds ilws;
 		
@@ -113,16 +126,27 @@ public class SMACBuilder {
 		instances = ilws.getInstances();
 		
 	}
+
+    public AlgorithmExecutionConfig getAlgoExecConfig()
+    {
+        if(configSpace == null)
+            throw new IllegalStateException("No param space defined");
+
+        if(execConfig == null)
+        {
+            execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+        }
+        return execConfig;
+    }
 	
 	
-	public AbstractAlgorithmFramework getSMAC(SMACOptions options, TargetAlgorithmEvaluator tae)
+	public AbstractAlgorithmFramework getSMAC(TargetAlgorithmEvaluator tae)
 	{
 	
 
 		SeedableRandomSingleton.setSeed(options.numRun + options.seedOffset);
 		Random rand = SeedableRandomSingleton.getRandom(); 
 
-		
 		
 		
 		if(instances == null)
@@ -134,8 +158,14 @@ public class SMACBuilder {
 		{
 			throw new IllegalStateException("InstanceSeedGen must be set prior to getting SMAC Object");
 		}
+
+        if(configSpace == null)
+        {
+            //TODO: This should probably not be an exception, as we could default to the stuff in the options...
+            throw new IllegalStateException("Config space has not been specified");
+        }
 		
-		if(instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
+		if(!instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
 		{
 			//logger.info("Instance Seed Generator reports that all instances have the same number of available seeds");
 			throw new ParameterException("All Training Instances must have the same number of seeds in this version of SMAC");
@@ -157,40 +187,10 @@ public class SMACBuilder {
 				throw new IllegalArgumentException("State Serializer specified is not supported");
 		}
 		
-		String paramFile = options.scenarioConfig.paramFileDelegate.paramFile;
-		log.info("Parsing Parameter Space File", paramFile);
-		ParamConfigurationSpace configSpace = null;
-		
-		
-		String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
-		for(String path : possiblePaths)
-		{
-			try {
-				log.debug("Trying param file in path {} ", path);
-				
-				configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
-				break;
-			}catch(IllegalStateException e)
-			{ 
-			
-			}
-		}
-		
-		
-		if(configSpace == null)
-		{
-			throw new ParameterException("Could not find param file");
-		}
-		
-		String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
-		File f2 = new File(algoExecDir);
-		if (!f2.isAbsolute()){
-			f2 = new File(options.experimentDir + File.separator + algoExecDir);
-		}
-		AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+		//String paramFile = options.scenarioConfig.paramFileDelegate.paramFile;
+		//log.info("Parsing Parameter Space File", paramFile);
+		//ParamConfigurationSpace configSpace = null;
 	
-		
-		
 		
 		StateFactory sf;
 		
@@ -212,10 +212,32 @@ public class SMACBuilder {
 			default:
 				throw new IllegalArgumentException("State Serializer specified is not supported");
 		}
+        
+        //TODO: This should probably live inside the actual smac code?
+        if(options.adaptiveCapping == null)
+        {
+            switch(options.scenarioConfig.runObj)
+            {
+            case RUNTIME:
+                options.adaptiveCapping = true;
+                break;
+                
+            case QUALITY:
+                options.adaptiveCapping = false;
+                break;
+                
+            default:
+                //You need to add something new here
+                throw new IllegalStateException("Not sure what to default too");
+            }
+        }
 		
+	
+        //Make sure we have an exec config
+        getAlgoExecConfig();
 		
-		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
-		
+        //Wrap the given TAE
+		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, true, tae);
 
 		if(options.modelHashCodeFile != null)
 		{
@@ -224,12 +246,11 @@ public class SMACBuilder {
 		}
 		
 		
-		
 		AbstractAlgorithmFramework smac;
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, eventManager);
+				smac = new AbstractAlgorithmFramework(options,instances, algoEval, sf, configSpace, instanceSeedGen, rand, eventManager);
 				break;
 			case SMAC:
 				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, eventManager);
