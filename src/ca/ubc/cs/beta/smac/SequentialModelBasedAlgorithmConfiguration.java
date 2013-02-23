@@ -168,6 +168,18 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		double[] runResponseValues = runHistory.getRunResponseValues();
+		boolean[] censored = runHistory.getCensoredFlagForRuns();
+		if(smacConfig.maskCensoredDataAsKappaMax)
+		{
+			for(int j=0; j < runResponseValues.length; j++)
+			{
+				if(censored[j])
+				{
+					runResponseValues[j] = options.scenarioConfig.cutoffTime;
+				}
+			}
+		}
+		
 		
 		for(int j=0; j < runResponseValues.length; j++)
 		{ //=== Not sure if I Should be penalizing runs prior to the model

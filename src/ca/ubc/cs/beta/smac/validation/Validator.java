@@ -29,6 +29,7 @@ import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.events.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
@@ -78,6 +79,14 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		ValidationRoundingMode mode = options.validationRoundingMode;		
 		
 		List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
+		
+		if(options.useWallClockTime)
+		{
+			options.outputFileSuffix = "walltime" + options.outputFileSuffix;
+		} else
+		{
+			options.outputFileSuffix = "tunertime" + options.outputFileSuffix;
+		}
 	
 		if(testInstGen instanceof SetInstanceSeedGenerator)
 		{
@@ -107,14 +116,26 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		{
 			
 			log.debug("Validating only the last incumbent");
-			
-			TrajectoryFileEntry tfe = tfes.get(tfes.size() - 1);
-			
-			double tunerTime = (tfe.getTunerTime() > options.maxTimestamp) ? options.maxTimestamp : tfe.getTunerTime();
-			
-			TrajectoryFileEntry newTfe = new TrajectoryFileEntry(tfe.getConfiguration(), tunerTime, tfe.getEmpericalPerformance(), tfe.getACOverhead());
-			
-			tfesToUse.add(newTfe);
+			if(options.useWallClockTime)
+			{
+				TrajectoryFileEntry tfe = tfes.get(tfes.size() - 1);
+				
+				
+				double wallTime = (tfe.getWallTime() > options.maxTimestamp) ? options.maxTimestamp : tfe.getWallTime();
+				
+				TrajectoryFileEntry newTfe = new TrajectoryFileEntry(tfe.getConfiguration(), tfe.getTunerTime(), wallTime, tfe.getEmpericalPerformance(), tfe.getACOverhead());
+				
+				tfesToUse.add(newTfe);
+			} else
+			{
+				TrajectoryFileEntry tfe = tfes.get(tfes.size() - 1);
+				
+				double tunerTime = (tfe.getTunerTime() > options.maxTimestamp) ? options.maxTimestamp : tfe.getTunerTime();
+				
+				TrajectoryFileEntry newTfe = new TrajectoryFileEntry(tfe.getConfiguration(), tunerTime, tfe.getWallTime(), tfe.getEmpericalPerformance(), tfe.getACOverhead());
+				
+				tfesToUse.add(newTfe);
+			}
 			
 		}  else 
 		{
@@ -122,21 +143,53 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			
 			for(TrajectoryFileEntry tfe : tfes)
 			{
-				skipList.put(tfe.getTunerTime(), tfe);
+				if(options.useWallClockTime)
+				{
+					skipList.put(tfe.getWallTime(), tfe);
+				} else
+				{
+					skipList.put(tfe.getTunerTime(), tfe);
+				}
 			}
 			if(options.maxTimestamp == -1)
 			{
 				options.maxTimestamp = skipList.floorKey(Double.MAX_VALUE);
 			}
-		
+			ParamConfiguration lastConfig = null;
+			Double lastPerformance = Double.MAX_VALUE;
 			for(double x = options.maxTimestamp; x > options.minTimestamp ; x /= options.multFactor)
 			{
-				TrajectoryFileEntry tfe = skipList.floorEntry(x).getValue();
-				tfesToUse.add(new TrajectoryFileEntry(tfe.getConfiguration(), x, tfe.getEmpericalPerformance(), tfe.getACOverhead()));
 				
+				Entry<Double, TrajectoryFileEntry> tfeEntry = skipList.floorEntry(x);
+				
+				TrajectoryFileEntry tfe;
+				
+				if(tfeEntry != null) 
+				{
+					tfe = tfeEntry.getValue();
+				} else
+				{
+					tfe = new TrajectoryFileEntry(lastConfig, 0,0,lastPerformance,0);
+				}
+				/*if(options.useWallClockTime && tfeEntry.getKey() < x/options.multFactor)
+				{	export MYSQL_CREATE_TABLES = "false"
+					continue;
+				}*/
+				
+				
+				if(options.useWallClockTime)
+				{
+					tfesToUse.add(new TrajectoryFileEntry(tfe.getConfiguration(), x, x, tfe.getEmpericalPerformance(), tfe.getACOverhead()));
+				} else
+				{
+					tfesToUse.add(new TrajectoryFileEntry(tfe.getConfiguration(),x, tfe.getWallTime(), tfe.getEmpericalPerformance(), tfe.getACOverhead()));
+					
+				}
+				lastConfig = tfe.getConfiguration();
+				lastPerformance = tfe.getEmpericalPerformance();
 				//If minTimestamp is zero, then we would never get there, but we will stop after 0.25
 				//We don't put this in the loop condition, because we do always want atleast one run
-				if( x  < 0.25) break; 
+				if( x  < 0.01) break; 
 				
 			}
 		}
@@ -189,7 +242,8 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 						finalPerformance.put(tfe, testSetPerformance.get(tfe.getConfiguration()));
 					}
 
-					appendInstanceResultFile(outputDir, finalPerformance,  numRun,options);
+					appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime);
+					
 					
 					
 				} catch(IOException e)
@@ -235,7 +289,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 					try {
 						
 						log.info("Writing state file  into " + outputDir);
-						writeLegacyStateFile(outputDir, runs, numRun, testInstGen, interInstanceObjective, interInstanceObjective, runObj);
+						writeLegacyStateFile(outputDir, options.outputFileSuffix,runs, numRun, testInstGen, interInstanceObjective, interInstanceObjective, runObj);
 					} catch(RuntimeException e)
 					{
 						log.error("Couldn't write state file:",e);
@@ -660,10 +714,14 @@ endloop:
 	}
 	
 
-	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions) throws IOException {
+	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions, boolean useWallTime) throws IOException {
 		
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
+		
+		
 		File f = new File(outputDir +  File.separator + "classicValidationResults"+suffix+"-run" + numRun + ".csv");
+		
+		
 	
 		if(!f.exists())
 		{
@@ -679,12 +737,21 @@ endloop:
 		StringBuilder sb = new StringBuilder();
 		for(Entry<TrajectoryFileEntry, Double > ent : finalPerformance.entrySet())
 		{
-			double tunerTime = ent.getKey().getTunerTime();
+			double time;
+					
+			if(useWallTime)
+			{
+				time = ent.getKey().getWallTime();
+			} else
+			{
+				time = ent.getKey().getTunerTime();
+			}
+			
 			double empericalPerformance = ent.getKey().getEmpericalPerformance();
 			double testSetPerformance = ent.getValue();
 			double acOverhead = ent.getKey().getACOverhead();
 			
-			sb.append(tunerTime).append(",").append(empericalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
+			sb.append(time).append(",").append(empericalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
 		}
 		if(!f.canWrite())
 		{
@@ -695,7 +762,6 @@ endloop:
 		} else
 		{
 		
-		
 			PrintWriter output = new PrintWriter(new FileOutputStream(f,true));
 			output.append(sb);
 			
@@ -705,7 +771,7 @@ endloop:
 		
 }
 	
-	private static void writeLegacyStateFile(String outputDir, List<AlgorithmRun> runs, long numRun, InstanceSeedGenerator insc, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
+	private static void writeLegacyStateFile(String outputDir, String suffix, List<AlgorithmRun> runs, long numRun, InstanceSeedGenerator insc, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
 	{
 		RunHistory rh = new NewRunHistory(insc, interRunObjective, intraRunObjective, runObj);
 		for(AlgorithmRun run : runs)
@@ -717,7 +783,7 @@ endloop:
 			}
 		}
 		
-		StateFactory sf = new LegacyStateFactory(outputDir + File.separator + "state-run" + numRun, null);
+		StateFactory sf = new LegacyStateFactory(outputDir + File.separator + "state" + suffix +"-run" + numRun, null);
 		
 		
 		
