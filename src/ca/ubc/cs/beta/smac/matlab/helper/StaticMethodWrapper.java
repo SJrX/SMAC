@@ -28,11 +28,8 @@ public class StaticMethodWrapper implements Serializable{
 	 */
 	private static final long serialVersionUID = 6816563647209289030L;
 	
-	
 	private static InstanceSeedGenerator instanceSeedGenerator;
 	private static int instanceCount = 0;
-	
-	
 	
 	public ParamConfiguration getRandomConfiguration(ParamConfigurationSpace p)
 	{

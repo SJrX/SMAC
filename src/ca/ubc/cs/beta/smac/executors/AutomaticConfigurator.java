@@ -28,6 +28,7 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.events.EventManager;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
@@ -51,12 +52,12 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
+import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
-import ca.ubc.cs.beta.smac.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
@@ -70,11 +71,14 @@ import org.slf4j.MarkerFactory;
 public class AutomaticConfigurator 
 {
 
-	private static List<ProblemInstance> instances;
-	private static List<ProblemInstance> testInstances;
+	
 	private static Logger logger;
 	private static Marker exception;
 	private static Marker stackTrace;
+	
+	private static List<ProblemInstance> instances;
+	private static List<ProblemInstance> testInstances;
+	
 	private static InstanceSeedGenerator instanceSeedGen;
 	private static InstanceSeedGenerator testInstanceSeedGen;
 	private static String logLocation = "<NO LOG LOCATION SPECIFIED, FAILURE MUST HAVE OCCURED EARLY>";
@@ -256,16 +260,21 @@ public class AutomaticConfigurator
 				parseModelHashCodes(options.modelHashCodeFile);
 			}
 			
-			
+			EventManager eventManager = new EventManager();
 			
 			AbstractAlgorithmFramework smac;
 			switch(options.execMode)
 			{
 				case ROAR:
-					smac = new AbstractAlgorithmFramework(options,instances, testInstances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent);
+
+					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager);
+
 					break;
 				case SMAC:
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, testInstances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, initialIncumbent);
+
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager);
+
+					
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
@@ -322,7 +331,7 @@ public class AutomaticConfigurator
 				List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
 				
 				
-				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun);
+				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun,true);
 				
 				
 				
@@ -629,12 +638,7 @@ public class AutomaticConfigurator
 			
 			
 				
-			List<String> names = TargetAlgorithmEvaluatorBuilder.getAvailableTargetAlgorithmEvaluators(config.scenarioConfig.algoExecOptions);
 			
-			for(String name : names)
-			{
-				logger.debug("Target Algorithm Evaluator Available {} ", name);
-			}
 			
 			try {
 				//We don't handle this more gracefully because this seems like a super rare incident.
