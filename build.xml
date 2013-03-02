@@ -240,6 +240,10 @@
 		<property name="doc.version.full.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${git.branch}-${manual.build.number}"/>
 		<echo message="${doc.version.full.string}" file="${doc.buildpath}/versionfull.tex"/>
 		
+		<delete>
+			<!-- Delete any stray PDFs we may have created -->
+			<fileset dir="${doc.buildpath}" includes="*.pdf"/>
+		</delete>
 		
 		<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" output="${doc.buildpath}/options-ref.tex">
 		</java>
