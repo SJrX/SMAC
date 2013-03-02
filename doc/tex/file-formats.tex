@@ -239,12 +239,12 @@ Forbidden Parameters are combinations of parameter settings which should not be 
 as valid by SMAC. During the search phase, parameters matching a forbidden
 parameter configuration, will not be explored \footnote{Specifying a large number of forbidden parameters may degrade SMAC's performance substantially.}. 
 
-The Syntax is as follows:
+The syntax is as follows:
 
 \texttt{\{~name1=val1~,~name2=val2,~...\}}
 
 \vspace{2pt}
-\textbf{Example}
+\textbf{Example:}
 \vspace{5pt}
 
 \texttt{quick-sort~\{~on,~off~\}~{[}on{]}}
@@ -257,6 +257,93 @@ The Syntax is as follows:
 
 The above example implements an exclusive-or \footnote{Admittedly it could be
 better modelled with a simple categorical parameter.}. The first forbidden parameter clause prevents both sort techniques from being on at the same time. The second ensures that atleast one of them is on. \textsc{Note:} The default parameter setting cannot itself be a forbidden parameter setting.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Subspaces}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Subspaces allow you to take existing configuration spaces and make smaller spaces 
+by removing some regions. They are very similar to Forbidden Parameter Settings, except they 
+can be viewed as only permitting these values. Like Forbidden Parameter Settings, they can only be used on categorical parameters presently. They have an added advantage however
+in that Forbidden Parameters are essentially a blacklist, and specifying larger sets of forbidden
+parameters slows SMAC down, where as subspaces are internally equivalent to removing all the other values from the file. Subspace Clauses have the following syntax \footnote{The only operation supported for Subspaces is currently $=$}:
+
+\texttt{name operation value}
+
+\vspace{2pt}
+\textbf{Example:}
+\vspace{5pt}
+
+\texttt{quick-sort~\{~on,~off~\}~{[}on{]}}
+
+\texttt{quick-sort-pivot~\{~first,~medianOf3~,~random~\}~{[}first{]}}
+
+\texttt{bubble-sort~\{~on,~off~\}~{[}off{]}}
+
+\texttt{quick-sort-pivot~|~quick-sort in \{ on \}}
+
+\texttt{\{~quick-sort=on,~bubble-sort=on~\}}
+
+\texttt{\{~quick-sort=off,~bubble-sort=off~\}}
+
+\texttt{quick-sort=on}
+
+This example is the same as the previous except now there is a conditional parameter that allows the pivot selection mechanism to vary. Additionally we will only use the subspace where \texttt{quick-sort} is on.\\
+
+Internally SMAC will come up with the same configuration file as the following:
+
+\texttt{quick-sort~\{~on~\}~{[}on{]}}
+
+\texttt{quick-sort-pivot~\{~first,~medianOf3~,~random~\}~{[}first{]}}
+
+\texttt{bubble-sort~\{~on,~off~\}~{[}off{]}}
+
+\texttt{quick-sort-pivot~|~quick-sort in \{ on \}}
+
+\texttt{\{~bubble-sort=on~\}}\\
+
+
+\textbf{Example 2:}
+
+Alternatively if the subspace used was the following:
+
+\texttt{bubble-sort=off}\\
+
+Then the space would look like:
+
+\texttt{quick-sort~\{~on,~off~\}~{[}on{]}}
+
+\texttt{quick-sort-pivot~\{~first,~medianOf3~,~random~\}~{[}first{]}}
+
+\texttt{bubble-sort~\{~off~\}~{[}off{]}}
+
+\texttt{quick-sort-pivot~|~quick-sort in \{ on \}}
+
+\texttt{\{~quick-sort=off~\}}\\
+
+While semantically these configuration spaces should be identical in truth they are slightly different, and will be represented differently and SMAC when searching through them may behave differently. In \textbf{Example 1} the domain of \texttt{quick-sort} is of size 1, and \texttt{bubble-sort} has size 2, and one of the two are forbidden. In \textbf{Example 2} it is \texttt{quick-sort} with size 2 and one forbidden, and \texttt{bubble-sort}.\\
+
+\textbf{Example 3:}
+
+One final example is to specify the subspace as 
+
+\texttt{quick-sort=off}\\
+
+Then the space would look like:
+
+\texttt{quick-sort~\{~off~\}~{[}off{]}}
+
+\texttt{quick-sort-pivot~\{~first,~medianOf3~,~random~\}~{[}first{]}}
+
+\texttt{bubble-sort~\{~on,~off~\}~{[}off{]}}
+
+\texttt{quick-sort-pivot~|~quick-sort in \{ \}}
+
+\texttt{\{~bubble-sort=off~\}}\\
+
+\textbf{Warning:} This subspace is invalid because the default configuration is now forbidden. 
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Algorithm executable / wrapper}
