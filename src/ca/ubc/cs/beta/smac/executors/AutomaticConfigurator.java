@@ -145,12 +145,15 @@ public class AutomaticConfigurator
 			
 			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile };
 			String lastParamFilePath = null;
+			Map<String, String> subspace = options.scenarioConfig.paramFileDelegate.getSubspaceMap();
+			
 			for(String path : possiblePaths)
 			{
 				try {
 					logger.debug("Trying param file in path {} ", path);
 					lastParamFilePath = path;
-					configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
+					configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000,subspace);
+					
 					break;
 				}catch(IllegalStateException e)
 				{ 
@@ -166,12 +169,18 @@ public class AutomaticConfigurator
 				}
 			}
 			
+		
+			
 			if(configSpace == null)
 			{
 				throw new ParameterException("Could not find a valid parameter file, please check if there was a previous error");
 			}
 			
 		
+			if(!configSpace.getDefaultConfiguration().isInSearchSubspace())
+			{
+				throw new IllegalStateException("Default Configuration must be in search subspace");
+			}
 			
 			
 			

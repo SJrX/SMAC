@@ -146,7 +146,7 @@ public class ValidatorExecutor {
 				{
 					try {
 						log.debug("Trying param file in path {} ", path);
-						configSpace = ParamFileHelper.getParamFileParser(path,1234);
+						configSpace = ParamFileHelper.getParamFileParser(path,1234, options.scenarioConfig.paramFileDelegate.getSubspaceMap() );
 						break;
 					} catch(IllegalStateException e)
 					{ 
@@ -154,6 +154,11 @@ public class ValidatorExecutor {
 						
 					
 					}
+				}
+				
+				if(!configSpace.getDefaultConfiguration().isInSearchSubspace())
+				{
+					throw new IllegalStateException("Default Configuration must be in search subspace");
 				}
 				
 				double nearestTunerTime = 0;

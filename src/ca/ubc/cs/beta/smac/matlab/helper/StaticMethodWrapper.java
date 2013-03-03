@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -42,12 +43,12 @@ public class StaticMethodWrapper implements Serializable{
 	
 	public ParamConfigurationSpace getParamFileParser(String s, long seedForRandomSampling)
 	{
-		return ParamFileHelper.getParamFileParser(s, seedForRandomSampling);
+		return ParamFileHelper.getParamFileParser(s, seedForRandomSampling, Collections.EMPTY_MAP);
 	}
 	
 	public ParamConfigurationSpace getParamFileParser(File f, long seedForRandomSampling)
 	{
-		return ParamFileHelper.getParamFileParser(f, seedForRandomSampling);
+		return ParamFileHelper.getParamFileParser(f, seedForRandomSampling, Collections.EMPTY_MAP);
 	}
 	
 	public ParamConfiguration fromString(ParamConfigurationSpace configSpace, String paramString)
