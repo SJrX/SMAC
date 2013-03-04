@@ -1231,7 +1231,7 @@ public class AbstractAlgorithmFramework {
 			Object[] args2 = { N,  runHistory.getThetaIdx(challenger), challenger, bound_inc } ;
 			log.info("Performing up to {} run(s) for challenger {} ({}) up to a total bound of {} ", args2);
 			
-			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.scenarioConfig.algoExecOptions.maxConcurrentAlgoExecs); 
+			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs); 
 			
 			if(options.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
@@ -1272,7 +1272,7 @@ public class AbstractAlgorithmFramework {
 					
 					sMissing.remove(pisp);
 					aMissing.remove(0);
-					if(runsToEval.size() == options.scenarioConfig.algoExecOptions.maxConcurrentAlgoExecs )
+					if(runsToEval.size() == options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs )
 					{
 						evaluateRun(runsToEval);
 						runsToEval.clear();

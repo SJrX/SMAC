@@ -38,6 +38,7 @@ import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
+import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
@@ -117,7 +118,7 @@ public class SMACBuilder {
 	}
 	
 	
-	public AbstractAlgorithmFramework getSMAC(SMACOptions options, TargetAlgorithmEvaluator tae)
+	public AbstractAlgorithmFramework getSMAC(SMACOptions options,Map<String, AbstractOptions> taeOptions, TargetAlgorithmEvaluator tae)
 	{
 	
 
@@ -216,7 +217,7 @@ public class SMACBuilder {
 		}
 		
 		
-		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
+		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig,true,taeOptions,tae);
 		
 
 		if(options.modelHashCodeFile != null)
