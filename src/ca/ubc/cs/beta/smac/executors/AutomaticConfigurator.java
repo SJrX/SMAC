@@ -35,6 +35,7 @@ import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
 import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
 import ca.ubc.cs.beta.aclib.misc.logging.LoggingMarker;
+import ca.ubc.cs.beta.aclib.misc.protomap.ProtoMap;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
@@ -145,7 +146,7 @@ public class AutomaticConfigurator
 			
 			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile };
 			String lastParamFilePath = null;
-			Map<String, String> subspace = options.scenarioConfig.paramFileDelegate.getSubspaceMap();
+			ProtoMap<String, String> subspace = options.scenarioConfig.paramFileDelegate.getSubspaceMap();
 			
 			for(String path : possiblePaths)
 			{
