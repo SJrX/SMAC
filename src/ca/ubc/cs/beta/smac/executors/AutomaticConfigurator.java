@@ -314,12 +314,12 @@ public class AutomaticConfigurator
 			
 				
 			smac.run();
+			List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
+			SortedMap<TrajectoryFileEntry, Double> performance;
 			if(options.doValidation)
 			{
-				
-				
-				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other validation crap that is probably not applicable here
-				
+			
+				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other crap that is probably not applicable for validation
 				
 				if(options.validationOptions.maxTimestamp == -1)
 				{
@@ -328,21 +328,20 @@ public class AutomaticConfigurator
 				
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
-				
-				List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
-				
-				
-				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun,true);
-				
-				
-				
-				smac.logIncumbentPerformance(performance);
-				smac.afterValidationStatistics();
-				smac.logSMACResult(performance);
-				
+
+				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun,true);	
+			} else
+			{
+				performance = new TreeMap<TrajectoryFileEntry, Double>();
+				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
 				
 			}
 			
+			
+			
+			smac.logIncumbentPerformance(performance);
+			smac.afterValidationStatistics();
+			smac.logSMACResult(performance);
 			
 			
 			logger.info("SMAC Completed Successfully. Log: " + logLocation);
