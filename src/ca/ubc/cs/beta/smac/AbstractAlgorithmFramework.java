@@ -240,6 +240,13 @@ public class AbstractAlgorithmFramework {
 			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), options.totalNumRunsLimit);
 			return true;
 		}
+		
+		if(this.challengeIncumbentAttempts > options.challengeIncumbentAttempts)
+		{
+			Object[] args = {challengeIncumbentAttempts, options.challengeIncumbentAttempts, this.lastIterationWithARun};
+			log.info("Number of consecutive challenge attempts that resulted in no new runs {} is greater than the limit {}. Last iteration with a successful run was {} ", args );
+			return true;
+		}
 		outOfTime = false;
 		return false;
 	}
@@ -349,6 +356,7 @@ public class AbstractAlgorithmFramework {
 				runHistory.getUniqueParamConfigurations().size(),
 				runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),
 				runHistory.getAlgorithmRuns().size(), 
+				lastIterationWithARun,
 				wallTime ,
 				options.runtimeLimit - wallTime ,
 				tunerTime,
@@ -370,6 +378,7 @@ public class AbstractAlgorithmFramework {
 				"\n Number of Configurations Run: " + arr[4]+ 
 				"\n Performance of the Incumbent: " + arr[5]+
 				"\n Total Number of runs performed: " + arr[6]+ 
+				"\n Last iteration with a successful run: " + arr[7] + 
 				"\n Wallclock time: "+ arr[7] + " s" +
 				"\n Wallclock time remaining: "+ arr[8] +" s" +
 				"\n Configuration time budget used: "+ arr[9] +" s" +
@@ -1149,8 +1158,14 @@ public class AbstractAlgorithmFramework {
 	}
 
 	
+	/**
+	 * Counter that controls number of attempts for challenge Incumbent to not hit the limit before giving up
+	 */
+	private int challengeIncumbentAttempts = 0;
+	private int lastIterationWithARun = 0;
 	private void challengeIncumbent(ParamConfiguration challenger) {
 		//=== Perform run for incumbent unless it has the maximum #runs.
+		challengeIncumbentAttempts++;
 		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 			log.debug("Performing additional run with the incumbent ");
 			ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
@@ -1170,6 +1185,7 @@ public class AbstractAlgorithmFramework {
 			return;
 		}
 		
+		
 		int N=options.initialChallengeRuns;
 		while(true){
 			/*
@@ -1187,8 +1203,11 @@ public class AbstractAlgorithmFramework {
 			if (runsToMake == 0){
 		        log.info("Aborting challenge of incumbent. Incumbent has " + runHistory.getTotalNumRunsOfConfig(incumbent) + " runs, challenger has " + runHistory.getTotalNumRunsOfConfig(challenger) + " runs, and the maximum runs for any config is set to " + MAX_RUNS_FOR_INCUMBENT + ".");
 		        return;
+			} else
+			{
+				challengeIncumbentAttempts = 0;
+				lastIterationWithARun = this.iteration;
 			}
-			
 			Collections.sort(aMissing);
 			
 			//=== Sort aMissing in the order that we want to evaluate <instance,seed> pairs.
