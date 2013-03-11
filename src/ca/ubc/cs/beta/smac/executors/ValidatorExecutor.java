@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -25,8 +27,10 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
+import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
@@ -35,6 +39,7 @@ import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
@@ -49,18 +54,10 @@ public class ValidatorExecutor {
 	{
 		
 		ValidationExecutorOptions options = new ValidationExecutorOptions();
-		/*
-		 * JCommander com = new JCommander(config, true, true);
-		com.setProgramName("smac");
-		try {
-			
-			
-			//JCommanderHelper.parse(com, args);
-			try {
-				checkArgsForUsageScreenValues(args,config);
-				com.parse(args);
-		 */
-		JCommander com = new JCommander(options, true, true);
+		Map<String, AbstractOptions> taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
+		
+		JCommander com = JCommanderHelper.getJCommander(options, taeOptions);
+		
 		com.setProgramName("validate");
 		try {
 			try {
@@ -69,7 +66,7 @@ public class ValidatorExecutor {
 				com.parse( args);
 				
 				log.info("==========Configuration Options==========\n{}", options.toString());
-				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorBuilder.getClassLoader(options.scenarioConfig.algoExecOptions));
+				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorLoader.getClassLoader());
 				VersionTracker.logVersions();
 				
 				
@@ -295,21 +292,21 @@ public class ValidatorExecutor {
 				//AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime);
 				
 				
-				if(options.scenarioConfig.algoExecOptions.verifySAT == null)
+				if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == null)
 				{
 					boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(testInstances);
 					if(verifySATCompatible)
 					{
 						log.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
-						options.scenarioConfig.algoExecOptions.verifySAT = true;
+						options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = true;
 					} else
 					{
 						log.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
-						options.scenarioConfig.algoExecOptions.verifySAT = false;
+						options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = false;
 					}
 					
 				
-				} else if(options.scenarioConfig.algoExecOptions.verifySAT == true)
+				} else if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == true)
 				{
 					boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(testInstances);
 					if(!verifySATCompatible)
@@ -319,7 +316,7 @@ public class ValidatorExecutor {
 						
 				}
 				
-				TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
+				TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false,taeOptions);
 				
 				
 				String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;

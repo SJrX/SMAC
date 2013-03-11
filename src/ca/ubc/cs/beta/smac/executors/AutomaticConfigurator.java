@@ -34,6 +34,7 @@ import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
+import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
 import ca.ubc.cs.beta.aclib.misc.logging.LoggingMarker;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
@@ -42,6 +43,7 @@ import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
+import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
@@ -55,6 +57,7 @@ import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
@@ -87,6 +90,8 @@ public class AutomaticConfigurator
 	private static String instanceFileAbsolutePath;
 	private static String instanceFeatureFileAbsolutePath;
 	
+	
+	private static Map<String,  AbstractOptions> taeOptions;
 	/**
 	 * Executes SMAC then exits the JVM {@see System.exit()}
 	 *  
@@ -214,21 +219,21 @@ public class AutomaticConfigurator
 			
 			
 			
-			if(options.scenarioConfig.algoExecOptions.verifySAT == null)
+			if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == null)
 			{
 				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
 				if(verifySATCompatible)
 				{
 					logger.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
-					options.scenarioConfig.algoExecOptions.verifySAT = true;
+					options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = true;
 				} else
 				{
 					logger.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
-					options.scenarioConfig.algoExecOptions.verifySAT = false;
+					options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = false;
 				}
 				
 			
-			} else if(options.scenarioConfig.algoExecOptions.verifySAT == true)
+			} else if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == true)
 			{
 				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
 				if(!verifySATCompatible)
@@ -252,7 +257,7 @@ public class AutomaticConfigurator
 			}
 			
 			
-			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig);
+			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, true, taeOptions);
 			
 
 			if(options.modelHashCodeFile != null)
@@ -326,7 +331,7 @@ public class AutomaticConfigurator
 					options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
 				}
 				
-				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
+				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 
 				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun,true);	
@@ -447,8 +452,10 @@ public class AutomaticConfigurator
 	private static SMACOptions parseCLIOptions(String[] args) throws ParameterException, IOException
 	{
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
+		taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
 		SMACOptions config = new SMACOptions();
-		JCommander com = new JCommander(config, true, true);
+		JCommander com = JCommanderHelper.getJCommander(config, taeOptions);
+		
 		com.setProgramName("smac");
 		try {
 			
@@ -477,13 +484,12 @@ public class AutomaticConfigurator
 				logLocation = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "log-run" + config.numRun+ ".txt";
 				
 				System.out.println("*****************************\nLogging to: " + logLocation +  "\n*****************************");
-				//${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
+				//Generally has the format: ${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
 				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
-				//VersionTracker.loadVersionFromClassPath("SMAC", "smac-version.txt");
-				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorBuilder.getClassLoader(config.scenarioConfig.algoExecOptions));
+				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorLoader.getClassLoader());
 				VersionTracker.logVersions();
 				
 				
@@ -519,7 +525,7 @@ public class AutomaticConfigurator
 			
 			logCallString(args);
 			
-			if(config.scenarioConfig.algoExecOptions.logAllCallStrings)
+			if(config.scenarioConfig.algoExecOptions.taeOpts.logAllCallStrings)
 			{
 				MarkerFilter.accept(LoggingMarker.COMMAND_LINE_CALL);
 			} else
@@ -527,7 +533,7 @@ public class AutomaticConfigurator
 				MarkerFilter.deny(LoggingMarker.COMMAND_LINE_CALL);
 			}
 			
-			if(config.scenarioConfig.algoExecOptions.logAllProcessOutput)
+			if(config.scenarioConfig.algoExecOptions.taeOpts.logAllProcessOutput)
 			{
 				MarkerFilter.accept(LoggingMarker.FULL_PROCESS_OUTPUT);
 			} else
@@ -729,7 +735,7 @@ public class AutomaticConfigurator
 				{
 					//Turn off logging
 					System.setProperty("logback.configurationFile", "logback-off.xml");
-					VersionTracker.setClassLoader(TargetAlgorithmEvaluatorBuilder.getClassLoader(config.scenarioConfig.algoExecOptions));
+					VersionTracker.setClassLoader(TargetAlgorithmEvaluatorLoader.getClassLoader());
 					System.out.println(VersionTracker.getVersionInformation());
 					
 					
