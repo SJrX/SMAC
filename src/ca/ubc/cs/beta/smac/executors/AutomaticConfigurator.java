@@ -101,7 +101,10 @@ public class AutomaticConfigurator
 	{
 		int returnValue = oldMain(args);
 		
-		logger.info("Returning with value: {}",returnValue);
+		if(logger != null)
+		{
+			logger.info("Returning with value: {}",returnValue);
+		}
 		
 		System.exit(returnValue);
 	}
@@ -393,6 +396,7 @@ public class AutomaticConfigurator
 					{
 						
 						System.err.println(t.getMessage());
+						t.printStackTrace();
 					} else
 					{
 						t.printStackTrace();
@@ -590,9 +594,16 @@ public class AutomaticConfigurator
 				logger.debug("==========System Properties==============\n{}", sb.toString() );
 			 }
 			
-			logger.info("==========Configuration Options==========\n{}", config.toString());
-			 
-			 
+			
+			
+			StringBuilder sb = new StringBuilder();
+			for(Object o : com.getObjects())
+			{
+				sb.append(o.toString()).append("\n");
+			}
+				
+			logger.info("==========Configuration Options==========\n{}", sb.toString());
+			
 			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+1, (config.scenarioConfig.algoExecOptions.deterministic));
@@ -669,7 +680,7 @@ public class AutomaticConfigurator
 		{
 			//com.setColumnSize(getConsoleSize());
 			try {
-				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0)));
+				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0), TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
 			} catch (Exception e1) {
 				logger.error("Exception occured while trying to generate usage screen",e1);
 				logger.error("This exception did NOT cause SMAC to crash");
@@ -679,7 +690,7 @@ public class AutomaticConfigurator
 		} catch(ParameterException e)
 		{
 			try {
-				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0)));
+				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0),TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
 			} catch (Exception e1) {
 				logger.error("Exception occured while trying to generate usage screen",e1);
 				logger.error("This exception did NOT cause SMAC to crash");
@@ -711,7 +722,7 @@ public class AutomaticConfigurator
 			{
 				if(possibleValues.contains(helpName))
 				{
-					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config));
+					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config, TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
 					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}
@@ -722,7 +733,7 @@ public class AutomaticConfigurator
 			{
 				if(possibleValues.contains(helpName))
 				{
-					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config), true);
+					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config, TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()), true);
 					System.exit(ACLibReturnValues.SUCCESS);
 				}
 			}

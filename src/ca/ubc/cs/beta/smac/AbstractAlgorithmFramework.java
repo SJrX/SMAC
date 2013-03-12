@@ -282,6 +282,7 @@ public class AbstractAlgorithmFramework {
 				
 				cpuTime += threadTime;
 			}
+			
 			return cpuTime;
 		} catch(UnsupportedOperationException e)
 		{
@@ -378,19 +379,19 @@ public class AbstractAlgorithmFramework {
 				"\n Number of Configurations Run: " + arr[4]+ 
 				"\n Performance of the Incumbent: " + arr[5]+
 				"\n Total Number of runs performed: " + arr[6]+ 
-				"\n Last iteration with a successful run: " + arr[7] + 
-				"\n Wallclock time: "+ arr[7] + " s" +
-				"\n Wallclock time remaining: "+ arr[8] +" s" +
-				"\n Configuration time budget used: "+ arr[9] +" s" +
-				"\n Configuration time budget remaining: "+ arr[10]+" s" +
-				"\n Sum of Target Algorithm Execution Times (treating minimum value as 0.1): "+arr[11] +" s" + 
-				"\n CPU time of Configurator: "+arr[12]+" s" +
-				"\n User time of Configurator: "+arr[13]+" s" +
-				"\n Total Reported Algorithm Runtime: " + arr[14] + " s" + 
-				"\n Sum of Measured Wallclock Runtime: " + arr[15] + " s" +
-				"\n Max Memory: "+arr[16]+" MB" +
-				"\n Total Java Memory: "+arr[17]+" MB" +
-				"\n Free Java Memory: "+arr[18]+" MB";
+				"\n Last Iteration with a successful run: " + arr[7] + 
+				"\n Wallclock time: "+ arr[8] + " s" +
+				"\n Wallclock time remaining: "+ arr[9] +" s" +
+				"\n Configuration time budget used: "+ arr[10] +" s" +
+				"\n Configuration time budget remaining: "+ arr[11]+" s" +
+				"\n Sum of Target Algorithm Execution Times (treating minimum value as 0.1): "+arr[12] +" s" + 
+				"\n CPU time of Configurator: "+arr[13]+" s" +
+				"\n User time of Configurator: "+arr[14]+" s" +
+				"\n Total Reported Algorithm Runtime: " + arr[15] + " s" + 
+				"\n Sum of Measured Wallclock Runtime: " + arr[16] + " s" +
+				"\n Max Memory: "+arr[17]+" MB" +
+				"\n Total Java Memory: "+arr[18]+" MB" +
+				"\n Free Java Memory: "+arr[19]+" MB";
 		
 		log.info(lastLogMessage);
 		
@@ -1163,20 +1164,51 @@ public class AbstractAlgorithmFramework {
 	 */
 	private int challengeIncumbentAttempts = 0;
 	private int lastIterationWithARun = 0;
-	private void challengeIncumbent(ParamConfiguration challenger) {
-		//=== Perform run for incumbent unless it has the maximum #runs.
+	private void challengeIncumbent(ParamConfiguration challenger)
+	{
 		challengeIncumbentAttempts++;
-		if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
-			log.debug("Performing additional run with the incumbent ");
-			ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
-			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
-			evaluateRun(incumbentRunConfig);
-			
-			eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
-		} else
+		
+		this.challengeIncumbent(challenger, true);
+	}
+	
+	/**
+	 * Challenges an incumbent
+	 * 
+	 * 
+	 * @param challenger - challenger we are running with
+	 * @param runIncumbent - whether we should run the incumbent before hand 
+	 */
+	private void challengeIncumbent(ParamConfiguration challenger, boolean runIncumbent) {
+		//=== Perform run for incumbent unless it has the maximum #runs.
+		
+		if(runIncumbent)
 		{
-			log.debug("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
+			if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
+				log.debug("Performing additional run with the incumbent ");
+				ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
+				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
+				evaluateRun(incumbentRunConfig);
+				
+				eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
+				
+				
+				
+				if(options.alwaysRunInitialConfiguration && !incumbent.equals(initialIncumbent))
+				{
+					Object[] args = { runHistory.getThetaIdx(initialIncumbent), initialIncumbent,  runHistory.getThetaIdx(incumbent), incumbent }; 
+					log.info("Trying challenge with initial configuration {} ({}) first (current incumbent {} ({})", args);
+					challengeIncumbent(initialIncumbent, false);
+					log.info("Challenge with initial configuration done");
+				}
+				
+				
+			} else
+			{
+				log.debug("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
+			}
+			
 		}
+		
 		
 		if(challenger.equals(incumbent))
 		{
@@ -1184,6 +1216,8 @@ public class AbstractAlgorithmFramework {
 			log.info("Challenger {} ({}) is equal to the incumbent {} ({}); not evaluating it further ", args);
 			return;
 		}
+		
+		
 		
 		
 		int N=options.initialChallengeRuns;

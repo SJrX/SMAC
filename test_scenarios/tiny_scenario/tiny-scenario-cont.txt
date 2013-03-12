@@ -1,0 +1,9 @@
+algo=test
+execdir=./
+cutoff_time = 10
+instance_file=instances.txt
+run_obj = RUNTIME
+overall_obj = MEAN10
+paramfile = tiny-param-cont.txt
+test_instance_file=instances.txt
+tunerTimeout = 1242050
