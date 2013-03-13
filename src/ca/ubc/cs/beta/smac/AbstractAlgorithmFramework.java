@@ -1290,8 +1290,8 @@ public class AbstractAlgorithmFramework {
 				
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
 			}
-			Object[] args2 = { N,  runHistory.getThetaIdx(challenger), challenger, bound_inc } ;
-			log.info("Performing up to {} run(s) for challenger {} ({}) up to a total bound of {} ", args2);
+			Object[] args2 = { N,  runHistory.getThetaIdx(challenger)!=-1?" " + runHistory.getThetaIdx(challenger):"" , challenger, bound_inc } ;
+			log.info("Performing up to {} run(s) for challenger{} ({}) up to a total bound of {} ", args2);
 			
 			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs); 
 			
@@ -1558,8 +1558,8 @@ public class AbstractAlgorithmFramework {
 		log.info("Iteration {}: Scheduling {} run(s):", iteration,  runConfigs.size());
 		for(RunConfig rc : runConfigs)
 		{
-			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
-			log.info("Iteration {}: Scheduling run for config {} ({}) on instance {} with seed {} and captime {}", args);
+			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
+			log.info("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
 		List<AlgorithmRun> completedRuns = algoEval.evaluateRun(runConfigs);
@@ -1567,10 +1567,10 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : completedRuns)
 		{
 			RunConfig rc = run.getRunConfig();
-			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration()), rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
+			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
 			
 			
-			log.info("Iteration {}: Completed run for config {} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
+			log.info("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 			
 			eventManager.fireEvent(new AlgorithmRunCompletedEvent(eventManager.getUUID(), run, getConfigurationTimeLimits()));
 
