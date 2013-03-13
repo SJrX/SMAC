@@ -114,8 +114,10 @@ public class AbstractAlgorithmFramework {
 	private final ParamConfiguration initialIncumbent;
 
 	private final EventManager eventManager;
+	
+	protected Random configSpacePRNG;
 
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialIncumbent, EventManager manager)
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialIncumbent, EventManager manager, Random configSpacePRNG)
 	{
 		this.instances = instances;
 		
@@ -130,6 +132,9 @@ public class AbstractAlgorithmFramework {
 		this.initialIncumbent = initialIncumbent;
 		this.eventManager = manager;
 
+		
+		
+		
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);
 		DateFormat df = DateFormat.getDateTimeInstance();	
@@ -164,6 +169,10 @@ public class AbstractAlgorithmFramework {
 			throw new IllegalStateException("Could not create trajectory file: " , e);
 		}
 		
+		
+		log.info("Config Space PRNG initialized with seeded with {}");
+		this.configSpacePRNG = configSpacePRNG;
+		
 	}
 
 	
@@ -184,7 +193,7 @@ public class AbstractAlgorithmFramework {
 		log.info("Restoring State");
 		rand = sd.getPRNG(RandomPoolType.SEEDABLE_RANDOM_SINGLETON);
 		SeedableRandomSingleton.setRandom(rand);
-		configSpace.setPRNG(sd.getPRNG(RandomPoolType.PARAM_CONFIG));
+		configSpacePRNG = (sd.getPRNG(RandomPoolType.PARAM_CONFIG));
 		iteration = sd.getIteration();
 		
 		runHistory = sd.getRunHistory();
@@ -692,7 +701,7 @@ public class AbstractAlgorithmFramework {
 					log.debug("Trying run with default {} ", configToRun);
 				} else
 				{
-					configToRun = configSpace.getRandomConfiguration();
+					configToRun = configSpace.getRandomConfiguration(configSpacePRNG);
 					log.debug("Trying run with random {} ", configToRun);
 				}
 				 
@@ -818,7 +827,7 @@ public class AbstractAlgorithmFramework {
 		int attempts = 0; 
 		while(allSuccessfulConfigs.size() < options.iterativeCappingK)
 		{
-			if(!allSuccessfulConfigs.add(configSpace.getRandomConfiguration()))
+			if(!allSuccessfulConfigs.add(configSpace.getRandomConfiguration(configSpacePRNG)))
 			{
 				attempts++;
 				
@@ -1006,7 +1015,7 @@ public class AbstractAlgorithmFramework {
 	private void saveState(String id, boolean saveFullState) {
 		StateSerializer state = stateFactory.getStateSerializer(id, iteration);
 		state.setPRNG(RandomPoolType.SEEDABLE_RANDOM_SINGLETON, SeedableRandomSingleton.getRandom());
-		state.setPRNG(RandomPoolType.PARAM_CONFIG, configSpace.getPRNG());
+		state.setPRNG(RandomPoolType.PARAM_CONFIG, configSpacePRNG);
 		if(saveFullState)
 		{	
 			//Only save run history on perfect powers of 2.
@@ -1129,7 +1138,7 @@ public class AbstractAlgorithmFramework {
 
 	protected List<ParamConfiguration> selectConfigurations()
 	{
-		ParamConfiguration c = configSpace.getRandomConfiguration();
+		ParamConfiguration c = configSpace.getRandomConfiguration(configSpacePRNG);
 		log.debug("Selecting a random configuration {}", c);
 		return Collections.singletonList(c);
 	}

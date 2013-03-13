@@ -66,6 +66,9 @@ import ca.ubc.cs.beta.smac.validation.Validator;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
+
+import ec.util.MersenneTwister;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -157,13 +160,15 @@ public class AutomaticConfigurator
 			
 			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile };
 			String lastParamFilePath = null;
+			Random configSpacePRNG = new MersenneTwister(options.numRun + options.seedOffset +1000000);
+			
 			for(String path : possiblePaths)
 			{
 				try {
 					logger.debug("Trying param file in path {} ", path);
 					lastParamFilePath = path;
 					//Map<String, String> subspace = options.scenarioConfig.paramFileDelegate.getSubspaceMap();
-					configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
+					configSpace = ParamFileHelper.getParamFileParser(path, 0);
 					break;
 				}catch(IllegalStateException e)
 				{ 
@@ -276,12 +281,12 @@ public class AutomaticConfigurator
 			{
 				case ROAR:
 
-					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager);
+					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager, configSpacePRNG);
 
 					break;
 				case SMAC:
 
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager, configSpacePRNG);
 
 					
 					break;
@@ -807,17 +812,6 @@ public class AutomaticConfigurator
 	}
 
 
-	/**
-	 * Makes a best at our column size 
-	 * @return
-	 */
-	private static int getConsoleSize() {
-		//Tried using tputs but apparently java destroys it and always gets an 80, I'll have to do some more trickery
-		
-		//Anyway lets make it wider atleast
-		return 160;
-	}
-
 
 	private static void logCallString(String[] args) {
 		StringBuilder sb = new StringBuilder("java -cp ");
@@ -842,12 +836,6 @@ public class AutomaticConfigurator
 		logger.info("Call String:");
 		logger.info("{}", sb.toString());
 	}
-
-
-
-
-
-	
 	
 	private static Pattern modelHashCodePattern = Pattern.compile("^(Preprocessed|Random) Forest Built with Hash Code:\\s*\\d+?\\z");
 	

@@ -21,8 +21,12 @@ import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import ca.ubc.cs.beta.models.fastrf.RegtreeBuildParams;
 import ec.util.MersenneTwister;
 
+@Deprecated
 public class StaticMethodWrapper implements Serializable{
 
+	
+	
+	
 	/**
 	 * 
 	 */
@@ -34,7 +38,7 @@ public class StaticMethodWrapper implements Serializable{
 	public ParamConfiguration getRandomConfiguration(ParamConfigurationSpace p)
 	{
 	
-		return p.getRandomConfiguration();
+		return p.getRandomConfiguration(new Random(0));
 	}
 	
 	public ParamConfigurationSpace getParamFileParser(String s, long seedForRandomSampling)
@@ -153,7 +157,7 @@ public class StaticMethodWrapper implements Serializable{
 	public double[][] getNeighbours(ParamConfigurationSpace configSpace, double[] x)
 	{
 		ParamConfiguration config = configSpace.getConfigurationFromValueArray(x);
-		List<ParamConfiguration> neighbours = config.getNeighbourhood();
+		List<ParamConfiguration> neighbours = config.getNeighbourhood(new Random(0));
 		
 		double[][] results = new double[neighbours.size()][];
 		for(int i=0; i < results.length; i++)

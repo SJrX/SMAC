@@ -43,7 +43,7 @@ public class RandomConfigGen {
 		
 		for(int i=0; i < rcp.numberOfConfigs; i++)
 		{
-			ParamConfiguration config = configSpace.getRandomConfiguration();
+			ParamConfiguration config = configSpace.getRandomConfiguration(SeedableRandomSingleton.getRandom());
 			sb.append("0, -1, 0, 0, 0, ");
 			
 			

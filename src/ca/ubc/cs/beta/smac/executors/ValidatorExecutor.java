@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +44,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvalu
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
+import ec.util.MersenneTwister;
 
 public class ValidatorExecutor {
 
@@ -151,14 +153,14 @@ public class ValidatorExecutor {
 	
 				log.info("Parsing Parameter Space File", options.scenarioConfig.paramFileDelegate.paramFile);
 				ParamConfigurationSpace configSpace = null;
-				
+				Random configSpacePRNG = new MersenneTwister(options.configurationSeed);
 				
 				String[] possiblePaths = { options.scenarioConfig.paramFileDelegate.paramFile, options.experimentDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile }; 
 				for(String path : possiblePaths)
 				{
 					try {
 						log.debug("Trying param file in path {} ", path);
-						configSpace = ParamFileHelper.getParamFileParser(path,options.configurationSeed);
+						configSpace = ParamFileHelper.getParamFileParser(path,0);
 						break;
 					} catch(IllegalStateException e)
 					{ 
@@ -172,7 +174,7 @@ public class ValidatorExecutor {
 					}
 				}
 				
-				double nearestTunerTime = 0;
+				
 				List<TrajectoryFileEntry> tfes;
 				if(options.trajectoryFile != null)
 				{
@@ -210,7 +212,7 @@ public class ValidatorExecutor {
 					if(options.incumbent != null)
 					{					
 						log.info("Parsing Supplied Configuration");
-						configToValidate.add(configFromString(options.incumbent, configSpace));
+						configToValidate.add(configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
 						optionsSet++;
 					}
 					if(options.randomConfigurations > 0)
@@ -225,7 +227,7 @@ public class ValidatorExecutor {
 								configToValidate.add(configSpace.getDefaultConfiguration());
 							} else
 							{
-								configToValidate.add(configSpace.getRandomConfiguration());
+								configToValidate.add(configSpace.getRandomConfiguration(configSpacePRNG));
 							}
 						}
 						optionsSet++;
@@ -244,10 +246,11 @@ public class ValidatorExecutor {
 							{
 								continue;
 							}
-							configToValidate.add(configFromString(line, configSpace));
+							configToValidate.add(configSpace.getConfigurationFromString(line, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
 						}
 						
 						optionsSet++;
+						reader.close();
 					}
 					
 					if(optionsSet == 0)
@@ -413,39 +416,5 @@ public class ValidatorExecutor {
 		/*(new Validator()).validate(testInstances, smac.getIncumbent(),options, testInstanceSeedGen, validatingTae);*/
 	}
 	
-	@Deprecated
-	public static ParamConfiguration configFromString(String input, ParamConfigurationSpace configSpace)
-	{
-		//You can just read DEFAULT and RANDOM as a configuration now 
-		if(input.toUpperCase().equals("DEFAULT") || input.toUpperCase().equals("<DEFAULT>"))
-		{
-			log.debug("Input is asking for the default configuration");
-			ParamConfiguration config = configSpace.getDefaultConfiguration();
-			log.debug("Configuration generated {}", config.getFormattedParamString(StringFormat.NODB_SYNTAX));
-			return configSpace.getRandomConfiguration();
-		}
-		
-		if(input.toUpperCase().equals("RANDOM") || input.toUpperCase().equals("<RANDOM>"))
-		{
-			log.debug("Input is asking for a random configuration");
-			ParamConfiguration config = configSpace.getRandomConfiguration();
-			log.debug("Configuration generated {}", config.getFormattedParamString(StringFormat.NODB_SYNTAX));
-			return configSpace.getRandomConfiguration();
-		}
-		
-		try {
-			return configSpace.getConfigurationFromString(input, StringFormat.NODB_SYNTAX);
-		} catch(RuntimeException e)
-		{
-			try {
-				log.info("Being nice and checking if this is a STATEFILE encoded configuration");
-				return configSpace.getConfigurationFromString(input, StringFormat.STATEFILE_SYNTAX);
-			} catch(RuntimeException e2)
-			{
-				throw e;
-			}
-			
-		}
-		
-	}
+
 }

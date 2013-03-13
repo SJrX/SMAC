@@ -70,8 +70,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialConfiguration, EventManager eventManager) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand, initialConfiguration, eventManager);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialConfiguration, EventManager eventManager, Random configSpacePRNG) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand, initialConfiguration, eventManager, configSpacePRNG);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
@@ -240,7 +240,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		 t = new AutoStartStopWatch();
 		for(int i=0; i < eichallengers.size(); i++)
 		{
-			randomChallengers.add(configSpace.getRandomConfiguration());
+			randomChallengers.add(configSpace.getRandomConfiguration(configSpacePRNG));
 		}
 		log.debug("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
 		
@@ -414,7 +414,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		List<ParamConfiguration> randomConfigs = new ArrayList<ParamConfiguration>(numberOfRandomConfigsInEI);
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
-			randomConfigs.add(configSpace.getRandomConfiguration());
+			randomConfigs.add(configSpace.getRandomConfiguration(configSpacePRNG));
 		} 
 		
 		log.debug("Generating {} Random Configurations took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
@@ -548,7 +548,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current options and compute EI for all of it.
-			List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
+			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configSpacePRNG);
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];
 			double[] vars = prediction[1];

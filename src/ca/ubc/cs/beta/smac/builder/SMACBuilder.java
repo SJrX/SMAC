@@ -54,6 +54,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorBui
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 import ca.ubc.cs.beta.smac.executors.AutomaticConfigurator;
+import ec.util.MersenneTwister;
 
 /**
  * Builds an Automatic Configurator
@@ -164,6 +165,7 @@ public class SMACBuilder {
 		log.info("Parsing Parameter Space File", paramFile);
 		ParamConfigurationSpace configSpace = null;
 		
+		Random configSpacePRNG = new MersenneTwister(options.numRun + options.seedOffset +1000000);
 		
 		String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
 		for(String path : possiblePaths)
@@ -171,7 +173,7 @@ public class SMACBuilder {
 			try {
 				log.debug("Trying param file in path {} ", path);
 				
-				configSpace = ParamFileHelper.getParamFileParser(path, options.numRun + options.seedOffset +1000000);
+				configSpace = ParamFileHelper.getParamFileParser(path,0);
 				break;
 			}catch(IllegalStateException e)
 			{ 
@@ -243,10 +245,10 @@ public class SMACBuilder {
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager);
+				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager, configSpacePRNG);
 				break;
 			case SMAC:
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand,  initialIncumbent, eventManager);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand,  initialIncumbent, eventManager, configSpacePRNG);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");
