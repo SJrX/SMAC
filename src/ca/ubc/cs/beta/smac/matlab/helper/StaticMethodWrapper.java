@@ -43,12 +43,12 @@ public class StaticMethodWrapper implements Serializable{
 	
 	public ParamConfigurationSpace getParamFileParser(String s, long seedForRandomSampling)
 	{
-		return ParamFileHelper.getParamFileParser(s, seedForRandomSampling);
+		return ParamFileHelper.getParamFileParser(s);
 	}
 	
 	public ParamConfigurationSpace getParamFileParser(File f, long seedForRandomSampling)
 	{
-		return ParamFileHelper.getParamFileParser(f, seedForRandomSampling);
+		return ParamFileHelper.getParamFileParser(f);
 	}
 	
 	public ParamConfiguration fromString(ParamConfigurationSpace configSpace, String paramString)

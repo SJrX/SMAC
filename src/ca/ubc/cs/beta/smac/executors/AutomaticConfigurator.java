@@ -168,7 +168,7 @@ public class AutomaticConfigurator
 					logger.debug("Trying param file in path {} ", path);
 					lastParamFilePath = path;
 					//Map<String, String> subspace = options.scenarioConfig.paramFileDelegate.getSubspaceMap();
-					configSpace = ParamFileHelper.getParamFileParser(path, 0);
+					configSpace = ParamFileHelper.getParamFileParser(path);
 					break;
 				}catch(IllegalStateException e)
 				{ 

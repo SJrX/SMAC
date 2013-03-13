@@ -173,7 +173,7 @@ public class SMACBuilder {
 			try {
 				log.debug("Trying param file in path {} ", path);
 				
-				configSpace = ParamFileHelper.getParamFileParser(path,0);
+				configSpace = ParamFileHelper.getParamFileParser(path);
 				break;
 			}catch(IllegalStateException e)
 			{ 
