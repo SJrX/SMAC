@@ -10,10 +10,12 @@ import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
@@ -472,6 +474,7 @@ public class AutomaticConfigurator
 			//JCommanderHelper.parse(com, args);
 			try {
 				checkArgsForUsageScreenValues(args,config);
+				args = processScenarioStateRestore(args);
 				com.parse(args);
 				
 				File outputDir = new File(config.scenarioConfig.outputDirectory);
@@ -707,6 +710,55 @@ public class AutomaticConfigurator
 	
 
 	
+	private static String[] processScenarioStateRestore(String[] args) {
+		
+		
+		ArrayList<String> inputArgs = new ArrayList<String>(Arrays.asList(args));
+		
+		
+		ListIterator<String> inputIt =  inputArgs.listIterator();
+		
+		
+		while(inputIt.hasNext())
+		{
+			String input = inputIt.next();
+			
+			if(input.trim().equals("--restoreScenario"))
+			{
+				if(!inputIt.hasNext())
+				{
+					throw new ParameterException("Failed to parse argument --restoreScenario expected 1 more argument");
+				} else
+				{
+					String dir = inputIt.next();
+					
+					
+					inputIt.add("--restoreStateFrom");
+					inputIt.add(dir);
+					inputIt.add("--restoreIteration");
+					inputIt.add( String.valueOf(Integer.MAX_VALUE));
+					inputIt.add("--scenarioFile");
+					inputIt.add(dir + File.separator + "scenario.txt");
+					inputIt.add("--instanceFeatureFile");
+					inputIt.add(dir + File.separator + "instance-features.txt");
+					inputIt.add("--instanceFile");
+					inputIt.add(dir + File.separator + "instances.txt");
+					inputIt.add("--paramFile");
+					inputIt.add(dir + File.separator + "param-file.txt");
+					inputIt.add("--testInstanceFile");
+					inputIt.add(dir + File.separator + "instances.txt");
+					
+				}
+				
+				
+			}
+			
+		}
+		
+		return inputArgs.toArray(new String[0]);
+	}
+
+
 	private static void checkArgsForUsageScreenValues(String[] args, SMACOptions config) {
 		/*
 		@Parameter(names="--showHiddenParameters", description="show hidden parameters that no one has use for, and probably just break SMAC")
