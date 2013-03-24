@@ -13,6 +13,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -537,22 +538,9 @@ public class AutomaticConfigurator
 			
 			logCallString(args);
 			
-			if(config.scenarioConfig.algoExecOptions.taeOpts.logAllCallStrings)
-			{
-				MarkerFilter.accept(LoggingMarker.COMMAND_LINE_CALL);
-			} else
-			{
-				MarkerFilter.deny(LoggingMarker.COMMAND_LINE_CALL);
-			}
+			/*
 			
-			if(config.scenarioConfig.algoExecOptions.taeOpts.logAllProcessOutput)
-			{
-				MarkerFilter.accept(LoggingMarker.FULL_PROCESS_OUTPUT);
-			} else
-			{
-				MarkerFilter.deny(LoggingMarker.FULL_PROCESS_OUTPUT);
-			}
-			
+			*/
 			
 			if(config.logLevel.lessVerbose(config.consoleLogLevel))
 			{
@@ -719,6 +707,21 @@ public class AutomaticConfigurator
 		ListIterator<String> inputIt =  inputArgs.listIterator();
 		
 		
+		Iterator<String> firstPass = inputArgs.iterator();
+		
+		
+		boolean foundIteration = false;
+		while(firstPass.hasNext())
+		{
+			String arg = firstPass.next();
+			if(arg.trim().equals("--restoreIteration") || arg.trim().equals("--restoreStateIteration"))
+			{
+				if(firstPass.hasNext())
+				{
+					foundIteration= true;
+				}
+			}
+		}
 		while(inputIt.hasNext())
 		{
 			String input = inputIt.next();
@@ -735,8 +738,11 @@ public class AutomaticConfigurator
 					
 					inputIt.add("--restoreStateFrom");
 					inputIt.add(dir);
-					inputIt.add("--restoreIteration");
-					inputIt.add( String.valueOf(Integer.MAX_VALUE));
+					if(!foundIteration)
+					{
+						inputIt.add("--restoreIteration");
+						inputIt.add(String.valueOf(Integer.MAX_VALUE));
+					}
 					inputIt.add("--scenarioFile");
 					inputIt.add(dir + File.separator + "scenario.txt");
 					inputIt.add("--instanceFeatureFile");
