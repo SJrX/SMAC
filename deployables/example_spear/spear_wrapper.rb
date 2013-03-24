@@ -35,6 +35,8 @@ exec_cmd = "#{cmd} > #{tmp_file}"
 
 STDERR.puts "Calling: #{exec_cmd}"
 system exec_cmd
+puts "alex"
+puts "frechette"
 
 #=== Parse algorithm output to extract relevant information for ParamILS.
 solved = nil
