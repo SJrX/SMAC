@@ -156,7 +156,7 @@ public class AutomaticConfigurator
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
 			
-			String paramFile = options.scenarioConfig.paramFileDelegate.paramFile;
+			String paramFile = options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile;
 			logger.info("Parsing Parameter Space File", paramFile);
 			ParamConfigurationSpace configSpace = null;
 			
@@ -202,7 +202,7 @@ public class AutomaticConfigurator
 			if (!f2.isAbsolute()){
 				f2 = new File(options.experimentDir + File.separator + algoExecDir);
 			}
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
 		
 			
 			
@@ -345,7 +345,7 @@ public class AutomaticConfigurator
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 
-				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun,true);	
+				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun,true);	
 			} else
 			{
 				performance = new TreeMap<TrajectoryFileEntry, Double>();
@@ -590,8 +590,7 @@ public class AutomaticConfigurator
 				logger.debug("==========System Properties==============\n{}", sb.toString() );
 			 }
 			
-			
-			
+		
 			StringBuilder sb = new StringBuilder();
 			for(Object o : com.getObjects())
 			{

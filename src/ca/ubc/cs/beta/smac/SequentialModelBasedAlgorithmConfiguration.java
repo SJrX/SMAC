@@ -175,7 +175,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			{
 				if(censored[j])
 				{
-					runResponseValues[j] = options.scenarioConfig.cutoffTime;
+					runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime;
 				}
 			}
 		}
@@ -184,9 +184,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		for(int j=0; j < runResponseValues.length; j++)
 		{ //=== Not sure if I Should be penalizing runs prior to the model
 			// but matlab sure does
-			if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
+			if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
 			{	
-				runResponseValues[j] = options.scenarioConfig.cutoffTime * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+				runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
 			}
 		}
 	
@@ -213,7 +213,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		preparedForest = null;
 		if(options.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
@@ -284,7 +284,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		double[][] tmp_predictions = transpose(applyMarginalModel(Collections.singletonList(incumbent)));
 		log.info("Prediction for incumbent: {} +/- {} (in log space if logModel=true)", tmp_predictions[0][0], tmp_predictions[1][0]);
 		
-		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
+		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.algoExecOptions.cutoffTime);
 		//=== Get the empirical cost into log space if the model gives log predictions. 
 		if (smacConfig.randomForestOptions.logModel)
 		{
@@ -292,7 +292,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			fmin = Math.max(SanitizedModelData.MINIMUM_RESPONSE_VALUE, fmin);
 			fmin = Math.log10(fmin);
 			
-			double adjusted_fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime, SanitizedModelData.MINIMUM_RESPONSE_VALUE);
+			double adjusted_fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, SanitizedModelData.MINIMUM_RESPONSE_VALUE);
 			adjusted_fmin = Math.max(SanitizedModelData.MINIMUM_RESPONSE_VALUE, adjusted_fmin);
 			adjusted_fmin = Math.log10(adjusted_fmin);
 			Object[] args = { getIteration(), fmin, adjusted_fmin};

@@ -151,11 +151,11 @@ public class ValidatorExecutor {
 				InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 				
 	
-				log.info("Parsing Parameter Space File", options.scenarioConfig.paramFileDelegate.paramFile);
+				log.info("Parsing Parameter Space File", options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile);
 				ParamConfigurationSpace configSpace = null;
 				Random configSpacePRNG = new MersenneTwister(options.configurationSeed);
 				
-				String[] possiblePaths = { options.scenarioConfig.paramFileDelegate.paramFile, options.experimentDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile }; 
+				String[] possiblePaths = { options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile, options.experimentDir + File.separator + options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile }; 
 				for(String path : possiblePaths)
 				{
 					try {
@@ -289,7 +289,7 @@ public class ValidatorExecutor {
 				}
 				
 				
-				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
 			
 				
 				//AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime);
@@ -343,7 +343,7 @@ public class ValidatorExecutor {
 				log.info("Beginning Validation on {} entries", tfes.size());
 				(new Validator()).validate(testInstances,
 						options.validationOptions,
-						options.scenarioConfig.cutoffTime,
+						options.scenarioConfig.algoExecOptions.cutoffTime,
 						testInstanceSeedGen,
 						validatingTae,
 						outputDir,

@@ -161,7 +161,7 @@ public class SMACBuilder {
 				throw new IllegalArgumentException("State Serializer specified is not supported");
 		}
 		
-		String paramFile = options.scenarioConfig.paramFileDelegate.paramFile;
+		String paramFile = options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile;
 		log.info("Parsing Parameter Space File", paramFile);
 		ParamConfigurationSpace configSpace = null;
 		
@@ -192,7 +192,7 @@ public class SMACBuilder {
 		if (!f2.isAbsolute()){
 			f2 = new File(options.experimentDir + File.separator + algoExecDir);
 		}
-		AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+		AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
 	
 		
 		

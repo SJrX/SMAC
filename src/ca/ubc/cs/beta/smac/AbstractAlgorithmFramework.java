@@ -121,7 +121,7 @@ public class AbstractAlgorithmFramework {
 	{
 		this.instances = instances;
 		
-		this.cutoffTime = smacOptions.scenarioConfig.cutoffTime;
+		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
 		this.options = smacOptions;
 		this.rand = rand;		
 		this.algoEval = algoEval;
@@ -969,7 +969,7 @@ public class AbstractAlgorithmFramework {
 		
 		for(ParamConfiguration config : bestConfigs)
 		{
-			double cBest = runHistory.getEmpiricalCost(config, pis, options.scenarioConfig.cutoffTime);
+			double cBest = runHistory.getEmpiricalCost(config, pis, options.scenarioConfig.algoExecOptions.cutoffTime);
 			log.info("Challenger {} has objective performance {}", config, cBest);
 			if(cBest < bestScore)
 			{
