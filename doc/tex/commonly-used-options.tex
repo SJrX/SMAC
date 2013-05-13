@@ -119,5 +119,27 @@ Usage notes for the offline validation tool:
 \item This validates against the test set only; the training instance set is not used.
 \item By default this outputs into the current directory; you can change the output directory with the option \textbf{-~$\!$-runGroupName}.
 \item You can also validate against a trajectory file issued by \textbf{-$~\!$-trajectoryFile} option. 
+
+
+\end{enumerate}
+
+
+\subsection{Testing the Wrapper}
+
+SMAC includes a method of Testing Algorithm Execution, via the \texttt{smac-algotest} utility. It takes the required scenario options \footnote{Unfortunately it cannot read scenario files currently}
+ \textbf{-$~\!$-execDir}, \textbf{-$~\!$-paramFile}, \textbf{-$~\!$-algo}, \textbf{-$~\!$-cutoff\_time} the instance, and configuration to run on.
+
+For example:
+\begin{verbatim} 
+./smac-algotest --execDir <dir> --paramFile <file>  --algo <file> 
+--cutoff_time 300 --instance <instance>  --config <config string>
+ -P[name]=[value] -P[name]=[value]...
+\end{verbatim}
+
+Some parameters deserve special mention:
+\begin{enumerate}
+\item The config string syntax is a single string with ``-name=`value' '' ... you can also specify \texttt{RANDOM} which will generate a random configuration or \texttt{DEFAULT} which will generate  the default configuration.
+
+\item The \texttt{-P} parameters are optional and allow overriding specific values in the configuration (this is useful primarily for RANDOM and DEFAULT, to allow you to set certain values). To set the \texttt{sort\-algo} to \texttt{merge} you would specify \texttt{\-Psort\-algo=merge}.
 \end{enumerate}
 

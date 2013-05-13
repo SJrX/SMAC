@@ -38,8 +38,6 @@ import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
-import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
-import ca.ubc.cs.beta.aclib.misc.logging.LoggingMarker;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;

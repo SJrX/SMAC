@@ -39,7 +39,6 @@ import ca.ubc.cs.beta.aclib.events.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.events.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
-import ca.ubc.cs.beta.aclib.initialization.InitializationMode;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;

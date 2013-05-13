@@ -159,14 +159,13 @@
 					<arg value="--outputFile"/>
 					<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
-					
-		
-			
+						
 		<chmod perm="750">
 			<fileset dir="dist/">
 				<include name="smac"/>
 				<include name="smac-possible-restores"/>
 				<include name="smac-validate"/>
+				<include name="smac-algotest"/>
 				<include name="example_saps/ubcsat"/>
 				<include name="example_spear/Spear-32_1.2.1"/>
 				<include name="util/bash_autocomplete.sh"/>
@@ -184,6 +183,7 @@
 						<exclude name="smac"/>
 						<exclude name="smac-possible-restores"/>
 						<exclude name="smac-validate"/>
+						<exclude name="smac-algotest"/>
 						<exclude name="example_saps/ubcsat"/>
 						<exclude name="example_spear/Spear-32_1.2.1"/>
 					</tarfileset>
@@ -192,6 +192,7 @@
 						<include name="util/bash_autocomplete.sh"/>
 						<include name="smac-possible-restores"/>
 						<include name="smac-validate"/>
+						<include name="smac-algotest"/>
 						<include name="example_saps/ubcsat*"/>
 						<include name="example_spear/Spear-32_1.2.1*"/>
 					</tarfileset>
@@ -232,6 +233,7 @@
 		<copy file="dist/git-hashes.tex" todir="${doc.buildpath}" overwrite="true"/>
 		
 		<property file="${buildnumberfile}" prefix="manualfile" />
+		<property name="build.number" value="Unknown"/>
 		<property name="manual.build.number" value="${build.number}"/>
 		<property name="manual.build.number" value="${manualfile.build.number}"/>
 			
@@ -248,7 +250,25 @@
 		<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" output="${doc.buildpath}/options-ref.tex">
 		</java>
 		<!-- We do everything twice to generate some the toc and stuff I'm sure someone else knows how to do this properly -->
-					
+		
+		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
+							<arg value="manual.tex"/>
+				</exec>
+				
+		<echo></echo>
+		<echo>Manual Phase 1 Complete</echo>
+		<echo></echo>
+		
+		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
+					<arg value="manual.tex"/>
+		</exec>
+			
+		<echo></echo>
+		<echo>Manual Phase 2 Complete</echo>
+		<echo></echo>
+		
+		
+		
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 			<arg value="faq.tex"/>
 		</exec>
@@ -279,21 +299,6 @@
 		<echo>Quickstart Phase 2 Complete</echo>
 		<echo></echo>
 		
-		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
-					<arg value="manual.tex"/>
-		</exec>
-		
-		<echo></echo>
-		<echo>Manual Phase 1 Complete</echo>
-		<echo></echo>
-		
-		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
-					<arg value="manual.tex"/>
-		</exec>
-			
-		<echo></echo>
-		<echo>Manual Phase 2 Complete</echo>
-		<echo></echo>
 		
 		<!-- For some reason a file-formats.pdf gets built we will nuke it -->
 		<delete file="${doc.buildpath}/file-formats.pdf" failonerror="true"/>

@@ -20,8 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.SortedMap;
-import java.util.TreeMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +27,6 @@ import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.aclib.events.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;

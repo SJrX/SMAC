@@ -3,6 +3,7 @@
 \usepackage{fullpage}
 \usepackage{setspace}
 \usepackage{subfiles}
+\usepackage{alltt}
 
 \begin{document}
 
@@ -27,12 +28,11 @@ Vancouver, BC\ \ V6T~1Z4, Canada\\
 \section{Troubleshooting Questions}
 
 
-
 \subsection{My target algorithm fails to run, what should I do?}
 
 Consult the logs, and see what error messages are recorded. In some cases you may have to turn on additional options such as \textbf{-$~\!$-logAllProcessOutput}, and see what information is available.
 
-If it's not clear what the problem is consult the logs to determine the call string used (available from the logs), and try executing the target algorithm directly on the environment that it failed on. If direct execution fails, then the problem is specific to the target algorithm and/or your scenario options \ie{ The algorithm executable cannot be found }. 
+If it's not clear what the problem is consult the logs to determine the call string used (available from the logs), and try executing the target algorithm directly on the environment that it failed on. If direct execution fails, then the problem is specific to the target algorithm and/or your scenario options \ie{ The algorithm executable cannot be found }. Using the \texttt{smac-algotest} utility may make it easier to reproduce and diagnose the problem (see section \ref{sec:algotest}) .
 
 If the call succeeds, the next step would be to replace the target algorithm that is being executed with a debug script/program that outputs all of the environment variables, and the call string it sees directly from SMAC. If nothing here seems to be relevant to your problem, then you will probably want to contact us for more advice.
 
@@ -141,6 +141,19 @@ If you are using the supplied shell scripts, you can set the SMAC\_MEMORY enviro
 
 	Either will work. It may be easier to use a wrapper but this can introduce more overhead, which (depending on the runtime of the target algorithm) may be significant (we typically see overheads up to a second). When using a wrapper it is important not to poll the output stream of the process: if the target algorithm outputs lots of data this can result in a high degree of lock contention and significantly affect the runtime performance.
 	
+\subsection{How can I test that my wrapper will work with SMAC easily?}
+\label{sec:algotest}
+
+You can use the \texttt{smac-algotest} utility. It provides the same options that SMAC does with respect to executing your algorithm, but lets you specify the instance, seed \& configuration. For example the following tests a random configuration of spear with a cutoff time of 50 seconds andh the \texttt{sp-var-activity-inc} variable set to \emph{1.0924}:
+
+{\footnotesize
+\begin{alltt}
+./smac-algotest --execDir ./example_spear --paramFile ./example_spear/spear-params-mixed.txt
+ --algo "ruby spear_wrapper.rb"  --cutoff_time 50  --instance
+  example_data/QCP-instances/qcplin2006.10408.cnf -Psp-var-activity-inc=1.0924
+--config RANDOM
+\end{alltt}}
+
 
 \subsection{What is the difference between SAT and UNSAT in the algorithm responses?}
 
