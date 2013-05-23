@@ -374,7 +374,8 @@ public class AutomaticConfigurator
 				{
 					
 					logger.error(exception, "Message: {}",t.getMessage());
-
+					
+					
 					if(!(t instanceof ParameterException))
 					{
 						logger.info("Maybe try running in DEBUG mode if you are missing information");
@@ -384,6 +385,11 @@ public class AutomaticConfigurator
 						t.printStackTrace(writer);
 						logger.error(stackTrace, "StackTrace:{}",sWriter.toString());
 						
+						
+						
+					} else
+					{
+						logger.debug("Exception stack trace", t);
 					}
 						
 					logger.info("Exiting SMAC with failure. Log: " + logLocation);
