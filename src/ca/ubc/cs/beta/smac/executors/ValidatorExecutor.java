@@ -1,13 +1,17 @@
 package ca.ubc.cs.beta.smac.executors;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.Map;
+import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,19 +27,23 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
+import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.CommandLineTargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.loader.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
+import ec.util.MersenneTwister;
 
 public class ValidatorExecutor {
 
@@ -47,18 +55,10 @@ public class ValidatorExecutor {
 	{
 		
 		ValidationExecutorOptions options = new ValidationExecutorOptions();
-		/*
-		 * JCommander com = new JCommander(config, true, true);
-		com.setProgramName("smac");
-		try {
-			
-			
-			//JCommanderHelper.parse(com, args);
-			try {
-				checkArgsForUsageScreenValues(args,config);
-				com.parse(args);
-		 */
-		JCommander com = new JCommander(options, true, true);
+		Map<String, AbstractOptions> taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
+		
+		JCommander com = JCommanderHelper.getJCommander(options, taeOptions);
+		
 		com.setProgramName("validate");
 		try {
 			try {
@@ -67,7 +67,7 @@ public class ValidatorExecutor {
 				com.parse( args);
 				
 				log.info("==========Configuration Options==========\n{}", options.toString());
-				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorBuilder.getClassLoader(options.scenarioConfig.algoExecOptions));
+				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorLoader.getClassLoader());
 				VersionTracker.logVersions();
 				
 				
@@ -76,11 +76,11 @@ public class ValidatorExecutor {
 					throw new ParameterException("You cannot specify both a configuration and a trajectory file");
 				}
 				
-				ParamConfiguration configToValidate; 
 				
 				
+				//Set some default options
 				if(options.trajectoryFile != null)
-				{
+				{ 
 					log.info("Using Trajectory File {} " , options.trajectoryFile.getAbsolutePath());
 					if(options.tunerTime == -1)
 					{
@@ -90,6 +90,12 @@ public class ValidatorExecutor {
 						
 					}
 					
+					if(options.wallTime == -1)
+					{
+						options.wallTime = options.tunerTime;
+						//options.wallTime = options.scenarioConfig.
+						
+					}
 					
 					
 				} else
@@ -99,13 +105,18 @@ public class ValidatorExecutor {
 						options.tunerTime = 0;
 					}
 					
+					if(options.wallTime == -1)
+					{
+						options.wallTime = 0;
+					}
+					
 					if(options.empericalPerformance == -1)
 					{
 						options.empericalPerformance = 0;
 						
 					}
 					
-					log.info("Using configuration specified on Command Line");
+					log.info("Using manually set configurations");
 				}
 				
 			
@@ -117,82 +128,156 @@ public class ValidatorExecutor {
 				
 				instanceFeatureFile = options.scenarioConfig.instanceFeatureFile;
 				InstanceListWithSeeds ilws;
+				
+				
+				String instanceFile ;
+				if(options.validateTestInstances)
+				{
+					instanceFile = options.scenarioConfig.testInstanceFile;
+				} else
+				{
+					instanceFile = options.scenarioConfig.instanceFile;
+				}
+				
 				try {
-					 ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
+					 ilws = ProblemInstanceHelper.getInstances(instanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
 				} catch(FeatureNotFoundException e)
 				{
-					ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir,null, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
+					ilws = ProblemInstanceHelper.getInstances(instanceFile, options.experimentDir,null, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
 				}
 				
 				List<ProblemInstance> testInstances = ilws.getInstances();
 				InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 				
 	
-				log.info("Parsing Parameter Space File", options.scenarioConfig.paramFileDelegate.paramFile);
+				log.info("Parsing Parameter Space File", options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile);
 				ParamConfigurationSpace configSpace = null;
+				Random configSpacePRNG = new MersenneTwister(options.configurationSeed);
 				
-				
-				String[] possiblePaths = { options.scenarioConfig.paramFileDelegate.paramFile, options.experimentDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + options.scenarioConfig.paramFileDelegate.paramFile }; 
+				String[] possiblePaths = { options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile, options.experimentDir + File.separator + options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile }; 
 				for(String path : possiblePaths)
 				{
 					try {
 						log.debug("Trying param file in path {} ", path);
-						configSpace = ParamFileHelper.getParamFileParser(path,1234);
+						configSpace = ParamFileHelper.getParamFileParser(path);
 						break;
 					} catch(IllegalStateException e)
 					{ 
-	
-						
-					
+						if(e.getCause() instanceof FileNotFoundException)
+						{
+							//We don't care about this because we will just toss an exception if we don't find it
+						} else
+						{
+							log.warn("Error occured while trying to parse is {}"  , e.getMessage() );
+						}
 					}
 				}
 				
-				double nearestTunerTime = 0;
+				
 				List<TrajectoryFileEntry> tfes;
 				if(options.trajectoryFile != null)
 				{
-					
-					 tfes = TrajectoryFileParser.parseTrajectoryFileAsList(options.trajectoryFile, configSpace);
+					log.info("Parsing trajectory file");
+					 tfes = TrajectoryFileParser.parseTrajectoryFileAsList(options.trajectoryFile, configSpace, options.useTunerTimeIfNoWallTime);
 					 
 					 if(options.validationOptions.maxTimestamp == -1)
 					 {
-						 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+						 if(options.validationOptions.useWallClockTime)
+						 {
+							 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+						 } else
+						 {
+							 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+						 }
 					 }
-				
+					 
+					 if(options.randomConfigurations > 0) throw new ParameterException("Cannot validate both a trajectory file and random configurations");
+					 if(options.configurationList != null) throw new ParameterException("Cannot validate both a trajectory file and a configuration list");
+					 if(options.incumbent != null) throw new ParameterException("Cannot validate both a trajectory and a given configuration");
+					 
 				} else
 				{
 					if (options.tunerOverheadTime == -1)
 					{
 						options.tunerOverheadTime = 0;	
 					}
+					//We are explicitly setting configurations so validate all
+					options.validationOptions.validateAll = true;
 					
-					if(options.incumbent == null)
-					{
-						log.warn("No configuration supplied");
-						
-						
-						configToValidate = configSpace.getDefaultConfiguration();
-						log.info("To validate the incumbent please use --configuration \"" + configToValidate.getFormattedParamString(StringFormat.NODB_SYNTAX) + "\"");
-						throw new ParameterException("Must supply a configuration to validate");
-					} else
-					{
+					
+					List<ParamConfiguration> configToValidate = new ArrayList<ParamConfiguration>(); 
+					//==== Parse the supplied configuration;
+					int optionsSet=0;
+					if(options.incumbent != null)
+					{					
 						log.info("Parsing Supplied Configuration");
-						try {
-							configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_SYNTAX);
-						} catch(RuntimeException e)
+						configToValidate.add(configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
+						optionsSet++;
+					}
+					if(options.randomConfigurations > 0)
+					{
+						
+						log.info("Generating {} random configurations to validate");
+						for(int i=0; i < options.randomConfigurations; i++)
 						{
-							try {
-								log.info("Being nice and checking if this is a STATEFILE encoded configuration");
-								configToValidate = configSpace.getConfigurationFromString(options.incumbent, StringFormat.STATEFILE_SYNTAX);
-							} catch(RuntimeException e2)
+							if(options.includeRandomAsFirstDefault && i==0)
 							{
-								throw e;
+								log.debug("Using the default as the first configuration");
+								configToValidate.add(configSpace.getDefaultConfiguration());
+							} else
+							{
+								configToValidate.add(configSpace.getRandomConfiguration(configSpacePRNG));
 							}
+						}
+						optionsSet++;
+						
+					}
+					
+					if(options.configurationList != null)
+					{
+						BufferedReader reader = new BufferedReader(new FileReader(options.configurationList));
+						
+						String line; 
+						while((line = reader.readLine()) != null)
+						{
 							
+							if(line.trim().isEmpty()) 
+							{
+								continue;
+							}
+							configToValidate.add(configSpace.getConfigurationFromString(line, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
+						}
+						
+						optionsSet++;
+						reader.close();
+					}
+					
+					if(optionsSet == 0)
+					{
+						throw new ParameterException("You must set one of --trajectoryFile, --configuration, --configurationList, --randomConfiguration options");
+					}
+					if(optionsSet > 1)
+					{
+						throw new ParameterException("You can only set one of --trajectoryFile, --configuration, --configurationList, --randomConfiguration options");
+					}
+					
+							
+					
+					tfes = new ArrayList<TrajectoryFileEntry>();
+					int i=0;
+					for(ParamConfiguration config : configToValidate)
+					{
+						tfes.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empericalPerformance, options.tunerOverheadTime + i));
+						
+						if(options.autoIncrementTunerTime)
+						{
+							i++;
 						}
 					}
 					
-					tfes = Collections.singletonList(new TrajectoryFileEntry(configToValidate, options.tunerTime, options.empericalPerformance, options.tunerOverheadTime));
+					
+					
+				
 					
 				}
 				
@@ -203,16 +288,37 @@ public class ValidatorExecutor {
 				}
 				
 				
-				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+				AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
 			
 				
 				//AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime);
 				
 				
+				if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == null)
+				{
+					boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(testInstances);
+					if(verifySATCompatible)
+					{
+						log.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
+						options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = true;
+					} else
+					{
+						log.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
+						options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = false;
+					}
+					
 				
+				} else if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == true)
+				{
+					boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(testInstances);
+					if(!verifySATCompatible)
+					{
+						log.warn("Verify SAT set to true, but some instances have instance specific information that isn't in {SAT, SATISFIABLE, UNKNOWN, UNSAT, UNSATISFIABLE}");
+					}
+						
+				}
 				
-				
-				TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
+				TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false,taeOptions);
 				
 				
 				String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
@@ -236,7 +342,7 @@ public class ValidatorExecutor {
 				log.info("Beginning Validation on {} entries", tfes.size());
 				(new Validator()).validate(testInstances,
 						options.validationOptions,
-						options.scenarioConfig.cutoffTime,
+						options.scenarioConfig.algoExecOptions.cutoffTime,
 						testInstanceSeedGen,
 						validatingTae,
 						outputDir,
@@ -244,12 +350,13 @@ public class ValidatorExecutor {
 						options.scenarioConfig.intraInstanceObj,
 						options.scenarioConfig.interInstanceObj,
 						tfes,
-						options.numRun);
+						options.numRun,
+						options.waitForPersistedRunCompletion);
 				
 				
 				log.info("Validation Completed Successfully");
 				validatingTae.notifyShutdown();
-				System.exit(SMACReturnValues.SUCCESS);
+				System.exit(ACLibReturnValues.SUCCESS);
 			} catch(ParameterException e)
 			{
 				
@@ -261,7 +368,7 @@ public class ValidatorExecutor {
 		} catch(Throwable t)
 		{
 
-			int returnValue = SMACReturnValues.OTHER_EXCEPTION;
+			int returnValue = ACLibReturnValues.OTHER_EXCEPTION;
 			if(log != null)
 			{
 				
@@ -279,7 +386,7 @@ public class ValidatorExecutor {
 					PrintWriter writer = new PrintWriter(sWriter);
 					t.printStackTrace(writer);
 					log.error(stackTrace, "StackTrace:{}",sWriter.toString());
-					returnValue = SMACReturnValues.PARAMETER_EXCEPTION;
+					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 					
@@ -293,11 +400,11 @@ public class ValidatorExecutor {
 			{
 				if(t instanceof ParameterException )
 				{
-					returnValue = SMACReturnValues.PARAMETER_EXCEPTION;
+					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
 					System.err.println(t.getMessage());
 				} else
 				{
-					returnValue = SMACReturnValues.OTHER_EXCEPTION;
+					returnValue = ACLibReturnValues.OTHER_EXCEPTION;
 					t.printStackTrace();
 				}
 				
@@ -307,4 +414,6 @@ public class ValidatorExecutor {
 		}
 		/*(new Validator()).validate(testInstances, smac.getIncumbent(),options, testInstanceSeedGen, validatingTae);*/
 	}
+	
+
 }

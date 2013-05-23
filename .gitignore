@@ -2,3 +2,13 @@
 /dist
 /bin
 /smac-output
+/test-output
+*.pdf
+*.cb
+*.synctex.gz
+*.log
+*.cb2
+*.toc
+*.aux
+*.tex.bak
+.directory

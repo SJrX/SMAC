@@ -5,41 +5,31 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.Reader;
 import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
-import java.util.TreeMap;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MarkerFactory;
-
-import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
-import ec.util.MersenneTwister;
 
+import ec.util.MersenneTwister;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.events.EventManager;
-import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.misc.logback.MarkerFilter;
-import ca.ubc.cs.beta.aclib.misc.logging.LoggingMarker;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
-import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
-import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
+import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -48,12 +38,12 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
+import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
-import ca.ubc.cs.beta.smac.executors.AutomaticConfigurator;
-import ca.ubc.cs.beta.smac.state.nullFactory.NullStateFactory;
+import ec.util.MersenneTwister;
 
 /**
  * Builds an Automatic Configurator
@@ -101,7 +91,7 @@ public class SMACBuilder {
 
     public void parseParamSpace(Reader paramFileReader)
     {
-        configSpace = new ParamConfigurationSpace(paramFileReader, new MersenneTwister(options.numRun + options.seedOffset +1000000), paramFileReader.toString());
+        configSpace = new ParamConfigurationSpace(paramFileReader, paramFileReader.toString());
     }
 	
 	
@@ -134,13 +124,14 @@ public class SMACBuilder {
 
         if(execConfig == null)
         {
-            execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.cutoffTime );
+            execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, options.scenarioConfig.algoExecOptions.algoExecDir, configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
         }
         return execConfig;
     }
 	
 	
-	public AbstractAlgorithmFramework getSMAC(TargetAlgorithmEvaluator tae)
+
+	public AbstractAlgorithmFramework getSMAC(SMACOptions options,Map<String, AbstractOptions> taeOptions, TargetAlgorithmEvaluator tae)
 	{
 	
 
@@ -186,11 +177,40 @@ public class SMACBuilder {
 			default:
 				throw new IllegalArgumentException("State Serializer specified is not supported");
 		}
-		
-		//String paramFile = options.scenarioConfig.paramFileDelegate.paramFile;
-		//log.info("Parsing Parameter Space File", paramFile);
-		//ParamConfigurationSpace configSpace = null;
 	
+		String paramFile = options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile;
+		log.info("Parsing Parameter Space File", paramFile);
+		ParamConfigurationSpace configSpace = null;
+		
+		Random configSpacePRNG = new MersenneTwister(options.numRun + options.seedOffset +1000000);
+		
+		String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
+		for(String path : possiblePaths)
+		{
+			try {
+				log.debug("Trying param file in path {} ", path);
+				
+				configSpace = ParamFileHelper.getParamFileParser(path);
+				break;
+			}catch(IllegalStateException e)
+			{ 
+			
+			}
+		}
+		
+		
+		if(configSpace == null)
+		{
+			throw new ParameterException("Could not find param file");
+		}
+		
+		String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
+		File f2 = new File(algoExecDir);
+		if (!f2.isAbsolute()){
+			f2 = new File(options.experimentDir + File.separator + algoExecDir);
+		}
+		AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
+
 		
 		StateFactory sf;
 		
@@ -236,8 +256,10 @@ public class SMACBuilder {
         //Make sure we have an exec config
         getAlgoExecConfig();
 		
-        //Wrap the given TAE
-		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, true, tae);
+
+		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig,true,taeOptions,tae);
+		
+
 
 		if(options.modelHashCodeFile != null)
 		{
@@ -246,14 +268,27 @@ public class SMACBuilder {
 		}
 		
 		
+		ParamConfiguration initialIncumbent = configSpace.getConfigurationFromString(options.initialIncumbent, StringFormat.NODB_SYNTAX);
+		
+		
+		if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
+		{
+			log.info("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+		} else
+		{
+			log.info("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+		}
+		
+		
+
 		AbstractAlgorithmFramework smac;
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances, algoEval, sf, configSpace, instanceSeedGen, rand, eventManager);
+				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager, configSpacePRNG);
 				break;
 			case SMAC:
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, eventManager);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand,  initialIncumbent, eventManager, configSpacePRNG);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");

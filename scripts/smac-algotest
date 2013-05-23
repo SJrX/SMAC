@@ -2,7 +2,7 @@
 SMAC_MEMORY_INPUT=$SMAC_MEMORY
 SMACMEM=1024
 test "$SMAC_MEMORY_INPUT" -ge 1 2>&- && SMACMEM=$SMAC_MEMORY_INPUT
-EXEC=ca.ubc.cs.beta.smac.executors.AutomaticConfigurator
+EXEC=ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunner
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 echo "Starting with $SMACMEM MB of RAM"
 

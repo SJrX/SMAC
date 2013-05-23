@@ -1,6 +1,12 @@
 package ca.ubc.cs.beta.junit;
 
-import static org.junit.Assert.*;
+/*
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+*/
+
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,9 +20,8 @@ import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+import org.junit.*;
+import static org.junit.Assert.*;
 
 import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 
@@ -24,33 +29,18 @@ import com.beust.jcommander.JCommander;
 
 public class SMACTester {
 	
-	/*
-	@Test
-	public void test()
-	{
-		Class[] cls = { ParallelTest.class};
-		Result r = JUnitCore.runClasses(ParallelComputer.methods(), cls);
-		
-		if(r.getFailureCount() > 0)
-		{
-			fail("Failed Test Occured");
-			
-		}
-	}
-		
-	
 
-	public static class ParallelTest 
-	{
-		*/
-		
 	public static String smacDeployment = null;
 	public static Long seedOffset = Math.abs((new Random()).nextLong());
 	
 	@BeforeClass
 	public static void initDeploymentToTest()
 	{
+		
+				
+			
 			String s = ClassLoader.getSystemClassLoader().getResource("lastbuild-deploy.txt").getFile();
+			//System.out.println("CL Name:"+ ClassLoader.getSystemClassLoader().getClass().getName());
 			if(s == null || s.trim().length() == 0)
 			{
 				throw new AssertionError("Could not find deployment file lastbuild-deploy.txt on classpath");
@@ -59,7 +49,7 @@ public class SMACTester {
 			try {
 				BufferedReader r = new BufferedReader(new FileReader(f));
 				smacDeployment = r.readLine();
-				
+				System.out.println("SMAC DEPLOYMENT: " + smacDeployment);
 			} catch (FileNotFoundException e) {
 				throw new AssertionError("Could open the deployment file lastbuild-deploy.txt");
 			} catch (IOException e) {
@@ -88,7 +78,7 @@ public class SMACTester {
 	
 			String instanceCheck = (checkInstances) ? " --checkInstanceFilesExist true " : " --checkInstanceFilesExist false ";
 			
-			String execString = "./smac --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runGroupName "  + runID + "-" + id + " --experimentDir " + experimentDir + " --numRun 0 "  +  instanceCheck+  " --doValidation false --seedOffset " + seedOffset;
+			String execString = "./smac --cleanOldStateOnSuccess false --scenarioFile " +  scenarioFile + " --numIterations " + iterationLimit + " --runGroupName "  + runID + "-" + id + " --experimentDir " + experimentDir + " --numRun 0 "  +  instanceCheck+  " --doValidation false --seedOffset " + seedOffset;
 			
 			if(surrogate)
 			{
@@ -128,9 +118,9 @@ public class SMACTester {
 			int iteration=0;
 			
 			final ScenarioOptions sc = new ScenarioOptions();
+			//System.out.println("Location:" + this.getClass().getClassLoader().getResource("com/beust/jcommander/JCommander.class"));
 			
-			
-			JCommander jcom = new JCommander(sc);
+			JCommander jcom = new JCommander(sc, true, true);
 			String[] args = {"--scenarioFile",scenarioFile};
 			
 			jcom.parse(args);
@@ -141,6 +131,8 @@ public class SMACTester {
 			
 			boolean resultFound = false;
 			String execString = getExecString(scenarioFile, adaptiveCapping, iterationLimit, ROARMode, restoreIteration, id, verifyHashCodes, checkInstances,surrogate);
+			
+			System.out.println("Execution Directory:" + smacDeployment);
 			String runDir = smacDeployment;
 			Queue<String> last10Lines = new LinkedList<String>();
 			boolean messageFound = false;
@@ -243,7 +235,7 @@ public class SMACTester {
 									{
 										p.destroy();
 										in.close();
-										fail("Expected seed to be -1 on run: " + m.group(0));
+										Assert.fail("Expected seed to be -1 on run: " + m.group(0));
 									}
 							} else
 							{
@@ -251,7 +243,7 @@ public class SMACTester {
 								{
 									p.destroy();
 									in.close();
-									fail("Expected seed to be >0 on run: " + m.group(0));
+									Assert.fail("Expected seed to be >0 on run: " + m.group(0));
 								}
 							}
 							
@@ -364,7 +356,7 @@ public class SMACTester {
 					{
 						System.out.println(" [SUCCESS]");
 						resultFound = true;
-					} if(line.contains("Exiting Application with failure"))
+					} if(line.contains("Exiting SMAC with failure"))
 					{
 						System.out.println(" [FAILURE DETECTED]");
 						for(String s : last10Lines)
@@ -448,6 +440,8 @@ public class SMACTester {
 			return v;
 			
 		}
+	
+		
 		public void testSMAC(String scenarioFile)
 		{
 			//Ugly hack, but we will pass if we find a line with a space in it ;) 
@@ -458,6 +452,8 @@ public class SMACTester {
 		//{
 		//	testSMAC(scenarioFile, messageClass, message, verifyHashCodes, false);
 		//}
+
+		
 		public void testSMAC(String scenarioFile, String messageClass, String message, boolean verifyHashCodes, boolean checkInstances, boolean surrogate)
 		{
 			/**
@@ -501,6 +497,7 @@ public class SMACTester {
 		@Test
 		public void testSPEARSurrogateWeirdSeed()
 		{
+			
 			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/spear/spear-surrogate-weirdseeds.txt";
 			testFailSMAC(scenarioFile,"ERROR", "All Training Instances must have the same number of seeds in this version of SMAC",18);
 		
@@ -510,6 +507,7 @@ public class SMACTester {
 		@Test
 		public void testCPLEXMini()
 		{
+
 			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/cplex_surrogate/scenario-Cplex-BIGMIX-mini.txt";
 			testSMAC(scenarioFile, "INFO", "Clamping number of runs to 8 due to lack of instance/seeds pairs",true, false, true);
 		}
@@ -554,7 +552,8 @@ public class SMACTester {
 		@Test
 		public void testSPEAR()
 		{
-			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/example_spear/scenario-Spear-SWGCP-sat-small-train-small-test.txt";
+			System.out.println(smacDeployment);
+			String scenarioFile = smacDeployment+"/example_spear/scenario-Spear-SWGCP-sat-small-train-small-test.txt";
 			testSMAC(scenarioFile);
 		}
 		
@@ -562,7 +561,7 @@ public class SMACTester {
 		public void testSAPS()
 		{
 			
-			String scenarioFile = "/ubc/cs/home/s/seramage/arrowspace/smac-test/example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt";
+			String scenarioFile = smacDeployment+"/example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt";
 			testSMAC(scenarioFile);
 		}
 		

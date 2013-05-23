@@ -13,12 +13,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.events.EventManager;
-import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
-import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
+
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
@@ -33,7 +31,6 @@ import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
@@ -72,8 +69,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
 	
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, EventManager eventManager) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand, eventManager);
+
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialConfiguration, EventManager eventManager, Random configSpacePRNG) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand, initialConfiguration, eventManager, configSpacePRNG);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
@@ -101,7 +99,6 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	@Override
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) 
 	{
-		
 		
 		
 		if(options.randomForestOptions.subsampleValuesWhenLowMemory)
@@ -171,13 +168,25 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		double[] runResponseValues = runHistory.getRunResponseValues();
+		boolean[] censored = runHistory.getCensoredFlagForRuns();
+		if(smacConfig.maskCensoredDataAsKappaMax)
+		{
+			for(int j=0; j < runResponseValues.length; j++)
+			{
+				if(censored[j])
+				{
+					runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime;
+				}
+			}
+		}
+		
 		
 		for(int j=0; j < runResponseValues.length; j++)
 		{ //=== Not sure if I Should be penalizing runs prior to the model
 			// but matlab sure does
-			if(runResponseValues[j] >= options.scenarioConfig.cutoffTime)
+			if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
 			{	
-				runResponseValues[j] = runResponseValues[j] * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+				runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
 			}
 		}
 	
@@ -200,9 +209,11 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//=== Actually build the model.
 		ModelBuilder mb;
 		//TODO: always go through AdaptiveCappingModelBuilder
+		forest = null;
+		preparedForest = null;
 		if(options.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
@@ -229,7 +240,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		 t = new AutoStartStopWatch();
 		for(int i=0; i < eichallengers.size(); i++)
 		{
-			randomChallengers.add(configSpace.getRandomConfiguration());
+			randomChallengers.add(configSpace.getRandomConfiguration(configSpacePRNG));
 		}
 		log.debug("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
 		
@@ -273,7 +284,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		double[][] tmp_predictions = transpose(applyMarginalModel(Collections.singletonList(incumbent)));
 		log.info("Prediction for incumbent: {} +/- {} (in log space if logModel=true)", tmp_predictions[0][0], tmp_predictions[1][0]);
 		
-		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime);
+		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.algoExecOptions.cutoffTime);
 		//=== Get the empirical cost into log space if the model gives log predictions. 
 		if (smacConfig.randomForestOptions.logModel)
 		{
@@ -281,7 +292,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			fmin = Math.max(SanitizedModelData.MINIMUM_RESPONSE_VALUE, fmin);
 			fmin = Math.log10(fmin);
 			
-			double adjusted_fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.cutoffTime, SanitizedModelData.MINIMUM_RESPONSE_VALUE);
+			double adjusted_fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, SanitizedModelData.MINIMUM_RESPONSE_VALUE);
 			adjusted_fmin = Math.max(SanitizedModelData.MINIMUM_RESPONSE_VALUE, adjusted_fmin);
 			adjusted_fmin = Math.log10(adjusted_fmin);
 			Object[] args = { getIteration(), fmin, adjusted_fmin};
@@ -403,7 +414,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		List<ParamConfiguration> randomConfigs = new ArrayList<ParamConfiguration>(numberOfRandomConfigsInEI);
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
-			randomConfigs.add(configSpace.getRandomConfiguration());
+			randomConfigs.add(configSpace.getRandomConfiguration(configSpacePRNG));
 		} 
 		
 		log.debug("Generating {} Random Configurations took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
@@ -537,7 +548,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current options and compute EI for all of it.
-			List<ParamConfiguration> neighbourhood = c.getNeighbourhood();
+			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configSpacePRNG);
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];
 			double[] vars = prediction[1];

@@ -1,14 +1,18 @@
 package ca.ubc.cs.beta.smac.executors.stub;
 
+import java.util.Random;
+
 import org.apache.commons.math.stat.StatUtils;
 
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ec.util.MersenneTwister;
 
 public class RandomConfigTester {
 
 	public static void main(String[] args)
 	{
+		Random r = new MersenneTwister();
+		
 		ParamConfigurationSpace sp = new ParamConfigurationSpace("/ubc/cs/project/arrow/hutter/experiments/algorithms/spear/spear-params.txt");
 	
 		int N = 10000;
@@ -21,7 +25,7 @@ public class RandomConfigTester {
 			long time = System.currentTimeMillis();
 			for(int i=0; i < 10000; i++)
 			{
-				sp.getRandomConfiguration();
+				sp.getRandomConfiguration(r);
 			}
 			if(j == 0) continue;
 			

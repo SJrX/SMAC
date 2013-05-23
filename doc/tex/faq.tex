@@ -3,6 +3,7 @@
 \usepackage{fullpage}
 \usepackage{setspace}
 \usepackage{subfiles}
+\usepackage{alltt}
 
 \begin{document}
 
@@ -20,31 +21,84 @@ Vancouver, BC\ \ V6T~1Z4, Canada\\
 
 \maketitle
 
+
 \renewcommand*\contentsname{FAQ}
 \tableofcontents
 
+\section{Troubleshooting Questions}
 
-\section{My target algorithm fails to run, what should I do?}
+
+\subsection{My target algorithm fails to run, what should I do?}
 
 Consult the logs, and see what error messages are recorded. In some cases you may have to turn on additional options such as \textbf{-$~\!$-logAllProcessOutput}, and see what information is available.
 
-If it's not clear what the problem is consult the logs to determine the call string used (available from the logs), and try executing the target algorithm directly on the environment that it failed on. If direct execution fails, then the problem is specific to the target algorithm and/or your scenario options \ie{ The algorithm executable cannot be found }. 
+If it's not clear what the problem is consult the logs to determine the call string used (available from the logs), and try executing the target algorithm directly on the environment that it failed on. If direct execution fails, then the problem is specific to the target algorithm and/or your scenario options \ie{ The algorithm executable cannot be found }. Using the \texttt{smac-algotest} utility may make it easier to reproduce and diagnose the problem (see section \ref{sec:algotest}) .
 
 If the call succeeds, the next step would be to replace the target algorithm that is being executed with a debug script/program that outputs all of the environment variables, and the call string it sees directly from SMAC. If nothing here seems to be relevant to your problem, then you will probably want to contact us for more advice.
 
-\textsc{Note:} If the call string that SMAC is using is not in the correct format, you probably need to use a wrapper to format it, and you should consult the \emph{Algorithm executable / wrapper} section in the manual.
+\textsc{Note:} If the call string that SMAC is using is not in the correct format, you probably need to use a wrapper to format it, and you should consult the \emph{Algorithm executable / wrapper} in the manual.
 
 \textsc{Note:} In certain Java implementations (such as Sun's Java 6) there is a bug \footnote{See \url{http://bugs.sun.com/view_bug.do?bug_id=6670965}} that causes the \texttt{LD\_LIBRARY\_PATH} variable to be modified internally by Java, and then the target algorithm sees the modification. In most cases this is benign, as it merely adds the location of the JVM libraries, and restates the location of the system libraries. However if library incompatibilities exist, this can cause problems. You will need to use a wrapper script to manually fix the LD\_LIBRARY\_PATH or upgrade Java.
 
+\subsection{SMAC gets a java.io.IOException: error=12, Cannot allocate memory when trying to execute the target algorithm}
 
-\section{How can I report a bug or documentation error?}
- Please e-mail both of the developers above.
+This is caused by a bug in earlier versions of Java 6 and Java 7. When SMAC executes the program in these versions, the system calls \texttt{fork()} and \texttt{exec()} which causes the entire address space footprint of SMAC to be duplicated, while this is done with traditional copy-on-write semantics, in systems which will not over commit resources, this causes the fork to fail. For more information see: \texttt{http://bugs.sun.com/bugdatabase/view\_bug.do?bug\_id=7034935}
 
-\section{Why does SMAC do weird things to my console (change colors, set the title, etc...)?}
+\subsection{Why does SMAC do weird things to my console (change colors, set the title, etc...)?}
 
 SMAC outputs a dump of the environment variables to console when DEBUG logging is enabled. If any of these characters are terminal escape sequences they may unintentionally cause the terminal's behaviour to change.
 
-\section{Should I make a parameter categorical or numeric integral?}
+\subsection{SMAC seems to take so much longer than tunerTimeout to execute, what can I do?}
+
+	Consider using the \textbf{-~$\!$-wallClockLimit} option to limit the amount of wall clock time that SMAC will execute for. Additionally consider looking at the \texttt{run\_and\_results} file for the run (see \emph{State Files} in the SMAC Manual) and see how large the difference between the recorded wall clock time and the reported runtime is.
+
+\subsection{How can I report a bug or documentation error?}
+ Please e-mail both of the developers above.
+
+\subsection{My environment can be flaky, I don't want to ABORT but don't want to blindly continue with CRASHED}
+
+	Consider using the \textbf{-$~\!$-abortOnCrash} option in conjunction with \textbf{-$~\!$-retryTargetAlgorithmRunCount}. This will allow you to retry several times before ultimately giving up.
+
+
+\section{Usage Questions}
+
+\subsection{I don't have any instance features, is there any benefit I can get from running SMAC?}
+
+	Yes, SMAC can also run without features, and sometimes continues to show state-of-the-art performance. Additionally, we have noticed that the performance of the default configuration on all instances is a good instance feature in many situations.
+
+\subsection{How do I use the preliminary bash auto-completion with SMAC?}
+
+	You can load the auto completion information by running "\texttt{. ./util/bash\_autocomplete.sh}" at a bash prompt. For instance:
+\begin{verbatim}
+$. ./util/bash_autocomplete.sh
+\end{verbatim}
+
+	
+	
+
+
+\subsection{Validation}
+
+\subsubsection{Does SMAC support validation?}
+
+	Yes, see \emph{Offline Validation} in the manual.
+
+	
+\subsubsection{How can I disable Validation?}
+
+	Yes, by setting \textbf{-~$\!$-doValidation} to false.
+	
+\subsubsection{Does SMAC support validating more than the last incumbent?}
+
+	Yes, by setting \textbf{-~$\!$-validateOnlyLastIncumbent} to false. Additionally see {Validation Options} in the SMAC Manual appendix for options that control which incumbents can be selected.
+
+
+\subsubsection{How can I change the amount of memory SMAC uses?}
+
+If you are using the supplied shell scripts, you can set the SMAC\_MEMORY environment variable to a positive integer corresponding to amount of memory in MB SMAC will use. If you are using some other mechanism of execution, the \texttt{-Xmx} java option is the only other way.
+
+
+\subsection{Should I make a parameter categorical or numeric integral?}
 
 	Numeric integral parameters are internally treated as numeric continuous parameters, and only when a call to the target algorithm is made, is the value rounded to an integer. 
 	
@@ -58,26 +112,58 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 	To help inform the decision, from a SMAC internal point of view there are two places in the code where this distinction will matter. The first is during neighbourhood searches. All numeric parameters will only have 4 neighbours selected, and those neighbours will be sampled from a distribution $N(\mu, 0.2)$ where $\mu$ is the existing (\emph{standardized} to [0, 1]) value. Any samples that fall outside of this range will be rejected.
 	
 	The next distinction is within the random forest itself. Categorical values can be split arbitrarily but numeric values are always split at some constant $c$, with values $>$ than $c$ going to the right, and values $\leq$ going to the left.
-	
-	
 		
-\section{Should I use a wrapper or modify my program to execute directly?} 
+\subsection{Saving and Restoring State}
+
+\subsubsection{Can I continue a finished run of SMAC (\eg{, after a crash or running out of time})?}
+
+	Yes, see \emph{State Restoration} in the manual.
+
+\subsubsection{SMAC's state files eat up alot of disk space, can I turn them off?}
+
+	Yes, set the \textbf{-$~\!$-stateSerializer} to \emph{NULL}. Beginning in version 2.02, the default was to only save the files needed to restore the final set of runs, and not necessarily every iteration before hand.
+	
+\subsubsection{Can I save more than just the final set of runs?}
+
+	Yes, set the \textbf{-$~\!$-cleanOldStateOnSuccess} option to false, and a complete state will be saved on every $2^n$  $n\in\mathbb{N}$ iteration.
+
+\subsubsection{How can I see what iterations I can restore SMAC to?}
+
+	Using the \texttt{smac-possible-restores} utility. Point it to the directory that contains the state you'd like to restore.
+
+\subsubsection{Can I change the settings of SMAC when restoring state (\eg{,add more instances, change objectives})?}
+
+	Yes, the only thing that is restored with the state is the runs, and the state of the random objects. Everything else comes from the configuration supplied. You may want to look at the source code of \texttt{LegacyStateDeserializer} to see exactly what can be changed and what can't. \textsc{Note:} some invariants of SMAC may no longer be in force, and care must be taken. The incumbent may no longer be the best found under the new objectives, and/or the incumbent may no longer have the most number of runs \footnote{If you don't include the \texttt{java\_obj\_dump} file the incumbent should be recalculated for you. The calculated incumbent will be the one that has the most runs, and performs the best on the objective. Additionally you also lose the random object state.}. 
+
+\section{Target Algorithm \& Wrapper Questions}
+
+\subsection{Should I use a wrapper or modify my program to execute directly?} 
 
 	Either will work. It may be easier to use a wrapper but this can introduce more overhead, which (depending on the runtime of the target algorithm) may be significant (we typically see overheads up to a second). When using a wrapper it is important not to poll the output stream of the process: if the target algorithm outputs lots of data this can result in a high degree of lock contention and significantly affect the runtime performance.
 	
-\section{SMAC seems to take so much longer than tunerTimeout to execute, what can I do?}
+\subsection{How can I test that my wrapper will work with SMAC easily?}
+\label{sec:algotest}
 
-	Consider using the \textbf{-~$\!$-wallClockLimit} option to limit the amount of wall clock time that SMAC will execute for. Additionally consider looking at the \texttt{run\_and\_results} file for the run (see \emph{State Files} in the SMAC Manual) and see how large the difference between the recorded wall clock time and the reported runtime is.
+You can use the \texttt{smac-algotest} utility. It provides the same options that SMAC does with respect to executing your algorithm, but lets you specify the instance, seed \& configuration. For example the following tests a random configuration of spear with a cutoff time of 50 seconds andh the \texttt{sp-var-activity-inc} variable set to \emph{1.0924}:
 
-\section{Does SMAC support validation?}
+{\footnotesize
+\begin{alltt}
+./smac-algotest --execDir ./example_spear --paramFile ./example_spear/spear-params-mixed.txt
+ --algo "ruby spear_wrapper.rb"  --cutoff_time 50  --instance
+  example_data/QCP-instances/qcplin2006.10408.cnf -Psp-var-activity-inc=1.0924
+--config RANDOM
+\end{alltt}}
 
-	Yes, see \emph{Offline Validation} in the manual.
 
-\section{Does SMAC support validating more than one incumbent?}
+\subsection{What is the difference between SAT and UNSAT in the algorithm responses?}
 
-	Yes, by setting \textbf{-~$\!$-validateOnlyLastIncumbent} to false. Additionally see {Validation Options} in the SMAC Manual appendix for options that control which incumbents can be selected.
+The short answer is you can use either, as SMAC makes no distinction. The reason two responses are used is a historical hold over for debugging. Essentially it was used as a cross check to ensure that some unknown bug didn't crop up, as a result of the running configuration that would break the solver. SMAC itself doesn't do anything with this information, but it's possible to use the \texttt{run\_and\_results} file to check the responses against the instances, and ensure that no errors were made.
 
-\section{What are the performance consequences of executing in parallel (i.e. setting \textbf{-~$\!$-maxConcurrentAlgoExecs} $>$ 1)?}
+\subsection{What does the RANDOM Target Algorithm Evaluator do?}
+
+This Target Algorithm Evaluator basically outputs random responses, it is useful for debugging SMAC in conjunction with the \textbf{example\_random} scenario.
+
+\subsection{What are the performance consequences of executing in parallel (i.e. setting \textbf{-~$\!$-maxConcurrentAlgoExecs} $>$ 1)?}
 	
 	It largely depends on how SMAC ends up exploring the configuration space. The largest change one could expect for a series of $N$ algorithm executions, given infinite concurrent processors would be from $O(N)$ to $O(\lg(N))$. \textsc{Note:} This case would generally occur when we have lots of runs for the incumbent, and challengers perform very close to the incumbent's performance. If the configurations SMAC finds can be shown to perform poorly fairly quickly, then the runtime would still be about $O(N)$, and there would be no significant improvement.
 	
@@ -85,63 +171,52 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 	
 	For validation however, given infinite processors the runtime would be $O(1)$, and depending on the scenario validation can be more than 50\% of the runtime.
 
-\section{Can I continue a finished run of SMAC (\eg{, after a crash or running out of time})?}
 
-	Yes, see \emph{State Restoration} in the manual.
+\subsection{What is a Run Hash Code?}
+
+These are a mapping from the \texttt{<instance>,<seed>,<configuration setting>} to a hash. Primarily these are of use to developers, who want to ensure that a change in the code does not alter the trajectory of SMAC. Modulo the random noise in target algorithm execution, when you restore state the values should be preserved.
 
 
-\section{SMAC's state files eat up alot of disk space, can I turn them off}?
 
-	Yes, set the \textbf{-$~\!$-stateSerializer} to \emph{NULL}.
 
-\section{How can I see what iterations I can restore SMAC to?}
-
-	Using the \texttt{smac-possible-restores} utility. Point it to the directory that contains the state you'd like to restore.
-
-\section{Can I change the settings of SMAC when restoring state (\eg{,add more instances, change objectives})?}
-
-	Yes, the only thing that is restored with the state is the runs, and the state of the random objects. Everything else comes from the configuration supplied. You may want to look at the source code of \texttt{LegacyStateDeserializer} to see exactly what can be changed and what can't. \textsc{Note:} some invariants of SMAC may no longer be in force, and care must be taken. The incumbent may no longer be the best found under the new objectives, and/or the incumbent may no longer have the most number of runs \footnote{If you don't include the \texttt{java\_obj\_dump} file the incumbent should be recalculated for you. The calculated incumbent will be the one that has the most runs, and performs the best on the objective. Additionally you also lose the random object state.}. 
-
-\section{My environment can be flaky, I don't want to ABORT but don't want to blindly continue with CRASHED}
-
-	Consider using the \textbf{-$~\!$-abortOnCrash} option in conjunction with \textbf{-$~\!$-retryTargetAlgorithmRunCount}. This will allow you to retry several times before ultimately giving up.
-
-\section{Is the source code for SMAC available?}
-
-	The source code for SMAC is included in the files \texttt{smac-src.jar},\texttt{aclib-src.jar}, and \texttt{fastrf-src.jar}.
-
-\section{I don't have any instance features, is there any benefit I can get from running SMAC?}
-
-	Yes, SMAC can also run without features, and sometimes continues to show state-of-the-art performance. Additionally, we have noticed that the performance of the default configuration on all instances is a good instance feature in many situations.
 	
-\section{There is a lack of logging options available, I need something more specific}
+\section{Customization and Developer Questions}
+
+\subsection{There is a lack of logging options available, I need something more specific}
 \label{sec:alternative-logging}
 	
 \input{logging-blurb}
 	
+	
+\subsection{I'd like to make some changes to SMAC where should I start?}
 
-\section{Can I use a different logger for SMAC?}
+	The manual contains a \emph{Developer Reference} section which should hopefully give you enough overview to start looking at the code. At the class and public method level most of SMAC's components are well documented. If you have any questions please e-mail the developers above.
 
-	Yes, you should be able to simply replace the logback.jars with something else that slf4j supports and it should work out of the box. 
+\subsection{I would like to optimize something that doesn't lend itself to simple command line execution, and/or would like to use something more advanced (\eg{, database caching, running on remote machines, etc...})}
 
-\section{What are the differences between SMAC and ParamILS?}
+	You probably need to implement a \texttt{TargetAlgorithmEvaluator}. See the \emph{Target Algorithm Evaluator} in the manual.
 
-	See \emph{Differences Between SMAC and ParamILS} in the manual.
-
-\section{I would like to optimize something that doesn't lend itself to simple command line execution, and/or would like to use something more advanced (\eg{, database caching, running on remote machines, etc...})}
-
-	You probably need to implement a \texttt{TargetAlgorithmEvaluator}. See the \emph{Target Algorithm Evaluator} section in the manual.
-
-\section{I would like to use different objective functions than are provided}
+\subsection{I would like to use different objective functions than are provided}
 
 	You will have to modify the source code, namely the \texttt{RunObjective} and \texttt{OverallObjective} classes to support the new objective. Also see Question \ref{sec:rf-objectives}.
 
-\section{Why doesn't SMAC support as many objective functions as ParamILS?}
+\subsection{Why doesn't SMAC support as many objective functions as ParamILS?}
 \label{sec:rf-objectives}
 
 	The Random Forests currently only optimize for \textbf{MEAN} and so other objective functions may have to deal with a poorer model quality. As we do not currently have other scenarios, we were unable to measure how bad the performance was and have disabled these options in the code. When \textbf{-~$\!$-executionMode} is set to ROAR this shouldn't be an issue.
 
-\section{What are the relevant articles / papers about SMAC?}
+\subsection{What commits generated this version of SMAC?}
+
+\subfile{githashes.tex}
+
+\section{Miscellaneous Questions}
+
+\subsection{What are the differences between SMAC and ParamILS?}
+
+	See \emph{Differences Between SMAC and ParamILS} in the manual.
+
+
+\subsection{What are the relevant articles / papers about SMAC?}
 
 Several papers led up to SMAC, but the most important/up-to-date ones are (in bibtex format):
 \begin{verbatim}
@@ -178,25 +253,26 @@ Several papers led up to SMAC, but the most important/up-to-date ones are (in bi
 %% paper, and the Censoring paper
 
 
-\section{I'm using SMAC in academic work, what article should I cite?}
+\subsection{I'm using SMAC in academic work, what article should I cite?}
 
 Please cite the above LION-5 paper when you use SMAC.
 The above NIPS workshop paper is a reference for adaptive capping in the model-based framework, and the above LION-6 paper for a parallel version of SMAC.
 
-\section{I'd like to use SMAC for commercial purposes, what should I do?}
+\subsection{I'd like to use SMAC for commercial purposes, what should I do?}
 
 Please contact us regarding licensing options.
+	
+\subsection{What does the name after the dash in version refer to?}
 
-\section{What is the difference between SAT and UNSAT in the algorithm responses?}
+	The name refers to the git branch, almost every public release should be \textit{master}. Development releases are \textit{development}. 
 
-The short answer is you can use either, as SMAC makes no distinction. The reason two responses are used is a historical hold over for debugging. Essentially it was used as a cross check to ensure that some unknown bug didn't crop up, as a result of the running configuration that would break the solver. SMAC itself doesn't do anything with this information, but it's possible to use the \texttt{run\_and\_results} file to check the responses against the instances, and ensure that no errors were made.
+\subsection{Is the source code for SMAC available?}
 
+	The source code for SMAC is included in the files \texttt{smac-src.jar},\texttt{aclib-src.jar}, and \texttt{fastrf-src.jar}.
+	
+\subsection{Can I use a different logger for SMAC?}
 
-\section{What is a Run Hash Code?}
-
-These are a mapping from the \texttt{<instance>,<seed>,<configuration setting>} to a hash. Primarily these are of use to developers, who want to ensure that a change in the code does not alter the trajectory of SMAC. Modulo the random noise in target algorithm execution, when you restore state the values should be preserved.
-
-
+	Yes, you should be able to simply replace the logback.jars with something else that slf4j supports and it should work out of the box. 
 
 
 
