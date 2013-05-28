@@ -709,6 +709,11 @@ public class AbstractAlgorithmFramework {
 				completedRunsByConfig.putIfAbsent(configToRun, new HashSet<AlgorithmRun>());
 				
 				ProblemInstance pi =instances.get(rand.nextInt(instances.size()));
+				if(!instanceSeedGen.hasNextSeed(pi))
+				{
+					i--; 
+					continue;
+				}
 				ProblemInstanceSeedPair pisp = new ProblemInstanceSeedPair(pi,instanceSeedGen.getNextSeed(pi));
 				boolean capped = kappa < cutoffTime;
 				
@@ -916,7 +921,16 @@ public class AbstractAlgorithmFramework {
 				}
 			}
 			
+			this.instanceSeedGen.reinit();
 			
+			
+			for(ParamConfiguration config : runHistory.getAllParameterConfigurationsRan())
+			{
+				for(ProblemInstanceSeedPair pisp : runHistory.getAlgorithmInstanceSeedPairsRan(config))
+				{
+					this.instanceSeedGen.take(pisp.getInstance(), pisp.getSeed());
+				}
+			}
 			
 			
 			if(incumbentFound)
