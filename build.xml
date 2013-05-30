@@ -247,13 +247,16 @@
 			<fileset dir="${doc.buildpath}" includes="*.pdf"/>
 		</delete>
 		
-		<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" output="${doc.buildpath}/options-ref.tex">
-		</java>
-		<!-- We do everything twice to generate some the toc and stuff I'm sure someone else knows how to do this properly -->
 		
+		<!-- Something with the warning we generate has caused this to require forking, no idea why -->
+		<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" fork="true" output="${doc.buildpath}/options-ref.tex">
+		</java>
+		
+		
+		<!-- We do everything twice to generate some the toc and stuff I'm sure someone else knows how to do this properly -->
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
-							<arg value="manual.tex"/>
-				</exec>
+			<arg value="manual.tex"/>
+		</exec>
 				
 		<echo></echo>
 		<echo>Manual Phase 1 Complete</echo>
