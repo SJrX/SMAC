@@ -37,7 +37,6 @@ import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import ca.ubc.cs.beta.models.fastrf.RoundingMode;
-import ca.ubc.cs.beta.smac.matlab.helper.StaticMethodWrapper;
 import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
 
 public class SequentialModelBasedAlgorithmConfiguration extends
@@ -514,7 +513,6 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		return Collections.unmodifiableList(results);	
 	}
 	
-	StaticMethodWrapper smw = new StaticMethodWrapper();
 	
 	/**
 	 * Performs a local search starting from the specified start configuration  
@@ -602,7 +600,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				
 			}
 		}
-		if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search End Hash Code: {}",smw.matlabHashSingular(incumbentEIC.getValue().toValueArray()));
+		
 		log.debug("Local Search took {} steps", localSearchSteps);
 		
 		return incumbentEIC;
