@@ -30,13 +30,13 @@ import ca.ubc.cs.beta.aclib.algorithmrun.RunResult;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.aclib.events.AlgorithmRunCompletedEvent;
-import ca.ubc.cs.beta.aclib.events.AutomaticConfigurationEnd;
-import ca.ubc.cs.beta.aclib.events.ConfigurationTimeLimits;
-import ca.ubc.cs.beta.aclib.events.EventManager;
-import ca.ubc.cs.beta.aclib.events.IncumbentChangeEvent;
-import ca.ubc.cs.beta.aclib.events.ModelBuildEndEvent;
-import ca.ubc.cs.beta.aclib.events.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.ConfigurationTimeLimits;
+import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentChangeEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
@@ -528,13 +528,13 @@ public class AbstractAlgorithmFramework {
 						iteration++;
 						log.info("Starting Iteration {}", iteration);
 						
-						eventManager.fireEvent(new ModelBuildStartEvent(eventManager.getUUID(), getConfigurationTimeLimits()));
+						eventManager.fireEvent(new ModelBuildStartEvent(getConfigurationTimeLimits()));
 						
 						StopWatch t = new AutoStartStopWatch();
 						learnModel(runHistory, configSpace);
 						log.info("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
-						eventManager.fireEvent(new ModelBuildEndEvent(eventManager.getUUID(), getConfigurationTimeLimits()));
+						eventManager.fireEvent(new ModelBuildEndEvent(getConfigurationTimeLimits()));
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 						challengers.addAll(selectConfigurations());
 						
@@ -580,7 +580,7 @@ public class AbstractAlgorithmFramework {
 		{
 			try {
 				
-				eventManager.fireEvent(new AutomaticConfigurationEnd(eventManager.getUUID(), incumbent, getConfigurationTimeLimits(), currentIncumbentCost, applicationStartTime, getTunerTime()));
+				eventManager.fireEvent(new AutomaticConfigurationEnd(incumbent, getConfigurationTimeLimits(), currentIncumbentCost, applicationStartTime, getTunerTime()));
 				
 				trajectoryFileWriter.close();
 			} catch (IOException e) {
@@ -1211,7 +1211,7 @@ public class AbstractAlgorithmFramework {
 				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 				evaluateRun(incumbentRunConfig);
 				
-				eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
+				eventManager.fireEvent(new IncumbentChangeEvent( getConfigurationTimeLimits(), runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
 				
 				
 				
@@ -1421,7 +1421,7 @@ public class AbstractAlgorithmFramework {
 		logConfiguration("New Incumbent", challenger);
 		
 		
-		eventManager.fireEvent(new IncumbentChangeEvent(eventManager.getUUID(), getConfigurationTimeLimits(), currentIncumbentCost, challenger, runHistory.getTotalNumRunsOfConfig(challenger)));
+		eventManager.fireEvent(new IncumbentChangeEvent(getConfigurationTimeLimits(), currentIncumbentCost, challenger, runHistory.getTotalNumRunsOfConfig(challenger)));
 	}
 
 	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
@@ -1584,7 +1584,7 @@ public class AbstractAlgorithmFramework {
 
 			log.info("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 			
-			eventManager.fireEvent(new AlgorithmRunCompletedEvent(eventManager.getUUID(), run, getConfigurationTimeLimits()));
+			eventManager.fireEvent(new AlgorithmRunCompletedEvent(run, getConfigurationTimeLimits()));
 		}
 		
 		
