@@ -441,88 +441,92 @@ endloop:
 		log.info("Validation Configuration/PISP Matrix Results Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
-		
-		List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
-		
-		
-		
-		Set<ParamConfiguration> doneConfigs = new HashSet<ParamConfiguration>();
-		
-		
-		for(ParamConfiguration config : inOrderConfigs)
-		{
-			
-			if(doneConfigs.contains(config)) continue;
-			doneConfigs.add(config);
-			Map<ProblemInstanceSeedPair, AlgorithmRun> runs = matrixRuns.get(config);
+		try {
+			List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
 			
 			
-		
-			if(runs == null) continue;
-			if(pisps.isEmpty())
+			
+			Set<ParamConfiguration> doneConfigs = new HashSet<ParamConfiguration>();
+			
+			
+			for(ParamConfiguration config : inOrderConfigs)
 			{
-				pisps.addAll(runs.keySet());
 				
-				Collections.sort(pisps, new Comparator<ProblemInstanceSeedPair>()
-						{
-
-							@Override
-							public int compare(ProblemInstanceSeedPair o1,
-									ProblemInstanceSeedPair o2) {
-								
-								if(o1.getInstance().equals(o2.getInstance()))
-								{
-									return (int) Math.signum(o1.getSeed() - o2.getSeed());
-								} else
-								{
-									return o1.getInstance().getInstanceID() - o2.getInstance().getInstanceID();
-								}
-								
-								
-								
-							}
+				if(doneConfigs.contains(config)) continue;
+				doneConfigs.add(config);
+				Map<ProblemInstanceSeedPair, AlgorithmRun> runs = matrixRuns.get(config);
+				
+				
+			
+				if(runs == null) continue;
+				if(pisps.isEmpty())
+				{
+					pisps.addAll(runs.keySet());
 					
-						});
+					Collections.sort(pisps, new Comparator<ProblemInstanceSeedPair>()
+							{
+		
+								@Override
+								public int compare(ProblemInstanceSeedPair o1,
+										ProblemInstanceSeedPair o2) {
+									
+									if(o1.getInstance().equals(o2.getInstance()))
+									{
+										return (int) Math.signum(o1.getSeed() - o2.getSeed());
+									} else
+									{
+										return o1.getInstance().getInstanceID() - o2.getInstance().getInstanceID();
+									}
+									
+									
+									
+								}
+						
+							});
+					
+					ArrayList<String> headerRow = new ArrayList<String>();
+					
+					headerRow.add("");
+					for(ProblemInstanceSeedPair pisp : pisps)
+					{
+						headerRow.add(pisp.getInstance().getInstanceName() + "," + pisp.getSeed());
+					}
+					
+					String[] header = headerRow.toArray(new String[0]);
+					
+					writer.writeNext(header);
+				}
 				
-				ArrayList<String> headerRow = new ArrayList<String>();
-				
-				headerRow.add("");
+			
+				ArrayList<String> dataRow = new ArrayList<String>();
+				dataRow.add(config.getFormattedParamString(StringFormat.NODB_SYNTAX));
 				for(ProblemInstanceSeedPair pisp : pisps)
 				{
-					headerRow.add(pisp.getInstance().getInstanceName() + "," + pisp.getSeed());
+					AlgorithmRun run = runs.get(pisp);
+					if(run == null)
+					{
+						throw new IllegalStateException("Expected all configurations to have the exact same pisps");
+					}
+					
+					if(!run.getRunConfig().getProblemInstanceSeedPair().equals(pisp))
+					{
+						throw new IllegalStateException("DataStructure corruption detected ");
+					}
+					dataRow.add(String.valueOf(runObj.getObjective(run)));
+					
 				}
 				
-				String[] header = headerRow.toArray(new String[0]);
+				String[] nextRow = dataRow.toArray(new String[0]);
 				
-				writer.writeNext(header);
+				writer.writeNext(nextRow);
 			}
 			
-			ArrayList<String> dataRow = new ArrayList<String>();
-			dataRow.add(config.getFormattedParamString(StringFormat.NODB_SYNTAX));
-			for(ProblemInstanceSeedPair pisp : pisps)
-			{
-				AlgorithmRun run = runs.get(pisp);
-				if(run == null)
-				{
-					throw new IllegalStateException("Expected all configurations to have the exact same pisps");
-				}
-				
-				if(!run.getRunConfig().getProblemInstanceSeedPair().equals(pisp))
-				{
-					throw new IllegalStateException("DataStructure corruption detected ");
-				}
-				dataRow.add(String.valueOf(runObj.getObjective(run)));
-				
-			}
 			
-			String[] nextRow = dataRow.toArray(new String[0]);
-			
-			writer.writeNext(nextRow);
+		} finally
+		{
+			writer.close();
 		}
 		
-		
-		
-		writer.close();
 		
 		
 	}

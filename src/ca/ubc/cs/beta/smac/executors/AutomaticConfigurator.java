@@ -52,6 +52,7 @@ import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.spi.SPIClassLoaderHelper;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
@@ -457,9 +458,7 @@ public class AutomaticConfigurator
 		
 	}
 
-
-
-
+	
 	/**
 	 * Parsers Command Line Arguments and returns a options object
 	 * @param args
@@ -506,7 +505,7 @@ public class AutomaticConfigurator
 				exception = MarkerFactory.getMarker("EXCEPTION");
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
-				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorLoader.getClassLoader());
+				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 				VersionTracker.logVersions();
 				
 				
@@ -812,7 +811,7 @@ public class AutomaticConfigurator
 				{
 					//Turn off logging
 					System.setProperty("logback.configurationFile", "logback-off.xml");
-					VersionTracker.setClassLoader(TargetAlgorithmEvaluatorLoader.getClassLoader());
+					VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 					System.out.println(VersionTracker.getVersionInformation());
 					
 					

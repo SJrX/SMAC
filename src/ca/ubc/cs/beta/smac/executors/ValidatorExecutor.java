@@ -37,6 +37,7 @@ import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.spi.SPIClassLoaderHelper;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
@@ -67,7 +68,7 @@ public class ValidatorExecutor {
 				com.parse( args);
 				
 				log.info("==========Configuration Options==========\n{}", options.toString());
-				VersionTracker.setClassLoader(TargetAlgorithmEvaluatorLoader.getClassLoader());
+				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 				VersionTracker.logVersions();
 				
 				

@@ -487,7 +487,7 @@ public class AbstractAlgorithmFramework {
 					log.info("Initial Incumbent set as Incumbent: {}", incumbent);
 					iteration = 0;
 					
-					boolean firstRun = true;
+					
 					int N= options.initialIncumbentRuns;
 					
 					N = Math.min(N, instances.size());
