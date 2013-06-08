@@ -318,7 +318,7 @@ that is used in this version is: \textbf{\^\textbackslash{}s{*}(Final)?\textback
 wrapper))}}:%
 \\
 \\
-\texttt{Result for ParamILS: <solved>, <runtime>, <runlength>, <quality>, <seed>, <additional rundata>}
+\texttt{Result for ParamILS: <solved>, <runtime>, <runlength>, <quality>, <seed>, <additional rundata>} 
 \begin{description}
 
 \item [{solved}] Must be one of \textbf{SAT} (signifying a successful run that was satisfiable), \textbf{UNSAT} (signifying a successful run that was unsatisfiable), \textbf{TIMEOUT} if the algorithm didn't finish within the allotted time, \textbf{CRASHED} if something untoward happened during the algorithm run, or \textbf{ABORT} if something prevents the target algorithm for successfully executing and it is believed that further attempts would be futile. 
@@ -359,11 +359,15 @@ from the set: $(-\infty, +\infty)$.
 \textsc{Note:} This seed \textsc{Must} match the seed that the algorithm was
 called with. This is used as fail-safe check to ensure that the output
 we are parsing really matches the call we requested.
-\item[{additional rundata}] A string that will be associated with the run as far as SMAC is concerned. This string will be saved in run and results file (Section \ref{subsec:state-files}).
+\item[{additional rundata}] A string that will be associated with the run as far as SMAC is concerned. This string will be saved in run and results file (Section \ref{subsec:state-files}). \\
+\textsc{Note}:\textbf{additional rundata} is not compatible with ParamILS at time of writing, and so wrappers should not include this or the final comma if they wish to be compatible.
+
 
 \end{description}
-Like invocation, all fields are mandatory, when not applicable 0's
-can be substituted. 
+All fields except for \textbf{additional rundata} are mandatory. If the field is not applicable for your scenario a 0 can be substituted.
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Wrappers \& Native Libraries}
