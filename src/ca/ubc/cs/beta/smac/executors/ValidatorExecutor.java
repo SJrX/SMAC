@@ -58,18 +58,23 @@ public class ValidatorExecutor {
 		ValidationExecutorOptions options = new ValidationExecutorOptions();
 		Map<String, AbstractOptions> taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
 		
-		JCommander com = JCommanderHelper.getJCommander(options, taeOptions);
+		JCommander jcom = JCommanderHelper.getJCommander(options, taeOptions);
 		
-		com.setProgramName("validate");
+		jcom.setProgramName("validate");
 		try {
 			try {
 				
 				
-				com.parse( args);
+				jcom.parse( args);
 				
 				log.info("==========Configuration Options==========\n{}", options.toString());
 				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 				VersionTracker.logVersions();
+				
+				for(String name : jcom.getParameterFilesToRead())
+				{
+					log.info("Parsing (default) options from file: {} ", name);
+				}
 				
 				
 				if(options.incumbent != null && options.trajectoryFile != null)

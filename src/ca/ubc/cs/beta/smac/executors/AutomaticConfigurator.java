@@ -80,7 +80,7 @@ public class AutomaticConfigurator
 {
 
 	
-	private static Logger logger;
+	private static Logger log;
 	private static Marker exception;
 	private static Marker stackTrace;
 	
@@ -106,9 +106,9 @@ public class AutomaticConfigurator
 	{
 		int returnValue = oldMain(args);
 		
-		if(logger != null)
+		if(log != null)
 		{
-			logger.info("Returning with value: {}",returnValue);
+			log.info("Returning with value: {}",returnValue);
 		}
 		
 		System.exit(returnValue);
@@ -131,7 +131,7 @@ public class AutomaticConfigurator
 			SMACOptions options = parseCLIOptions(args);
 			
 			
-			logger.info("Automatic Configurator Started");
+			log.info("Automatic Configurator Started");
 			
 			
 			
@@ -156,7 +156,7 @@ public class AutomaticConfigurator
 			}
 			
 			String paramFile = options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile;
-			logger.info("Parsing Parameter Space File", paramFile);
+			log.info("Parsing Parameter Space File", paramFile);
 			ParamConfigurationSpace configSpace = null;
 			
 			
@@ -167,7 +167,7 @@ public class AutomaticConfigurator
 			for(String path : possiblePaths)
 			{
 				try {
-					logger.debug("Trying param file in path {} ", path);
+					log.debug("Trying param file in path {} ", path);
 					lastParamFilePath = path;
 					//Map<String, String> subspace = options.scenarioConfig.paramFileDelegate.getSubspaceMap();
 					configSpace = ParamFileHelper.getParamFileParser(path);
@@ -179,7 +179,7 @@ public class AutomaticConfigurator
 						//We don't care about this because we will just toss an exception if we don't find it
 					} else
 					{
-						logger.warn("Error occured while trying to parse is {}"  , e.getMessage() );
+						log.warn("Error occured while trying to parse is {}"  , e.getMessage() );
 					}
 					
  
@@ -234,11 +234,11 @@ public class AutomaticConfigurator
 				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
 				if(verifySATCompatible)
 				{
-					logger.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
+					log.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
 					options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = true;
 				} else
 				{
-					logger.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
+					log.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
 					options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = false;
 				}
 				
@@ -248,7 +248,7 @@ public class AutomaticConfigurator
 				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
 				if(!verifySATCompatible)
 				{
-					logger.warn("Verify SAT set to true, but some instances have instance specific information that isn't in {SAT, SATISFIABLE, UNKNOWN, UNSAT, UNSATISFIABLE}");
+					log.warn("Verify SAT set to true, but some instances have instance specific information that isn't in {SAT, SATISFIABLE, UNKNOWN, UNSAT, UNSATISFIABLE}");
 				}
 					
 			}
@@ -260,10 +260,10 @@ public class AutomaticConfigurator
 			
 			if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
 			{
-				logger.info("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+				log.info("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
 			} else
 			{
-				logger.info("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+				log.info("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
 			}
 			
 			
@@ -272,7 +272,7 @@ public class AutomaticConfigurator
 
 			if(options.modelHashCodeFile != null)
 			{
-				logger.info("Algorithm Execution will verify model Hash Codes");
+				log.info("Algorithm Execution will verify model Hash Codes");
 				parseModelHashCodes(options.modelHashCodeFile);
 			}
 			
@@ -359,7 +359,7 @@ public class AutomaticConfigurator
 			smac.logSMACResult(performance);
 			
 			
-			logger.info("SMAC Completed Successfully. Log: " + logLocation);
+			log.info("SMAC Completed Successfully. Log: " + logLocation);
 			
 			
 			return ACLibReturnValues.SUCCESS;
@@ -371,34 +371,34 @@ public class AutomaticConfigurator
 			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
 			System.err.flush();
 			
-				if(logger != null)
+				if(log != null)
 				{
 					
-					logger.error(exception, "Message: {}",t.getMessage());
+					log.error(exception, "Message: {}",t.getMessage());
 					
 					
 					if(!(t instanceof ParameterException))
 					{
-						logger.info("Maybe try running in DEBUG mode if you are missing information");
-						logger.error(exception, "Exception:{}", t.getClass().getCanonicalName());
+						log.info("Maybe try running in DEBUG mode if you are missing information");
+						log.error(exception, "Exception:{}", t.getClass().getCanonicalName());
 						StringWriter sWriter = new StringWriter();
 						PrintWriter writer = new PrintWriter(sWriter);
 						t.printStackTrace(writer);
-						logger.error(stackTrace, "StackTrace:{}",sWriter.toString());
+						log.error(stackTrace, "StackTrace:{}",sWriter.toString());
 						
 						
 						
 					} else
 					{
-						logger.debug("Exception stack trace", t);
+						log.debug("Exception stack trace", t);
 					}
 						
-					logger.info("Exiting SMAC with failure. Log: " + logLocation);
+					log.info("Exiting SMAC with failure. Log: " + logLocation);
 				
-					logger.info("Please see above for the available options. Further information is available in the following documents:");
-					logger.info("- The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
-					logger.info("- The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
-					logger.info("- The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
+					log.info("Please see above for the available options. Further information is available in the following documents:");
+					log.info("- The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
+					log.info("- The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
+					log.info("- The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
 
 					
 					
@@ -469,9 +469,9 @@ public class AutomaticConfigurator
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
 		taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
 		SMACOptions config = new SMACOptions();
-		JCommander com = JCommanderHelper.getJCommander(config, taeOptions);
+		JCommander jcom = JCommanderHelper.getJCommander(config, taeOptions);
 		
-		com.setProgramName("smac");
+		jcom.setProgramName("smac");
 		try {
 			
 			
@@ -479,7 +479,7 @@ public class AutomaticConfigurator
 			try {
 				checkArgsForUsageScreenValues(args,config);
 				args = processScenarioStateRestore(args);
-				com.parse(args);
+				jcom.parse(args);
 				
 				File outputDir = new File(config.scenarioConfig.outputDirectory);
 				if(!outputDir.exists())
@@ -501,17 +501,21 @@ public class AutomaticConfigurator
 				
 				System.out.println("*****************************\nLogging to: " + logLocation +  "\n*****************************");
 				//Generally has the format: ${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
-				logger = LoggerFactory.getLogger(AutomaticConfigurator.class);
+				log = LoggerFactory.getLogger(AutomaticConfigurator.class);
 				exception = MarkerFactory.getMarker("EXCEPTION");
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
 				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 				VersionTracker.logVersions();
 				
+				for(String name : jcom.getParameterFilesToRead())
+				{
+					log.info("Parsing (default) options from file: {} ", name);
+				}
 				
 			}
 			
-			logger.trace("Command Line Options Parsed");
+			log.trace("Command Line Options Parsed");
 			
 			
 			
@@ -547,7 +551,7 @@ public class AutomaticConfigurator
 			
 			if(config.logLevel.lessVerbose(config.consoleLogLevel))
 			{
-				logger.warn("The console has been set to be more verbose than the log. This is generally an error, except if you have modified the conf.xml to have certain loggers be more specific");
+				log.warn("The console has been set to be more verbose than the log. This is generally an error, except if you have modified the conf.xml to have certain loggers be more specific");
 				//throw new ParameterException("The console can NOT be more verbose than the logs (This will have no effect)");
 				
 			}
@@ -555,7 +559,7 @@ public class AutomaticConfigurator
 			
 			
 			 
-			 if(logger.isDebugEnabled())
+			 if(log.isDebugEnabled())
 			 {
 				Map<String, String> env = new TreeMap<String, String>(System.getenv());
 					
@@ -568,7 +572,7 @@ public class AutomaticConfigurator
 				
 				
 					 
-				 logger.debug("==========Enviroment Variables===========\n{}", sb.toString());
+				 log.debug("==========Enviroment Variables===========\n{}", sb.toString());
 				 
 				 
 				 Map<Object,Object > props = new TreeMap<Object, Object>(System.getProperties());
@@ -589,20 +593,20 @@ public class AutomaticConfigurator
 					
 				}
 				
-				logger.debug("Hostname:{}", hostname);
-				logger.debug("==========System Properties==============\n{}", sb.toString() );
+				log.debug("Hostname:{}", hostname);
+				log.debug("==========System Properties==============\n{}", sb.toString() );
 			 }
 			
 		
 			StringBuilder sb = new StringBuilder();
-			for(Object o : com.getObjects())
+			for(Object o : jcom.getObjects())
 			{
 				sb.append(o.toString()).append("\n");
 			}
 				
-			logger.info("==========Configuration Options==========\n{}", sb.toString());
+			log.info("==========Configuration Options==========\n{}", sb.toString());
 			
-			logger.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
+			log.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
 			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+1, (config.scenarioConfig.algoExecOptions.deterministic));
 			
@@ -611,20 +615,20 @@ public class AutomaticConfigurator
 			
 			instanceSeedGen = ilws.getSeedGen();
 			
-			logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
+			log.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
 			if(instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
 			{
-				logger.info("Instance Seed Generator reports that all instances have the same number of available seeds");
+				log.info("Instance Seed Generator reports that all instances have the same number of available seeds");
 			} else
 			{
-				logger.error("Instance Seed Generator reports that some instances have a different number of seeds than others");
+				log.error("Instance Seed Generator reports that some instances have a different number of seeds than others");
 				throw new ParameterException("All Training Instances must have the same number of seeds in this version of SMAC");
 			}
 			
 			instances = ilws.getInstances();
 			
 			
-			logger.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
+			log.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
 			
 			try {
 				ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
@@ -637,13 +641,13 @@ public class AutomaticConfigurator
 			testInstances = ilws.getInstances();
 			testInstanceSeedGen = ilws.getSeedGen();
 			
-			logger.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialInstanceSeedCount());
+			log.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialInstanceSeedCount());
 			if(testInstanceSeedGen.allInstancesHaveSameNumberOfSeeds())
 			{
-				logger.info("Test Seed Generator reports that all instances have the same number of available seeds");
+				log.info("Test Seed Generator reports that all instances have the same number of available seeds");
 			} else
 			{
-				logger.info("Test Seed Generator reports that the number of seeds per instance varies.");
+				log.info("Test Seed Generator reports that the number of seeds per instance varies.");
 			}
 			
 			
@@ -659,39 +663,39 @@ public class AutomaticConfigurator
 				//We don't handle this more gracefully because this seems like a super rare incident.
 				if(ManagementFactory.getThreadMXBean().isThreadCpuTimeEnabled())
 				{
-					logger.debug("JVM Supports CPU Timing Measurements");
+					log.debug("JVM Supports CPU Timing Measurements");
 				} else
 				{
-					logger.warn("This Java Virtual Machine has CPU Time Measurements disabled, tunerTimeout will not contain any SMAC Execution Time.");
+					log.warn("This Java Virtual Machine has CPU Time Measurements disabled, tunerTimeout will not contain any SMAC Execution Time.");
 				}
 			} catch(UnsupportedOperationException e)
 			{
-				logger.warn("This Java Virtual Machine does not support CPU Time Measurements, tunerTimeout will not contain any SMAC Execution Time Information (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/management/ThreadMXBean.html#setThreadCpuTimeEnabled(boolean))");
+				log.warn("This Java Virtual Machine does not support CPU Time Measurements, tunerTimeout will not contain any SMAC Execution Time Information (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/management/ThreadMXBean.html#setThreadCpuTimeEnabled(boolean))");
 			}
 			
 			if(config.numRun + config.seedOffset < 0)
 			{
-				logger.warn("NumRun {} plus Seed Offset {} should be positive, things may not seed correctly",config.numRun, config.seedOffset );
+				log.warn("NumRun {} plus Seed Offset {} should be positive, things may not seed correctly",config.numRun, config.seedOffset );
 			}
 			return config;
 		} catch(IOException e)
 		{
 			//com.setColumnSize(getConsoleSize());
 			try {
-				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0), TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
+				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(jcom.getObjects().get(0), TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
 			} catch (Exception e1) {
-				logger.error("Exception occured while trying to generate usage screen",e1);
-				logger.error("This exception did NOT cause SMAC to crash");
+				log.error("Exception occured while trying to generate usage screen",e1);
+				log.error("This exception did NOT cause SMAC to crash");
 			}
 			throw e;
 			
 		} catch(ParameterException e)
 		{
 			try {
-				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(com.getObjects().get(0),TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
+				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(jcom.getObjects().get(0),TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
 			} catch (Exception e1) {
-				logger.error("Exception occured while trying to generate usage screen",e1);
-				logger.error("This exception did NOT cause SMAC to crash");
+				log.error("Exception occured while trying to generate usage screen",e1);
+				log.error("This exception did NOT cause SMAC to crash");
 			}
 			
 			throw e;
@@ -893,15 +897,15 @@ public class AutomaticConfigurator
 			sb.append(" ");
 		}
 		
-		logger.info("Call String:");
-		logger.info("{}", sb.toString());
+		log.info("Call String:");
+		log.info("{}", sb.toString());
 	}
 	
 	private static Pattern modelHashCodePattern = Pattern.compile("^(Preprocessed|Random) Forest Built with Hash Code:\\s*\\d+?\\z");
 	
 	
 	private static void parseModelHashCodes(File modelHashCodeFile) {
-		logger.info("Model Hash Code File Passed {}", modelHashCodeFile.getAbsolutePath());
+		log.info("Model Hash Code File Passed {}", modelHashCodeFile.getAbsolutePath());
 		Queue<Integer> modelHashCodeQueue = new LinkedList<Integer>();
 		Queue<Integer> preprocessedHashCodeQueue = new LinkedList<Integer>();
 		
@@ -920,7 +924,7 @@ public class AutomaticConfigurator
 					if(m.find())
 					{
 						Object[] array = { ++hashCodeCount, lineCount, line};
-						logger.debug("Found Model Hash Code #{} on line #{} with contents:{}", array);
+						log.debug("Found Model Hash Code #{} on line #{} with contents:{}", array);
 						boolean preprocessed = line.substring(0,1).equals("P");
 						
 						int colonIndex = line.indexOf(":");
@@ -937,13 +941,13 @@ public class AutomaticConfigurator
 						
 					} else
 					{
-						logger.trace("No Hash Code found on line: {}", line );
+						log.trace("No Hash Code found on line: {}", line );
 					}
 					lineCount++;
 				}
 				if(hashCodeCount == 0)
 				{
-					logger.warn("Hash Code File Specified, but we found no hash codes");
+					log.warn("Hash Code File Specified, but we found no hash codes");
 				}
 			} finally
 			{
