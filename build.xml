@@ -142,7 +142,7 @@
 		
 		<mkdir dir="dist/util"/>
 		
-		<java classname="ca.ubc.cs.beta.aclib.misc.options.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions"/>
 			<arg value="--commandName"/>
@@ -151,7 +151,7 @@
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
-		<java classname="ca.ubc.cs.beta.aclib.misc.options.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 					<arg value="--class"/>
 					<arg value="ca.ubc.cs.beta.aclib.options.SMACOptions"/>
 					<arg value="--commandName"/>
@@ -159,6 +159,16 @@
 					<arg value="--outputFile"/>
 					<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
+		
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+							<arg value="--class"/>
+							<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunnerOptions"/>
+							<arg value="--commandName"/>
+							<arg value="smac-algotest"/>
+							<arg value="--outputFile"/>
+							<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
+			
 						
 		<chmod perm="750">
 			<fileset dir="dist/">
