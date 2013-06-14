@@ -1,4 +1,6 @@
-To get started with an existing configuration scenerio you simply
+\documentclass[manual.tex]{subfiles}\begin{document}
+\subsection{Running SMAC}
+To get started with an existing configuration scenario you simply
 need to execute smac as follows:
 
 \begin{verbatim}
@@ -7,6 +9,25 @@ need to execute smac as follows:
 
 This will execute SMAC with the default options on the scenario specified in the file. 
 Some commonly-used non-default options of SMAC are described in this section. The \textbf{-~$\!$-numRun} argument controls the seed and names of output files (to support parallel independent runs)
+
+\subsection{Testing the Wrapper} \label{sec:test}
+SMAC includes a method of Testing Algorithm Execution, via the \texttt{smac-algotest} utility. It takes the required scenario options \footnote{Unfortunately it cannot read scenario files currently}
+ \textbf{-$~\!$-execDir}, \textbf{-$~\!$-paramFile}, \textbf{-$~\!$-algo}, \textbf{-$~\!$-cutoff\_time} the instance, and configuration to run on.
+
+For example:
+\begin{verbatim} 
+./smac-algotest --execDir <dir> --paramFile <file>  --algo <file> 
+--cutoff_time 300 --instance <instance>  --config <config string>
+ -P[name]=[value] -P[name]=[value]...
+\end{verbatim}
+
+Some parameters deserve special mention:
+\begin{enumerate}
+\item The config string syntax is a single string with ``-name=`value' '' ... you can also specify \texttt{RANDOM} which will generate a random configuration or \texttt{DEFAULT} which will generate  the default configuration.
+
+\item The \texttt{-P} parameters are optional and allow overriding specific values in the configuration (this is useful primarily for RANDOM and DEFAULT, to allow you to set certain values). To set the \texttt{sort\-algo} to \texttt{merge} you would specify \texttt{\-Psort\-algo=merge}.
+\end{enumerate}
+
 
 \subsection{ROAR Mode}
 
@@ -34,6 +55,13 @@ Related configuration options are \textbf{-~$\!$-capSlack}, \textbf{-~$\!$-capAd
 \end{verbatim}
 SMAC offers the option to terminate after using up a given amount of wall-clock time. This option is useful to limit the overheads of starting target algorithm runs, which are otherwise unaccounted for.
 This option does not override \textbf{-~$\!$-tunerTimeout} or other options that limit the duration of the configuration run; whichever termination criterion is reached first triggers termination. 
+
+\subsection{Change Initial Incumbent}\label{sec:initial-incumbent}
+\begin{verbatim}
+./smac --scenarioFile <file> --numRun 0 --initialIncumbent <config string>
+\end{verbatim}
+
+SMAC offers the option to specify the initial incumbent, and by default uses the default configuration specified in the parameter file. The argument to \textbf{-~$\!$-initialIncumbent} follows the same conventions as in Section \ref{sec:test}.
 
 \subsection{State Restoration}\label{sec:state-restoration}
 \begin{verbatim}
@@ -124,22 +152,6 @@ Usage notes for the offline validation tool:
 \end{enumerate}
 
 
-\subsection{Testing the Wrapper}
 
-SMAC includes a method of Testing Algorithm Execution, via the \texttt{smac-algotest} utility. It takes the required scenario options \footnote{Unfortunately it cannot read scenario files currently}
- \textbf{-$~\!$-execDir}, \textbf{-$~\!$-paramFile}, \textbf{-$~\!$-algo}, \textbf{-$~\!$-cutoff\_time} the instance, and configuration to run on.
 
-For example:
-\begin{verbatim} 
-./smac-algotest --execDir <dir> --paramFile <file>  --algo <file> 
---cutoff_time 300 --instance <instance>  --config <config string>
- -P[name]=[value] -P[name]=[value]...
-\end{verbatim}
-
-Some parameters deserve special mention:
-\begin{enumerate}
-\item The config string syntax is a single string with ``-name=`value' '' ... you can also specify \texttt{RANDOM} which will generate a random configuration or \texttt{DEFAULT} which will generate  the default configuration.
-
-\item The \texttt{-P} parameters are optional and allow overriding specific values in the configuration (this is useful primarily for RANDOM and DEFAULT, to allow you to set certain values). To set the \texttt{sort\-algo} to \texttt{merge} you would specify \texttt{\-Psort\-algo=merge}.
-\end{enumerate}
-
+\end{document}

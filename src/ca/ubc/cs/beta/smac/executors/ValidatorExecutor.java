@@ -28,6 +28,7 @@ import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aclib.misc.options.UsageSection;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
@@ -71,10 +72,17 @@ public class ValidatorExecutor {
 				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 				VersionTracker.logVersions();
 				
+				//Logs the available target algorithm evaluators
+				for(String name : taeOptions.keySet())
+				{
+					log.info("Target Algorithm Evaluator Available: {} ", name);
+				}
+				
 				for(String name : jcom.getParameterFilesToRead())
 				{
 					log.info("Parsing (default) options from file: {} ", name);
 				}
+				
 				
 				
 				if(options.incumbent != null && options.trajectoryFile != null)
@@ -367,7 +375,15 @@ public class ValidatorExecutor {
 			{
 				
 				
-				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(options));
+				//Converts the actual option objects into objects "UsageSection"s that are easy to manipulate
+				List<UsageSection> sections = ConfigToLaTeX.getParameters(options, taeOptions);
+				
+				boolean showHiddenParameters = false;
+				
+				//A much nicer usage screen than JCommander's 
+				ConfigToLaTeX.usage(sections, showHiddenParameters);
+				
+				
 				
 				throw e;
 			}	
