@@ -8,7 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Random;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,15 +21,17 @@ import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
-import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
-import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
@@ -40,7 +41,6 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
-import ec.util.MersenneTwister;
 
 /**
  * Builds an Automatic Configurator
@@ -92,7 +92,7 @@ public class SMACBuilder {
 	{
 		InstanceListWithSeeds ilws;
 		
-		ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.numRun+options.seedOffset+1, (options.scenarioConfig.algoExecOptions.deterministic));
+		ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seedOptions.numRun+options.seedOptions.seedOffset+1, (options.scenarioConfig.algoExecOptions.deterministic));
 		
 		instanceSeedGen = ilws.getSeedGen();
 		
@@ -108,9 +108,9 @@ public class SMACBuilder {
 	public AbstractAlgorithmFramework getSMAC(SMACOptions options,Map<String, AbstractOptions> taeOptions, TargetAlgorithmEvaluator tae)
 	{
 	
-
-		SeedableRandomSingleton.setSeed(options.numRun + options.seedOffset);
-		Random rand = SeedableRandomSingleton.getRandom(); 
+		
+		SeedableRandomPool pool = options.seedOptions.getSeedableRandomPool(); 
+		 
 
 		
 		
@@ -141,7 +141,7 @@ public class SMACBuilder {
 				restoreSF = new NullStateFactory();
 				break;
 			case LEGACY:
-				restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator, options.restoreStateFrom);
+				restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
 				break;
 			default:
 				throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -151,7 +151,7 @@ public class SMACBuilder {
 		log.info("Parsing Parameter Space File", paramFile);
 		ParamConfigurationSpace configSpace = null;
 		
-		Random configSpacePRNG = new MersenneTwister(options.numRun + options.seedOffset +1000000);
+		
 		
 		String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
 		for(String path : possiblePaths)
@@ -191,7 +191,7 @@ public class SMACBuilder {
 				sf = new NullStateFactory();
 				break;
 			case LEGACY:
-				String savePath = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator;
+				String savePath = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
 				
 				File saveLocation = new File(savePath);
 				if(!saveLocation.isAbsolute())
@@ -228,13 +228,15 @@ public class SMACBuilder {
 		
 		
 		AbstractAlgorithmFramework smac;
+		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj));
+		
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager, configSpacePRNG);
+				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool);
 				break;
 			case SMAC:
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand,  initialIncumbent, eventManager, configSpacePRNG);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen,  initialIncumbent, eventManager, rh, pool);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");
@@ -242,7 +244,8 @@ public class SMACBuilder {
 		
 		if(options.restoreIteration != null)
 		{
-			restoreState(options, restoreSF, smac, configSpace,options.scenarioConfig.intraInstanceObj,options.scenarioConfig.interInstanceObj,options.scenarioConfig.runObj, instances, execConfig);
+			
+			restoreState(options, restoreSF, smac, configSpace, instances, execConfig, rh);
 		}
 		
 		
@@ -315,14 +318,14 @@ public class SMACBuilder {
 		
 	}
 		
-		private void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
+		private void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig, RunHistory rh) {
 			
 			if(options.restoreIteration < 0)
 			{
 				throw new ParameterException("Iteration must be a non-negative integer");
 			}
 			
-			StateDeserializer sd = sf.getStateDeserializer("it", options.restoreIteration, configSpace, intraInstanceObjective, interInstanceObjective, runObj, instances, execConfig);
+			StateDeserializer sd = sf.getStateDeserializer("it", options.restoreIteration, configSpace, instances, execConfig, rh);
 			
 			smac.restoreState(sd);
 			

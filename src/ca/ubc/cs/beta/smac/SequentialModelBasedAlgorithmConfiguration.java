@@ -19,7 +19,6 @@ import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
-import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
@@ -31,12 +30,13 @@ import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
 import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
-import ca.ubc.cs.beta.models.fastrf.RoundingMode;
 import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
 
 public class SequentialModelBasedAlgorithmConfiguration extends
@@ -69,8 +69,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialConfiguration, EventManager eventManager, Random configSpacePRNG) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, rand, initialConfiguration, eventManager, configSpacePRNG);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
@@ -212,11 +212,11 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		preparedForest = null;
 		if(options.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, rand, smacConfig.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG"), smacConfig.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
-			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions,subsamplePercentage); 
+			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions,subsamplePercentage, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG")); 
 		}
 		
 		 /*= */
@@ -228,6 +228,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	protected List<ParamConfiguration> selectConfigurations()
 	{
+		Random configSpaceRandomInterleave = pool.getRandom("SMAC_RANDOM_INTERLEAVED_CONFIG_PRNG");
 		AutoStartStopWatch t = new AutoStartStopWatch();
 		List<ParamConfiguration> eichallengers = selectChallengersWithEI(smacConfig.numberOfChallengers);
 		
@@ -239,7 +240,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		 t = new AutoStartStopWatch();
 		for(int i=0; i < eichallengers.size(); i++)
 		{
-			randomChallengers.add(configSpace.getRandomConfiguration(configSpacePRNG));
+			randomChallengers.add(configSpace.getRandomConfiguration(configSpaceRandomInterleave));
 		}
 		log.debug("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
 		
@@ -387,33 +388,20 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		
-		if(SELECT_CONFIGURATION_SYNC_DEBUGGING && log.isDebugEnabled())
-		{
-			log.debug("Local Search Selected Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
-		}
 		
-		int nextRandom = SeedableRandomSingleton.getRandom().nextInt();
 		
-		if(SELECT_CONFIGURATION_SYNC_DEBUGGING)
-		{
-			log.debug("Next Int {}", nextRandom);
-		}
+	
 		
 		//=== Generate random configurations
 		int numberOfRandomConfigsInEI = smacConfig.numberOfRandomConfigsInEI;
-		if(RoundingMode.ROUND_NUMBERS_FOR_MATLAB_SYNC)
-		{
-			log.warn("Hard coded number of configurations for random to 10");
-			numberOfRandomConfigsInEI = 10;
-		}
 		
 		
-		
+		Random configSpaceEIRandom = pool.getRandom("SMAC_RANDOM_EI_CONFIG_PRNG");
 		AutoStartStopWatch t = new AutoStartStopWatch();
 		List<ParamConfiguration> randomConfigs = new ArrayList<ParamConfiguration>(numberOfRandomConfigsInEI);
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
-			randomConfigs.add(configSpace.getRandomConfiguration(configSpacePRNG));
+			randomConfigs.add(configSpace.getRandomConfiguration(configSpaceEIRandom));
 		} 
 		
 		log.debug("Generating {} Random Configurations took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
@@ -460,7 +448,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//log.debug("Local Search Selected Configurations & Random Configs Hash Code: {}", matlabHashCode(configArrayToDebug));
 		
 		
-		
+		/*
 		if(RoundingMode.ROUND_NUMBERS_FOR_MATLAB_SYNC)
 		{
 			List<ParamWithEI> realBestResults = new ArrayList<ParamWithEI>(bestResults.size());
@@ -472,11 +460,11 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			}
 			bestResults = realBestResults;
 		}
-		
+		*/
 		
 		//=== Sort configs by EI and output top ones.
 		
-		bestResults = permute(bestResults);
+		bestResults = permute(bestResults,configSpaceEIRandom);
 		Collections.sort(bestResults);
 		
 		
@@ -527,6 +515,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		int localSearchSteps = 0;
 		
+		Random configRandLS = pool.getRandom("SMAC_EI_LOCAL_SEARCH_NEIGHBOURS");
 		while(true)
 		{
 			localSearchSteps++;
@@ -546,7 +535,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current options and compute EI for all of it.
-			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configSpacePRNG);
+			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configRandLS);
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];
 			double[] vars = prediction[1];
@@ -580,7 +569,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				}
 
 				//== Move to random element of the best neighbours.
-				int nextIdx = minIdx.get(SeedableRandomSingleton.getRandom().nextInt(minIdx.size()));
+				int nextIdx = minIdx.get(configRandLS.nextInt(minIdx.size()));
 				ParamConfiguration best = neighbourhood.get(nextIdx);
 				incumbentEIC = new ParamWithEI(eiVal[nextIdx], best);
 				

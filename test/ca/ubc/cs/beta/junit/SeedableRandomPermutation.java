@@ -10,13 +10,18 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
+import ca.ubc.cs.beta.aclib.misc.debug.DebugUtil;
+import ca.ubc.cs.beta.aclib.random.RandomUtil;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
+
 
 public class SeedableRandomPermutation {
 
+	private static final SeedableRandomPool pool = new SeedableRandomPool(System.currentTimeMillis());
+	
 	@Test
 	public void testAllPermutationsGenerated() {
-		Random r = SeedableRandomSingleton.getRandom();
+		Random rand = pool.getRandom(DebugUtil.getCurrentMethodName());
 		
 		
 		
@@ -41,7 +46,7 @@ public class SeedableRandomPermutation {
 		 */
 		for(int i=0; i < (nFactorial*nFactorial); i++)
 		{
-			int[] perm = SeedableRandomSingleton.getPermutation(N, 0);
+			int[] perm = RandomUtil.getPermutation(N, 0, rand);
 			List<Integer> x = new ArrayList<Integer>(perm.length);
 			for(int j = 0; j < perm.length; j++)
 			{

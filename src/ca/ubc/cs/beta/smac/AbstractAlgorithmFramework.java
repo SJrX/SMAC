@@ -3,6 +3,7 @@ package ca.ubc.cs.beta.smac;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
 import java.text.DateFormat;
@@ -39,18 +40,20 @@ import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
-import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aclib.random.RandomUtil;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.runconfig.RunConfig;
-import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistoryHelper;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aclib.state.RandomPoolType;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.StateSerializer;
@@ -62,17 +65,12 @@ import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
 public class AbstractAlgorithmFramework {
 
 	
-	/**
-	 * PRNG Generator used by algorithms
-	 * Should only be modified by restoreState, and not by run()
-	 */
-	protected Random rand;
 	
 	/**
 	 * Run History class
 	 * Should only be modified by restoreState, and not by run()
 	 */
-	protected RunHistory runHistory;
+	protected ThreadSafeRunHistory runHistory;
 
 	protected final long applicationStartTime = System.currentTimeMillis();
 
@@ -82,7 +80,7 @@ public class AbstractAlgorithmFramework {
 	
 	protected final List<ProblemInstance> instances;
 	
-	protected final TargetAlgorithmEvaluator algoEval;
+	protected final TargetAlgorithmEvaluator tae;
 	
 	/**
 	 * Stores our configuration
@@ -108,32 +106,31 @@ public class AbstractAlgorithmFramework {
 	private double sumOfWallClockTime = 0;
 	private double sumOfReportedAlgorithmRunTime = 0;
 
-	protected final InstanceSeedGenerator instanceSeedGen;
+	protected InstanceSeedGenerator instanceSeedGen;
 	
 	private final ParamConfiguration initialIncumbent;
 
 	private final EventManager eventManager;
-	
-	protected Random configSpacePRNG;
 
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, Random rand, ParamConfiguration initialIncumbent, EventManager manager, Random configSpacePRNG)
+	protected SeedableRandomPool pool;
+	
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool )
 	{
 		this.instances = instances;
 		
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
 		this.options = smacOptions;
-		this.rand = rand;		
-		this.algoEval = algoEval;
+				
+		this.tae = algoEval;
 		this.stateFactory = stateFactory;
 		this.configSpace = configSpace;
-		this.runHistory = new NewRunHistory(instanceSeedGen,smacOptions.scenarioConfig.intraInstanceObj, smacOptions.scenarioConfig.interInstanceObj, smacOptions.scenarioConfig.runObj);
+		this.runHistory = rh;
 		this.instanceSeedGen = instanceSeedGen;
 		this.initialIncumbent = initialIncumbent;
 		this.eventManager = manager;
-
+		this.pool = pool;
 		
-		
-		
+	
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);
 		DateFormat df = DateFormat.getDateTimeInstance();	
@@ -152,26 +149,21 @@ public class AbstractAlgorithmFramework {
 		
 		//=== Initialize trajectory file.
 		try {
-			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.numRun + ".txt";
+			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".txt";
 			this.trajectoryFileWriter = new FileWriter(new File(outputFileName));
 			log.info("Trajectory File Writing To: {}", outputFileName);
-			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.numRun + ".csv";
+			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".csv";
 			this.trajectoryFileWriterCSV = new FileWriter(new File(outputFileNameCSV));
 			log.info("Trajectory File Writing To: {}", outputFileNameCSV);
 			
 			
 			
-			trajectoryFileWriter.write(options.runGroupName + ", " + options.numRun + "\n");
-			trajectoryFileWriterCSV.write(options.runGroupName + ", " + options.numRun + "\n");		
+			trajectoryFileWriter.write(options.runGroupName + ", " + options.seedOptions.numRun + "\n");
+			trajectoryFileWriterCSV.write(options.runGroupName + ", " + options.seedOptions.numRun + "\n");		
 		} catch (IOException e) {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);
 		}
-		
-		
-		log.info("Config Space PRNG initialized with seeded with {}");
-		this.configSpacePRNG = configSpacePRNG;
-		
 	}
 
 	
@@ -187,24 +179,74 @@ public class AbstractAlgorithmFramework {
 		return incumbent;
 	}
 	
+	private static final String OBJECT_MAP_POOL_KEY = "POOL";
+	private static final String OBJECT_MAP_INSTANCE_SEED_GEN_KEY = "INSTANCE_SEED_GEN";
 	public void restoreState(StateDeserializer sd)
 	{
 		log.info("Restoring State");
-		rand = sd.getPRNG(RandomPoolType.SEEDABLE_RANDOM_SINGLETON);
-		SeedableRandomSingleton.setRandom(rand);
-		configSpacePRNG = (sd.getPRNG(RandomPoolType.PARAM_CONFIG));
+		
 		iteration = sd.getIteration();
 		
-		runHistory = sd.getRunHistory();
 		
+		
+		
+		
+		runHistory = new ThreadSafeRunHistoryWrapper(sd.getRunHistory());
+		
+		this.pool = (SeedableRandomPool) sd.getObjectStateMap().get(OBJECT_MAP_POOL_KEY);
+		this.instanceSeedGen = (InstanceSeedGenerator) sd.getObjectStateMap().get(OBJECT_MAP_INSTANCE_SEED_GEN_KEY);
+		
+		if(this.pool == null)
+		{
+			throw new IllegalStateException("The pool we restored was null, this state file cannot be restored in SMAC");
+		}
+		
+		if(this.instanceSeedGen == null)
+		{
+			throw new IllegalStateException("The instance seed generator we restored was null, this state file cannot be restored in SMAC");
+		}
 		incumbent = sd.getIncumbent();
 		log.info("Incumbent Set To {}",incumbent);
 		
-		algoEval.seek(runHistory.getAlgorithmRuns());
+		tae.seek(runHistory.getAlgorithmRuns());
 		
 		log.info("Restored to Iteration {}", iteration);
 	}
 	
+	
+	protected boolean shouldSave() 
+	{
+		return true;
+	}
+
+	
+	private void saveState()
+	{
+		saveState("it",(((iteration - 1) & iteration) == 0));
+	}
+
+	private void saveState(String id, boolean saveFullState) {
+		StateSerializer state = stateFactory.getStateSerializer(id, iteration);
+		
+		//state.setPRNG(RandomPoolType.SEEDABLE_RANDOM_SINGLETON, SeedableRandomSingleton.getRandom());
+		//state.setPRNG(RandomPoolType.PARAM_CONFIG, configSpacePRNG);
+		
+		Map<String, Serializable> objMap = new HashMap<String, Serializable>();
+		objMap.put(OBJECT_MAP_POOL_KEY,  this.pool);
+		objMap.put(OBJECT_MAP_INSTANCE_SEED_GEN_KEY, this.instanceSeedGen);
+		
+		state.setObjectStateMap(objMap);
+		if(saveFullState)
+		{	
+			//Only save run history on perfect powers of 2.
+			state.setRunHistory(runHistory);
+		} 
+		//state.setInstanceSeedGenerator(runHistory.getInstanceSeedGenerator());
+		state.setIncumbent(incumbent);
+		state.save();
+		
+	}
+		
 	/**
 	 * Function that determines whether we should stop processing or not
 	 * @param iteration - number of iterations we have done
@@ -479,7 +521,7 @@ public class AbstractAlgorithmFramework {
 	{
 		try {
 			try {
-				
+				if(pool == null) { throw new IllegalStateException("pool is null, this was unexpected"); }
 				if(iteration == 0)
 				{ 
 
@@ -610,7 +652,8 @@ public class AbstractAlgorithmFramework {
 			/**
 			 * Evaluate Default Configuration
 			 */
-			ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
+			
+			ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory, this.instanceSeedGen, incumbent, instances, pool.getRandom("CLASSIC_INITIALIZATION"));
 			log.trace("New Problem Instance Seed Pair generated {}", pisp);
 			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 			//Create initial row
@@ -680,7 +723,7 @@ public class AbstractAlgorithmFramework {
 		
 		allSuccessfulConfigs.add(defaultConfig);
 		
-		
+		Random rand = pool.getRandom("ITERATIVE_CAPPING_CONFIG_PRNG");
 		partOneLoop:
 		for(double kappa = kappaStart; kappa <= cutoffTime; kappa *= 2)
 		{
@@ -700,7 +743,7 @@ public class AbstractAlgorithmFramework {
 					log.debug("Trying run with default {} ", configToRun);
 				} else
 				{
-					configToRun = configSpace.getRandomConfiguration(configSpacePRNG);
+					configToRun = configSpace.getRandomConfiguration(rand);
 					log.debug("Trying run with random {} ", configToRun);
 				}
 				 
@@ -733,7 +776,7 @@ public class AbstractAlgorithmFramework {
 					}
 				}
 				
-				AlgorithmRun result = algoEval.evaluateRun(rc).get(0);
+				AlgorithmRun result = tae.evaluateRun(rc).get(0);
 				
 				//allInitializationRunCosts += result.getRuntime();
 				
@@ -831,7 +874,7 @@ public class AbstractAlgorithmFramework {
 		int attempts = 0; 
 		while(allSuccessfulConfigs.size() < options.iterativeCappingK)
 		{
-			if(!allSuccessfulConfigs.add(configSpace.getRandomConfiguration(configSpacePRNG)))
+			if(!allSuccessfulConfigs.add(configSpace.getRandomConfiguration(rand)))
 			{
 				attempts++;
 				
@@ -888,7 +931,7 @@ public class AbstractAlgorithmFramework {
 					boolean capped = kappa < cutoffTime;
 					RunConfig rc = new RunConfig(pisp, kappa, config, capped);
 					
-					AlgorithmRun result = algoEval.evaluateRun(rc).get(0);
+					AlgorithmRun result = tae.evaluateRun(rc).get(0);
 					
 					if(!result.getRunResult().equals(RunResult.TIMEOUT) || kappa == cutoffTime)
 					{
@@ -1014,32 +1057,7 @@ public class AbstractAlgorithmFramework {
 		log.debug("Incumbent selected as {} with performance {} ", incumbent, bestScore);
 		
 	}
-	protected boolean shouldSave() 
-	{
-		return true;
-	}
-
 	
-	private void saveState()
-	{
-		saveState("it",(((iteration - 1) & iteration) == 0));
-	}
-
-	private void saveState(String id, boolean saveFullState) {
-		StateSerializer state = stateFactory.getStateSerializer(id, iteration);
-		state.setPRNG(RandomPoolType.SEEDABLE_RANDOM_SINGLETON, SeedableRandomSingleton.getRandom());
-		state.setPRNG(RandomPoolType.PARAM_CONFIG, configSpacePRNG);
-		if(saveFullState)
-		{	
-			//Only save run history on perfect powers of 2.
-			state.setRunHistory(runHistory);
-		} 
-		state.setInstanceSeedGenerator(runHistory.getInstanceSeedGenerator());
-		state.setIncumbent(incumbent);
-		state.save();
-		
-		
-	}
 
 
 
@@ -1126,7 +1144,7 @@ public class AbstractAlgorithmFramework {
 	
 		RunConfig runConfig = new RunConfig(pisp, cutoffTime, incumbent);
 	
-		String cmd = algoEval.getManualCallString(runConfig);
+		String cmd = tae.getManualCallString(runConfig);
 		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
 	
 
@@ -1148,10 +1166,10 @@ public class AbstractAlgorithmFramework {
 		
 	}
 
-
+	
 	protected List<ParamConfiguration> selectConfigurations()
 	{
-		ParamConfiguration c = configSpace.getRandomConfiguration(configSpacePRNG);
+		ParamConfiguration c = configSpace.getRandomConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
 		log.debug("Selecting a random configuration {}", c);
 		return Collections.singletonList(c);
 	}
@@ -1207,7 +1225,7 @@ public class AbstractAlgorithmFramework {
 		{
 			if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 				log.debug("Performing additional run with the incumbent ");
-				ProblemInstanceSeedPair pisp = runHistory.getRandomInstanceSeedWithFewestRunsFor(incumbent, instances, rand);
+				ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory,instanceSeedGen, incumbent, instances, pool.getRandom("CHALLENGE_INCUMBENT_INSTANCE_SELECTION"));
 				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 				evaluateRun(incumbentRunConfig);
 				
@@ -1267,8 +1285,8 @@ public class AbstractAlgorithmFramework {
 			Collections.sort(aMissing);
 			
 			//=== Sort aMissing in the order that we want to evaluate <instance,seed> pairs.
-			int[] permutations = SeedableRandomSingleton.getPermutation(aMissing.size(), 0);
-			SeedableRandomSingleton.permuteList(aMissing, permutations);
+			int[] permutations = RandomUtil.getPermutation(aMissing.size(), 0, pool.getRandom("CHALLENGE_INCUMBENT_SHUFFLE"));
+			RandomUtil.permuteList(aMissing, permutations);
 			aMissing = aMissing.subList(0, runsToMake);
 			
 			//=== Only bother with this loop if tracing is enabled (facilitates stepping through the code).
@@ -1403,7 +1421,7 @@ public class AbstractAlgorithmFramework {
 		
 		RunConfig config = new RunConfig(pisp, cutoffTime, challenger);
 		
-		String cmd = algoEval.getManualCallString(config);
+		String cmd = tae.getManualCallString(config);
 		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
 		log.info("Sample Call for {} {} ({}) \n{} ",args);
 		
@@ -1575,7 +1593,7 @@ public class AbstractAlgorithmFramework {
 			log.info("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
-		List<AlgorithmRun> completedRuns = algoEval.evaluateRun(runConfigs);
+		List<AlgorithmRun> completedRuns = tae.evaluateRun(runConfigs);
 		
 		for(AlgorithmRun run : completedRuns)
 		{

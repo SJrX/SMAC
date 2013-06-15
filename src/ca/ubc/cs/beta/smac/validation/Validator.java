@@ -774,7 +774,7 @@ endloop:
 	
 	private static void writeLegacyStateFile(String outputDir, String suffix, List<AlgorithmRun> runs, long numRun, InstanceSeedGenerator insc, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
 	{
-		RunHistory rh = new NewRunHistory(insc, interRunObjective, intraRunObjective, runObj);
+		RunHistory rh = new NewRunHistory( interRunObjective, intraRunObjective, runObj);
 		for(AlgorithmRun run : runs)
 		{
 			try {

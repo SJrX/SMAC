@@ -20,7 +20,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -38,7 +37,6 @@ import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
-import ca.ubc.cs.beta.aclib.misc.random.SeedableRandomSingleton;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
@@ -52,6 +50,11 @@ import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
@@ -68,8 +71,6 @@ import ca.ubc.cs.beta.smac.validation.Validator;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-
-import ec.util.MersenneTwister;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +98,7 @@ public class AutomaticConfigurator
 	
 	
 	private static Map<String,  AbstractOptions> taeOptions;
+	private static SeedableRandomPool pool;
 	/**
 	 * Executes SMAC then exits the JVM {@see System.exit()}
 	 *  
@@ -133,12 +135,7 @@ public class AutomaticConfigurator
 			
 			log.info("Automatic Configurator Started");
 			
-			
-			
-			SeedableRandomSingleton.setSeed(options.numRun + options.seedOffset);
-			Random rand = SeedableRandomSingleton.getRandom(); 
-
-			
+		
 			/*
 			 * Build the Serializer object used in the model 
 			 */
@@ -149,7 +146,7 @@ public class AutomaticConfigurator
 					restoreSF = new NullStateFactory();
 					break;
 				case LEGACY:
-					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator, options.restoreStateFrom);
+					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -162,7 +159,7 @@ public class AutomaticConfigurator
 			
 			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile };
 			String lastParamFilePath = null;
-			Random configSpacePRNG = new MersenneTwister(options.numRun + options.seedOffset +1000000);
+			
 			
 			for(String path : possiblePaths)
 			{
@@ -214,7 +211,7 @@ public class AutomaticConfigurator
 					sf = new NullStateFactory();
 					break;
 				case LEGACY:
-					String savePath = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.numRun + File.separator;
+					String savePath = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
 					
 					File saveLocation = new File(savePath);
 					if(!saveLocation.isAbsolute())
@@ -279,16 +276,20 @@ public class AutomaticConfigurator
 			EventManager eventManager = new EventManager();
 			
 			AbstractAlgorithmFramework smac;
+	
+			ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj));
+			
+			
 			switch(options.execMode)
 			{
 				case ROAR:
 
-					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager, configSpacePRNG);
+					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool);
 
 					break;
 				case SMAC:
 
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, rand, initialIncumbent, eventManager, configSpacePRNG);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool);
 
 					
 					break;
@@ -324,11 +325,13 @@ public class AutomaticConfigurator
 			
 			if(options.restoreIteration != null)
 			{
-				restoreState(options, restoreSF, smac, configSpace,options.scenarioConfig.intraInstanceObj,options.scenarioConfig.interInstanceObj,options.scenarioConfig.runObj, instances, execConfig);
+				restoreState(options, restoreSF, smac, configSpace, instances, execConfig, rh);
 			}
 			
 				
 			smac.run();
+			pool.logUsage();
+			
 			List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
 			SortedMap<TrajectoryFileEntry, Double> performance;
 			if(options.doValidation)
@@ -344,7 +347,7 @@ public class AutomaticConfigurator
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 
-				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun,true);	
+				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true);	
 			} else
 			{
 				performance = new TreeMap<TrajectoryFileEntry, Double>();
@@ -357,6 +360,7 @@ public class AutomaticConfigurator
 			smac.logIncumbentPerformance(performance);
 			smac.afterValidationStatistics();
 			smac.logSMACResult(performance);
+			
 			
 			
 			log.info("SMAC Completed Successfully. Log: " + logLocation);
@@ -443,19 +447,16 @@ public class AutomaticConfigurator
 	
 
 	
-	private static void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, RunObjective runObj, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig) {
+	private static void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig, RunHistory rh) {
 		
 		if(options.restoreIteration < 0)
 		{
 			throw new ParameterException("Iteration must be a non-negative integer");
 		}
 		
-		StateDeserializer sd = sf.getStateDeserializer("it", options.restoreIteration, configSpace, intraInstanceObjective, interInstanceObjective, runObj, instances, execConfig);
+		StateDeserializer sd = sf.getStateDeserializer("it", options.restoreIteration, configSpace, instances, execConfig, rh);
 		
 		smac.restoreState(sd);
-		
-		
-		
 	}
 
 	
@@ -468,8 +469,8 @@ public class AutomaticConfigurator
 	{
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
 		taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
-		SMACOptions config = new SMACOptions();
-		JCommander jcom = JCommanderHelper.getJCommander(config, taeOptions);
+		SMACOptions options = new SMACOptions();
+		JCommander jcom = JCommanderHelper.getJCommander(options, taeOptions);
 		
 		jcom.setProgramName("smac");
 		try {
@@ -477,11 +478,11 @@ public class AutomaticConfigurator
 			
 			//JCommanderHelper.parse(com, args);
 			try {
-				checkArgsForUsageScreenValues(args,config);
+				checkArgsForUsageScreenValues(args,options);
 				args = processScenarioStateRestore(args);
 				jcom.parse(args);
 				
-				File outputDir = new File(config.scenarioConfig.outputDirectory);
+				File outputDir = new File(options.scenarioConfig.outputDirectory);
 				if(!outputDir.exists())
 				{
 					outputDir.mkdir();
@@ -491,13 +492,13 @@ public class AutomaticConfigurator
 				
 			} finally
 			{
-				System.setProperty("OUTPUTDIR", config.scenarioConfig.outputDirectory);
-				System.setProperty("RUNGROUPDIR", config.runGroupName);
-				System.setProperty("NUMRUN", String.valueOf(config.numRun));
-				System.setProperty("STDOUT-LEVEL", config.consoleLogLevel.name());
-				System.setProperty("ROOT-LEVEL",config.logLevel.name());
+				System.setProperty("OUTPUTDIR", options.scenarioConfig.outputDirectory);
+				System.setProperty("RUNGROUPDIR", options.runGroupName);
+				System.setProperty("NUMRUN", String.valueOf(options.seedOptions.numRun));
+				System.setProperty("STDOUT-LEVEL", options.consoleLogLevel.name());
+				System.setProperty("ROOT-LEVEL",options.logLevel.name());
 				
-				logLocation = config.scenarioConfig.outputDirectory + File.separator + config.runGroupName + File.separator + "log-run" + config.numRun+ ".txt";
+				logLocation = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "log-run" + options.seedOptions.numRun+ ".txt";
 				
 				System.out.println("*****************************\nLogging to: " + logLocation +  "\n*****************************");
 				//Generally has the format: ${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
@@ -519,16 +520,16 @@ public class AutomaticConfigurator
 			
 			
 			
-			if(config.adaptiveCapping == null)
+			if(options.adaptiveCapping == null)
 			{
-				switch(config.scenarioConfig.runObj)
+				switch(options.scenarioConfig.runObj)
 				{
 				case RUNTIME:
-					config.adaptiveCapping = true;
+					options.adaptiveCapping = true;
 					break;
 					
 				case QUALITY:
-					config.adaptiveCapping = false;
+					options.adaptiveCapping = false;
 					break;
 					
 				default:
@@ -541,7 +542,7 @@ public class AutomaticConfigurator
 			
 			
 			
-			validateObjectiveCombinations(config.scenarioConfig, config.adaptiveCapping);
+			validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 			
 			logCallString(args);
 			
@@ -549,7 +550,7 @@ public class AutomaticConfigurator
 			
 			*/
 			
-			if(config.logLevel.lessVerbose(config.consoleLogLevel))
+			if(options.logLevel.lessVerbose(options.consoleLogLevel))
 			{
 				log.warn("The console has been set to be more verbose than the log. This is generally an error, except if you have modified the conf.xml to have certain loggers be more specific");
 				//throw new ParameterException("The console can NOT be more verbose than the logs (This will have no effect)");
@@ -605,10 +606,13 @@ public class AutomaticConfigurator
 			}
 				
 			log.info("==========Configuration Options==========\n{}", sb.toString());
+			pool = options.seedOptions.getSeedableRandomPool();
 			
-			log.info("Parsing instances from {}", config.scenarioConfig.instanceFile );
+			log.info("Parsing instances from {}", options.scenarioConfig.instanceFile );
 			InstanceListWithSeeds ilws;
-			ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.instanceFile,config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+1, (config.scenarioConfig.algoExecOptions.deterministic));
+			
+			
+			ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, pool.getRandom("INSTANCE_SEEDS").nextInt(), (options.scenarioConfig.algoExecOptions.deterministic));
 			
 			instanceFileAbsolutePath = ilws.getInstanceFileAbsolutePath();
 			instanceFeatureFileAbsolutePath = ilws.getInstanceFeatureFileAbsolutePath();
@@ -628,14 +632,14 @@ public class AutomaticConfigurator
 			instances = ilws.getInstances();
 			
 			
-			log.info("Parsing test instances from {}", config.scenarioConfig.testInstanceFile );
-			
+			log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
+			int testSeeds = pool.getRandom("TEST_INSTANCE_SEEDS").nextInt();
 			try {
-				ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, config.scenarioConfig.instanceFeatureFile, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
+				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
 				
 			} catch(FeatureNotFoundException e)
 			{
-				ilws = ProblemInstanceHelper.getInstances(config.scenarioConfig.testInstanceFile, config.experimentDir, null, config.scenarioConfig.checkInstanceFilesExist, config.numRun+config.seedOffset+2,(config.scenarioConfig.algoExecOptions.deterministic ) );
+				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, null, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
 			}
 			
 			testInstances = ilws.getInstances();
@@ -673,11 +677,11 @@ public class AutomaticConfigurator
 				log.warn("This Java Virtual Machine does not support CPU Time Measurements, tunerTimeout will not contain any SMAC Execution Time Information (http://docs.oracle.com/javase/1.5.0/docs/api/java/lang/management/ThreadMXBean.html#setThreadCpuTimeEnabled(boolean))");
 			}
 			
-			if(config.numRun + config.seedOffset < 0)
+			if(options.seedOptions.numRun + options.seedOptions.seedOffset < 0)
 			{
-				log.warn("NumRun {} plus Seed Offset {} should be positive, things may not seed correctly",config.numRun, config.seedOffset );
+				log.warn("NumRun {} plus Seed Offset {} should be positive, things may not seed correctly",options.seedOptions.numRun, options.seedOptions.seedOffset );
 			}
-			return config;
+			return options;
 		} catch(IOException e)
 		{
 			//com.setColumnSize(getConsoleSize());
