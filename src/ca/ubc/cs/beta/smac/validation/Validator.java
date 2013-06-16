@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -76,6 +77,28 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		ValidationRoundingMode mode = options.validationRoundingMode;		
 		
 		List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
+		
+		double maxWallTimeStamp = 0;
+		double maxTunerTimeStamp = 0;
+		for(TrajectoryFileEntry tfe : tfes)
+		{
+			
+			maxWallTimeStamp = Math.max(tfe.getWallTime(), maxWallTimeStamp);
+			maxTunerTimeStamp = Math.max(tfe.getTunerTime(),maxTunerTimeStamp);
+		}
+		
+		if(options.validateOnlyIfWallTimeReached > maxWallTimeStamp)
+		{
+			log.info("Maximum walltime was {} but we required {} seconds to have passed validating ", maxWallTimeStamp, options.validateOnlyIfWallTimeReached );
+			return  new TreeMap<TrajectoryFileEntry,Double>();
+		}
+		
+		if(options.validateOnlyIfTunerTimeReached > maxTunerTimeStamp)
+		{
+			log.info("Maximum Tuner Time was {} but we required {} seconds to have passed before validating ", maxTunerTimeStamp, options.validateOnlyIfTunerTimeReached );
+			return  new TreeMap<TrajectoryFileEntry,Double>();
+		}
+		
 		
 		if(options.useWallClockTime)
 		{
