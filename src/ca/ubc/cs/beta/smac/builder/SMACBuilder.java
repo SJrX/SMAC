@@ -44,8 +44,7 @@ import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 
 /**
  * Builds an Automatic Configurator
- * @author Steve Ramage 
- *
+ * @author Steve Ramage <seramage@cs.ubc.ca>
  */
 public class SMACBuilder {
 
@@ -131,6 +130,8 @@ public class SMACBuilder {
 			throw new ParameterException("All Training Instances must have the same number of seeds in this version of SMAC");
 		} 
 		
+		
+		String runGroupName = options.getRunGroupName(taeOptions.values());;
 		/*
 		 * Build the Serializer object used in the model 
 		 */
@@ -141,7 +142,7 @@ public class SMACBuilder {
 				restoreSF = new NullStateFactory();
 				break;
 			case LEGACY:
-				restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
+				restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
 				break;
 			default:
 				throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -191,7 +192,7 @@ public class SMACBuilder {
 				sf = new NullStateFactory();
 				break;
 			case LEGACY:
-				String savePath = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
+				String savePath = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
 				
 				File saveLocation = new File(savePath);
 				if(!saveLocation.isAbsolute())
@@ -233,10 +234,10 @@ public class SMACBuilder {
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool);
+				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName);
 				break;
 			case SMAC:
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen,  initialIncumbent, eventManager, rh, pool);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen,  initialIncumbent, eventManager, rh, pool, runGroupName);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");

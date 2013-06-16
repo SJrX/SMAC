@@ -12,6 +12,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -146,7 +147,7 @@ public class AutomaticConfigurator
 					restoreSF = new NullStateFactory();
 					break;
 				case LEGACY:
-					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
+					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
 					break;
 				default:
 					throw new IllegalArgumentException("State Serializer specified is not supported");
@@ -211,7 +212,7 @@ public class AutomaticConfigurator
 					sf = new NullStateFactory();
 					break;
 				case LEGACY:
-					String savePath = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
+					String savePath = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
 					
 					File saveLocation = new File(savePath);
 					if(!saveLocation.isAbsolute())
@@ -284,12 +285,12 @@ public class AutomaticConfigurator
 			{
 				case ROAR:
 
-					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool);
+					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName);
 
 					break;
 				case SMAC:
 
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, runGroupName);
 
 					
 					break;
@@ -328,7 +329,7 @@ public class AutomaticConfigurator
 				restoreState(options, restoreSF, smac, configSpace, instances, execConfig, rh);
 			}
 			
-				
+			
 			smac.run();
 			pool.logUsage();
 			
@@ -345,7 +346,7 @@ public class AutomaticConfigurator
 				}
 				
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
-				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
+				String outputDir = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator;
 
 				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true);	
 			} else
@@ -459,6 +460,7 @@ public class AutomaticConfigurator
 		smac.restoreState(sd);
 	}
 
+	private static String runGroupName = "DEFAULT";
 	
 	/**
 	 * Parsers Command Line Arguments and returns a options object
@@ -473,15 +475,48 @@ public class AutomaticConfigurator
 		JCommander jcom = JCommanderHelper.getJCommander(options, taeOptions);
 		
 		jcom.setProgramName("smac");
+		
 		try {
 			
 			
 			//JCommanderHelper.parse(com, args);
 			try {
+				try {
 				checkArgsForUsageScreenValues(args,options);
+				
 				args = processScenarioStateRestore(args);
 				jcom.parse(args);
+				} finally
+				{
+					runGroupName = options.runGroupOptions.getFailbackRunGroup();
+				}
 				
+				
+
+				if(options.adaptiveCapping == null)
+				{
+					switch(options.scenarioConfig.runObj)
+					{
+					case RUNTIME:
+						options.adaptiveCapping = true;
+						break;
+						
+					case QUALITY:
+						options.adaptiveCapping = false;
+						break;
+						
+					default:
+						//You need to add something new here
+						throw new IllegalStateException("Not sure what to default too");
+					}
+				}
+				
+				
+				
+				
+				
+				
+				runGroupName = options.getRunGroupName(taeOptions.values());
 				File outputDir = new File(options.scenarioConfig.outputDirectory);
 				if(!outputDir.exists())
 				{
@@ -492,13 +527,14 @@ public class AutomaticConfigurator
 				
 			} finally
 			{
+				
 				System.setProperty("OUTPUTDIR", options.scenarioConfig.outputDirectory);
-				System.setProperty("RUNGROUPDIR", options.runGroupName);
+				System.setProperty("RUNGROUPDIR", runGroupName);
 				System.setProperty("NUMRUN", String.valueOf(options.seedOptions.numRun));
 				System.setProperty("STDOUT-LEVEL", options.consoleLogLevel.name());
 				System.setProperty("ROOT-LEVEL",options.logLevel.name());
 				
-				logLocation = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator + "log-run" + options.seedOptions.numRun+ ".txt";
+				logLocation = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "log-run" + options.seedOptions.numRun+ ".txt";
 				
 				System.out.println("*****************************\nLogging to: " + logLocation +  "\n*****************************");
 				//Generally has the format: ${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
@@ -517,27 +553,6 @@ public class AutomaticConfigurator
 			}
 			
 			log.trace("Command Line Options Parsed");
-			
-			
-			
-			if(options.adaptiveCapping == null)
-			{
-				switch(options.scenarioConfig.runObj)
-				{
-				case RUNTIME:
-					options.adaptiveCapping = true;
-					break;
-					
-				case QUALITY:
-					options.adaptiveCapping = false;
-					break;
-					
-				default:
-					//You need to add something new here
-					throw new IllegalStateException("Not sure what to default too");
-				}
-			}
-			
 			
 			
 			
@@ -696,6 +711,7 @@ public class AutomaticConfigurator
 		} catch(ParameterException e)
 		{
 			try {
+				
 				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(jcom.getObjects().get(0),TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
 			} catch (Exception e1) {
 				log.error("Exception occured while trying to generate usage screen",e1);

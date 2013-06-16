@@ -69,8 +69,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, runGroupName);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
@@ -535,7 +535,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current options and compute EI for all of it.
-			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configRandLS);
+			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configRandLS, options.scenarioConfig.algoExecOptions.paramFileDelegate.continuousNeighbours);
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];
 			double[] vars = prediction[1];

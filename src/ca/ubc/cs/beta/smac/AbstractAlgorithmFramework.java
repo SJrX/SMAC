@@ -114,10 +114,11 @@ public class AbstractAlgorithmFramework {
 
 	protected SeedableRandomPool pool;
 	
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool )
+	private final String runGroupName;
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName )
 	{
 		this.instances = instances;
-		
+		this.runGroupName = runGroupName;
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
 		this.options = smacOptions;
 				
@@ -147,19 +148,20 @@ public class AbstractAlgorithmFramework {
 			log.info("Maximimum Number of Runs for the Incumbent Initialized to {}", MAX_RUNS_FOR_INCUMBENT);
 		}
 		
+		
 		//=== Initialize trajectory file.
 		try {
-			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".txt";
+			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".txt";
 			this.trajectoryFileWriter = new FileWriter(new File(outputFileName));
 			log.info("Trajectory File Writing To: {}", outputFileName);
-			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".csv";
+			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".csv";
 			this.trajectoryFileWriterCSV = new FileWriter(new File(outputFileNameCSV));
 			log.info("Trajectory File Writing To: {}", outputFileNameCSV);
 			
 			
 			
-			trajectoryFileWriter.write(options.runGroupName + ", " + options.seedOptions.numRun + "\n");
-			trajectoryFileWriterCSV.write(options.runGroupName + ", " + options.seedOptions.numRun + "\n");		
+			trajectoryFileWriter.write(runGroupName + ", " + options.seedOptions.numRun + "\n");
+			trajectoryFileWriterCSV.write(runGroupName + ", " + options.seedOptions.numRun + "\n");		
 		} catch (IOException e) {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);
