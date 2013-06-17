@@ -12,7 +12,6 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -52,6 +51,7 @@ import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
@@ -265,7 +265,7 @@ public class AutomaticConfigurator
 			}
 			
 			
-			TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, true, taeOptions);
+			TargetAlgorithmEvaluator tae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, true, true, taeOptions, null, new File(options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator), options.seedOptions.numRun);
 			
 
 			if(options.modelHashCodeFile != null)
@@ -285,12 +285,12 @@ public class AutomaticConfigurator
 			{
 				case ROAR:
 
-					smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName);
+					smac = new AbstractAlgorithmFramework(options,instances,tae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName);
 
 					break;
 				case SMAC:
 
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, runGroupName);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, tae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, runGroupName);
 
 					
 					break;
@@ -329,8 +329,13 @@ public class AutomaticConfigurator
 				restoreState(options, restoreSF, smac, configSpace, instances, execConfig, rh);
 			}
 			
+			try {
+				smac.run();
+			} finally
+			{
+				tae.notifyShutdown();
+			}
 			
-			smac.run();
 			pool.logUsage();
 			
 			List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
@@ -345,16 +350,24 @@ public class AutomaticConfigurator
 					options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
 				}
 				
+				options.scenarioConfig.algoExecOptions.taeOpts.trackRunsScheduled = false;
+				
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
-				String outputDir = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator;
-
-				performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true);	
+				try {
+					String outputDir = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator;
+					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true);
+				} finally
+				{
+					validatingTae.notifyShutdown();
+				}
+				
 			} else
 			{
 				performance = new TreeMap<TrajectoryFileEntry, Double>();
 				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
 				
 			}
+			
 			
 			
 			
@@ -385,6 +398,7 @@ public class AutomaticConfigurator
 					if(!(t instanceof ParameterException))
 					{
 						log.info("Maybe try running in DEBUG mode if you are missing information");
+						
 						log.error(exception, "Exception:{}", t.getClass().getCanonicalName());
 						StringWriter sWriter = new StringWriter();
 						PrintWriter writer = new PrintWriter(sWriter);
@@ -395,6 +409,7 @@ public class AutomaticConfigurator
 						
 					} else
 					{
+						log.info("Don't forget that some options are set by default from files in ~/.aclib/");
 						log.debug("Exception stack trace", t);
 					}
 						
@@ -627,7 +642,7 @@ public class AutomaticConfigurator
 			InstanceListWithSeeds ilws;
 			
 			
-			ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, pool.getRandom("INSTANCE_SEEDS").nextInt(), (options.scenarioConfig.algoExecOptions.deterministic));
+			ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, pool.getRandom(SeedableRandomPoolConstants.INSTANCE_SEEDS).nextInt(), (options.scenarioConfig.algoExecOptions.deterministic));
 			
 			instanceFileAbsolutePath = ilws.getInstanceFileAbsolutePath();
 			instanceFeatureFileAbsolutePath = ilws.getInstanceFeatureFileAbsolutePath();
@@ -648,7 +663,7 @@ public class AutomaticConfigurator
 			
 			
 			log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
-			int testSeeds = pool.getRandom("TEST_INSTANCE_SEEDS").nextInt();
+			int testSeeds = pool.getRandom(SeedableRandomPoolConstants.TEST_SEED_INSTANCES).nextInt();
 			try {
 				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
 				
