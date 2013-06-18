@@ -637,8 +637,8 @@ public class AbstractAlgorithmFramework {
 	protected void classicInitialization()
 	{
 		log.info("Using Classic Initialization");
-		incumbent = configSpace.getDefaultConfiguration();
-		log.info("Default Configuration set as Incumbent: {}", incumbent);
+		incumbent = this.initialIncumbent;
+		log.info("Configuration Set as Incumbent: {}", incumbent);
 		
 		iteration = 0;
 		
@@ -718,12 +718,12 @@ public class AbstractAlgorithmFramework {
 		//=== Use a LinkedHashSet here because we may end up adding some randoms to the end of this, and 
 		Set<ParamConfiguration> allSuccessfulConfigs = new LinkedHashSet<ParamConfiguration>(); 
 		Set<ProblemInstanceSeedPair> allSuccessfulPisps = new HashSet<ProblemInstanceSeedPair>();
-		ParamConfiguration defaultConfig = configSpace.getDefaultConfiguration();
+		ParamConfiguration initialIncumbent = this.initialIncumbent;
 		
-		incumbent = defaultConfig;
+		incumbent = initialIncumbent;
 		writeIncumbent(0, Double.MAX_VALUE);
 		
-		allSuccessfulConfigs.add(defaultConfig);
+		allSuccessfulConfigs.add(initialIncumbent);
 		
 		Random rand = pool.getRandom("ITERATIVE_CAPPING_CONFIG_PRNG");
 		partOneLoop:
@@ -741,7 +741,7 @@ public class AbstractAlgorithmFramework {
 				if(i == 0 && !defaultSuccess )
 				{
 					
-					configToRun = defaultConfig;
+					configToRun = initialIncumbent;
 					log.debug("Trying run with default {} ", configToRun);
 				} else
 				{
@@ -790,7 +790,7 @@ public class AbstractAlgorithmFramework {
 					completedRuns.add(result);
 					
 					
-					if(configToRun.equals(defaultConfig))
+					if(configToRun.equals(initialIncumbent))
 					{
 						log.debug("Default configuration {} succeeded ", configToRun);
 						defaultSuccess = true;
