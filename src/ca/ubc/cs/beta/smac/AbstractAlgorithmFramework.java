@@ -116,11 +116,10 @@ public class AbstractAlgorithmFramework {
 
 	protected SeedableRandomPool pool;
 	
-	private final String runGroupName;
+	
 	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName )
 	{
 		this.instances = instances;
-		this.runGroupName = runGroupName;
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
 		this.options = smacOptions;
 				
@@ -665,7 +664,7 @@ public class AbstractAlgorithmFramework {
 			 * Evaluate Default Configuration
 			 */
 			
-			ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory, this.instanceSeedGen, incumbent, instances, pool.getRandom("CLASSIC_INITIALIZATION"));
+			ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory, this.instanceSeedGen, incumbent, instances, pool.getRandom("CLASSIC_INITIALIZATION"),options.deterministicInstanceOrdering);
 			log.trace("New Problem Instance Seed Pair generated {}", pisp);
 			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 			//Create initial row
@@ -1237,7 +1236,7 @@ public class AbstractAlgorithmFramework {
 		{
 			if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 				log.debug("Performing additional run with the incumbent ");
-				ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory,instanceSeedGen, incumbent, instances, pool.getRandom("CHALLENGE_INCUMBENT_INSTANCE_SELECTION"));
+				ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory,instanceSeedGen, incumbent, instances, pool.getRandom("CHALLENGE_INCUMBENT_INSTANCE_SELECTION"),options.deterministicInstanceOrdering);
 				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 				evaluateRun(incumbentRunConfig);
 				
