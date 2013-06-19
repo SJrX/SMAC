@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.beust.jcommander.ParameterException;
+
 import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.algorithmrun.RunResult;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
@@ -127,9 +129,17 @@ public class AbstractAlgorithmFramework {
 		this.configSpace = configSpace;
 		this.runHistory = rh;
 		this.instanceSeedGen = instanceSeedGen;
+		
+		
 		this.initialIncumbent = initialIncumbent;
 		this.eventManager = manager;
 		this.pool = pool;
+		
+		if(initialIncumbent.isForbiddenParamConfiguration())
+		{
+			throw new ParameterException("Initial Incumbent specified is forbidden: " + this.initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+		}
+		
 		
 	
 		long time = System.currentTimeMillis();
