@@ -154,7 +154,7 @@ public class ValidatorExecutor {
 				//ParamConfigurationSpace configSpace = null;
 				Random configSpacePRNG = pool.getRandom(SeedableRandomPoolConstants.VALIDATE_RANDOM_CONFIG_POOL);
 				
-				AlgorithmExecutionConfig execConfig = options.scenarioConfig.algoExecOptions.getAlgorithmExecutionConfig();
+				AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
 				
 				ParamConfigurationSpace configSpace = execConfig.getParamFile();
 				

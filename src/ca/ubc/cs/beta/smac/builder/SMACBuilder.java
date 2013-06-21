@@ -140,7 +140,7 @@ public class SMACBuilder {
 		String outputDir = options.getOutputDirectory(runGroupName);
 		StateFactory restoreSF = options.getRestoreStateFactory(outputDir);
 	
-		AlgorithmExecutionConfig execConfig =options.scenarioConfig.algoExecOptions.getAlgorithmExecutionConfig();
+		AlgorithmExecutionConfig execConfig =options.getAlgorithmExecutionConfig();
 	
 		ParamConfigurationSpace configSpace = execConfig.getParamFile();
 
