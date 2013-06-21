@@ -23,7 +23,6 @@ import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
-import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
@@ -34,6 +33,7 @@ import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
@@ -137,76 +137,13 @@ public class SMACBuilder {
 		/*
 		 * Build the Serializer object used in the model 
 		 */
-		StateFactory restoreSF;
-		switch(options.statedeSerializer)
-		{
-			case NULL:
-				restoreSF = new NullStateFactory();
-				break;
-			case LEGACY:
-				restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
-				break;
-			default:
-				throw new IllegalArgumentException("State Serializer specified is not supported");
-		}
-		
-		String paramFile = options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile;
-		log.info("Parsing Parameter Space File", paramFile);
-		ParamConfigurationSpace configSpace = null;
-		
-		
-		
-		String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile }; 
-		for(String path : possiblePaths)
-		{
-			try {
-				log.debug("Trying param file in path {} ", path);
-				
-				configSpace = ParamFileHelper.getParamFileParser(path);
-				break;
-			}catch(IllegalStateException e)
-			{ 
-			
-			}
-		}
-		
-		
-		if(configSpace == null)
-		{
-			throw new ParameterException("Could not find param file");
-		}
-		
-		String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
-		File f2 = new File(algoExecDir);
-		if (!f2.isAbsolute()){
-			f2 = new File(options.experimentDir + File.separator + algoExecDir);
-		}
-		AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
+		String outputDir = options.getOutputDirectory(runGroupName);
+		StateFactory restoreSF = options.getRestoreStateFactory(outputDir);
 	
-		
-		
-		
-		StateFactory sf;
-		
-		switch(options.stateSerializer)
-		{
-			case NULL:
-				sf = new NullStateFactory();
-				break;
-			case LEGACY:
-				String savePath = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
-				
-				File saveLocation = new File(savePath);
-				if(!saveLocation.isAbsolute())
-				{
-					savePath = options.experimentDir + File.separator + savePath;
-				}
-				sf = new LegacyStateFactory(savePath, options.restoreStateFrom);
-				break;
-			default:
-				throw new IllegalArgumentException("State Serializer specified is not supported");
-		}
-		
+		AlgorithmExecutionConfig execConfig =options.scenarioConfig.algoExecOptions.getAlgorithmExecutionConfig();
+	
+		ParamConfigurationSpace configSpace = execConfig.getParamFile();
+
 		
 		TargetAlgorithmEvaluator algoEval = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig,true,taeOptions,tae);
 		
@@ -233,6 +170,7 @@ public class SMACBuilder {
 		AbstractAlgorithmFramework smac;
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj));
 		
+		StateFactory sf = options.getSaveStateFactory(outputDir);
 		switch(options.execMode)
 		{
 			case ROAR:
@@ -245,9 +183,8 @@ public class SMACBuilder {
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");
 		}
 		
-		if(options.restoreIteration != null)
+		if(options.stateOpts.restoreIteration != null)
 		{
-			
 			restoreState(options, restoreSF, smac, configSpace, instances, execConfig, rh);
 		}
 		
@@ -323,12 +260,12 @@ public class SMACBuilder {
 		
 		private void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig, RunHistory rh) {
 			
-			if(options.restoreIteration < 0)
+			if(options.stateOpts.restoreIteration < 0)
 			{
 				throw new ParameterException("Iteration must be a non-negative integer");
 			}
 			
-			StateDeserializer sd = sf.getStateDeserializer("it", options.restoreIteration, configSpace, instances, execConfig, rh);
+			StateDeserializer sd = sf.getStateDeserializer("it", options.stateOpts.restoreIteration, configSpace, instances, execConfig, rh);
 			
 			smac.restoreState(sd);
 			

@@ -45,7 +45,6 @@ import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
-import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.aclib.random.RandomUtil;
@@ -56,6 +55,7 @@ import ca.ubc.cs.beta.aclib.runhistory.RunHistoryHelper;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.StateSerializer;
@@ -612,7 +612,7 @@ public class AbstractAlgorithmFramework {
 				
 				log.info("SMAC Completed");
 				
-				if(options.cleanOldStatesOnSuccess)
+				if(options.stateOpts.cleanOldStatesOnSuccess)
 				{
 					log.info("Cleaning old states");
 					stateFactory.purgePreviousStates();

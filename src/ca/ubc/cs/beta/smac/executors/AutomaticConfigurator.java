@@ -45,7 +45,6 @@ import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
-import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -58,6 +57,7 @@ import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
@@ -79,6 +79,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+@SuppressWarnings("unused")
 public class AutomaticConfigurator 
 {
 
@@ -145,123 +146,33 @@ public class AutomaticConfigurator
 			
 			log.info("Automatic Configurator Started");
 			
+			String runGroupName = options.getRunGroupName(taeOptions.values());;
+			/*
+			 * Build the Serializer object used in the model 
+			 */
+			String outputDir = options.getOutputDirectory(runGroupName);
+		
+			
+			
 		
 			/*
 			 * Build the Serializer object used in the model 
 			 */
-			StateFactory restoreSF;
-			switch(options.statedeSerializer)
-			{
-				case NULL:
-					restoreSF = new NullStateFactory();
-					break;
-				case LEGACY:
-					restoreSF = new LegacyStateFactory(options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator, options.restoreStateFrom);
-					break;
-				default:
-					throw new IllegalArgumentException("State Serializer specified is not supported");
-			}
-			
-			String paramFile = options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile;
-			log.info("Parsing Parameter Space File", paramFile);
-			ParamConfigurationSpace configSpace = null;
+			StateFactory restoreSF = options.getRestoreStateFactory(outputDir);
 			
 			
-			String[] possiblePaths = { paramFile, options.experimentDir + File.separator + paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + paramFile };
-			String lastParamFilePath = null;
-			
-			
-			for(String path : possiblePaths)
-			{
-				try {
-					log.debug("Trying param file in path {} ", path);
-					lastParamFilePath = path;
-					//Map<String, String> subspace = options.scenarioConfig.paramFileDelegate.getSubspaceMap();
-					configSpace = ParamFileHelper.getParamFileParser(path);
-					break;
-				}catch(IllegalStateException e)
-				{ 
-					if(e.getCause() instanceof FileNotFoundException)
-					{
-						//We don't care about this because we will just toss an exception if we don't find it
-					} else
-					{
-						log.warn("Error occured while trying to parse is {}"  , e.getMessage() );
-					}
-					
- 
-				}
-			}
-			
-			if(configSpace == null)
-			{
-				throw new ParameterException("Could not find a valid parameter file, please check if there was a previous error");
-			}
-			
+			AlgorithmExecutionConfig execConfig = options.scenarioConfig.algoExecOptions.getAlgorithmExecutionConfig();
 		
+			ParamConfigurationSpace configSpace = execConfig.getParamFile();
 			
 			
+			StateFactory sf = options.getSaveStateFactory(outputDir);
 			
-			
-			String algoExecDir = options.scenarioConfig.algoExecOptions.algoExecDir;
-			File f2 = new File(algoExecDir);
-			if (!f2.isAbsolute()){
-				f2 = new File(options.experimentDir + File.separator + algoExecDir);
-			}
-			AlgorithmExecutionConfig execConfig = new AlgorithmExecutionConfig(options.scenarioConfig.algoExecOptions.algoExec, f2.getAbsolutePath(), configSpace, false, options.scenarioConfig.algoExecOptions.deterministic, options.scenarioConfig.algoExecOptions.cutoffTime );
-		
-			
-			
-			
-			StateFactory sf;
-			
-			switch(options.stateSerializer)
-			{
-				case NULL:
-					sf = new NullStateFactory();
-					break;
-				case LEGACY:
-					String savePath = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "state-run" + options.seedOptions.numRun + File.separator;
-					
-					File saveLocation = new File(savePath);
-					if(!saveLocation.isAbsolute())
-					{
-						savePath = options.experimentDir + File.separator + savePath;
-					}
-					sf = new LegacyStateFactory(savePath, options.restoreStateFrom);
-					break;
-				default:
-					throw new IllegalArgumentException("State Serializer specified is not supported");
-			}
 			
 			List<ProblemInstance> instances = trainingILWS.getInstances();
 			InstanceSeedGenerator instanceSeedGen = trainingILWS.getSeedGen();
 			
-			if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == null)
-			{
-				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
-				if(verifySATCompatible)
-				{
-					log.debug("Instance Specific Information is compatible with Verifying SAT, enabling option");
-					options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = true;
-				} else
-				{
-					log.debug("Instance Specific Information is NOT compatible with Verifying SAT, disabling option");
-					options.scenarioConfig.algoExecOptions.taeOpts.verifySAT = false;
-				}
-				
-			
-			} else if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == true)
-			{
-				boolean verifySATCompatible = ProblemInstanceHelper.isVerifySATCompatible(instances);
-				if(!verifySATCompatible)
-				{
-					log.warn("Verify SAT set to true, but some instances have instance specific information that isn't in {SAT, SATISFIABLE, UNKNOWN, UNSAT, UNSATISFIABLE}");
-				}
-					
-			}
-			
-			
+			options.checkProblemInstancesCompatibleWithVerifySAT(instances);
 			
 			ParamConfiguration initialIncumbent = configSpace.getConfigurationFromString(options.initialIncumbent, StringFormat.NODB_SYNTAX);
 		
@@ -309,35 +220,9 @@ public class AutomaticConfigurator
 			}
 			
 			
-
-			if(options.saveContextWithState)
-			{
-				sf.copyFileToStateDir("param-file.txt", new File(lastParamFilePath));
-				
-				String instanceFileAbsolutePath = trainingILWS.getInstanceFileAbsolutePath();
-				if(instanceFileAbsolutePath != null)
-				{
-					sf.copyFileToStateDir("instances.txt", new File(instanceFileAbsolutePath));
-				}
-				
-				String instanceFeatureFileAbsolutePath = trainingILWS.getInstanceFeatureFileAbsolutePath();
-				
-				if(instanceFeatureFileAbsolutePath != null)
-				{
-					sf.copyFileToStateDir("instance-features.txt", new File(instanceFeatureFileAbsolutePath));
-				}
-				
-				if ((options.scenarioConfig.scenarioFile != null) && (options.scenarioConfig.scenarioFile.exists()))
-				{
-					sf.copyFileToStateDir("scenario.txt", options.scenarioConfig.scenarioFile);
-				}
-				
-				
-				
-			}
-			
-			
-			if(options.restoreIteration != null)
+			options.saveContextWithState(configSpace, trainingILWS, sf);
+						
+			if(options.stateOpts.restoreIteration != null)
 			{
 				restoreState(options, restoreSF, smac, configSpace, instances, execConfig, rh);
 			}
@@ -367,7 +252,6 @@ public class AutomaticConfigurator
 				
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
 				try {
-					String outputDir = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator;
 					
 					List<ProblemInstance> testInstances = testingILWS.getInstances();
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
@@ -482,12 +366,12 @@ public class AutomaticConfigurator
 	
 	private static void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig, RunHistory rh) {
 		
-		if(options.restoreIteration < 0)
+		if(options.stateOpts.restoreIteration < 0)
 		{
 			throw new ParameterException("Iteration must be a non-negative integer");
 		}
 		
-		StateDeserializer sd = sf.getStateDeserializer("it", options.restoreIteration, configSpace, instances, execConfig, rh);
+		StateDeserializer sd = sf.getStateDeserializer("it", options.stateOpts.restoreIteration, configSpace, instances, execConfig, rh);
 		
 		smac.restoreState(sd);
 	}
@@ -661,62 +545,7 @@ public class AutomaticConfigurator
 			TrainTestInstances tti = options.getTrainingAndTestProblemInstances(pool);
 			trainingILWS = tti.getTrainingInstances();
 			testingILWS = tti.getTestInstances();
-			
-//			
-//			//instancesILWS = options.
-//			log.info("Parsing instances from {}", options.scenarioConfig.instanceFile );
-//			
-//			
-//			
-//			ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, pool.getRandom(SeedableRandomPoolConstants.INSTANCE_SEEDS).nextInt(), (options.scenarioConfig.algoExecOptions.deterministic));
-//			
-//			instanceFileAbsolutePath = ilws.getInstanceFileAbsolutePath();
-//			instanceFeatureFileAbsolutePath = ilws.getInstanceFeatureFileAbsolutePath();
-//			
-//			instanceSeedGen = ilws.getSeedGen();
-//			
-//			log.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
-//			if(instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
-//			{
-//				log.info("Instance Seed Generator reports that all instances have the same number of available seeds");
-//			} else
-//			{
-//				log.error("Instance Seed Generator reports that some instances have a different number of seeds than others");
-//				throw new ParameterException("All Training Instances must have the same number of seeds in this version of SMAC");
-//			}
-//			
-//			instances = ilws.getInstances();
-//			
-//			
-//			log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
-//			int testSeeds = pool.getRandom(SeedableRandomPoolConstants.TEST_SEED_INSTANCES).nextInt();
-//			try {
-//				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
-//				
-//			} catch(FeatureNotFoundException e)
-//			{
-//				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, null, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
-//			}
-//			
-//			testInstances = ilws.getInstances();
-//			testInstanceSeedGen = ilws.getSeedGen();
-//			
-//			log.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialInstanceSeedCount());
-//			if(testInstanceSeedGen.allInstancesHaveSameNumberOfSeeds())
-//			{
-//				log.info("Test Seed Generator reports that all instances have the same number of available seeds");
-//			} else
-//			{
-//				log.info("Test Seed Generator reports that the number of seeds per instance varies.");
-//			}
-//			
-//			
-//			
-			
-			
-			
-			
-				
+		
 			
 			
 			try {
