@@ -38,6 +38,8 @@ import ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aclib.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
@@ -135,30 +137,14 @@ public class ValidatorExecutor {
 				
 			
 		
-				log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
-				
-				String instanceFeatureFile = null;
+				//log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
 				
 				
-				instanceFeatureFile = options.scenarioConfig.instanceFeatureFile;
-				InstanceListWithSeeds ilws;
+				//instanceFeatureFile = options.scenarioConfig.instanceFeatureFile;
+				SeedableRandomPool pool = options.seedOptions.getSeedableRandomPool();
+				InstanceListWithSeeds ilws = options.getTrainingAndTestProblemInstances(pool);
 				
 				
-				String instanceFile ;
-				if(options.validateTestInstances)
-				{
-					instanceFile = options.scenarioConfig.testInstanceFile;
-				} else
-				{
-					instanceFile = options.scenarioConfig.instanceFile;
-				}
-				
-				try {
-					 ilws = ProblemInstanceHelper.getInstances(instanceFile, options.experimentDir,options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
-				} catch(FeatureNotFoundException e)
-				{
-					ilws = ProblemInstanceHelper.getInstances(instanceFile, options.experimentDir,null, options.scenarioConfig.checkInstanceFilesExist, options.seed, Integer.MAX_VALUE);
-				}
 				
 				List<ProblemInstance> testInstances = ilws.getInstances();
 				InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
@@ -166,7 +152,7 @@ public class ValidatorExecutor {
 	
 				log.info("Parsing Parameter Space File", options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile);
 				ParamConfigurationSpace configSpace = null;
-				Random configSpacePRNG = new MersenneTwister(options.configurationSeed);
+				Random configSpacePRNG = pool.getRandom(SeedableRandomPoolConstants.VALIDATE_RANDOM_CONFIG_POOL);
 				
 				String[] possiblePaths = { options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile, options.experimentDir + File.separator + options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile, options.scenarioConfig.algoExecOptions.algoExecDir + File.separator + options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile }; 
 				for(String path : possiblePaths)
@@ -364,7 +350,7 @@ public class ValidatorExecutor {
 						options.scenarioConfig.intraInstanceObj,
 						options.scenarioConfig.interInstanceObj,
 						tfes,
-						options.numRun,
+						options.seedOptions.numRun,
 						options.waitForPersistedRunCompletion);
 				
 				

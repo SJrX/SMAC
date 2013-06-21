@@ -50,6 +50,7 @@ import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
@@ -86,16 +87,24 @@ public class AutomaticConfigurator
 	private static Marker exception;
 	private static Marker stackTrace;
 	
+	private static String logLocation = "<NO LOG LOCATION SPECIFIED, FAILURE MUST HAVE OCCURED EARLY>";
+	
+	/*
 	private static List<ProblemInstance> instances;
 	private static List<ProblemInstance> testInstances;
 	
 	private static InstanceSeedGenerator instanceSeedGen;
 	private static InstanceSeedGenerator testInstanceSeedGen;
-	private static String logLocation = "<NO LOG LOCATION SPECIFIED, FAILURE MUST HAVE OCCURED EARLY>";
+	
 	
 	
 	private static String instanceFileAbsolutePath;
 	private static String instanceFeatureFileAbsolutePath;
+	*/
+	
+	
+	private static InstanceListWithSeeds trainingILWS;
+	private static InstanceListWithSeeds testingILWS;
 	
 	
 	private static Map<String,  AbstractOptions> taeOptions;
@@ -225,7 +234,8 @@ public class AutomaticConfigurator
 					throw new IllegalArgumentException("State Serializer specified is not supported");
 			}
 			
-			
+			List<ProblemInstance> instances = trainingILWS.getInstances();
+			InstanceSeedGenerator instanceSeedGen = trainingILWS.getSeedGen();
 			
 			if(options.scenarioConfig.algoExecOptions.taeOpts.verifySAT == null)
 			{
@@ -304,10 +314,13 @@ public class AutomaticConfigurator
 			{
 				sf.copyFileToStateDir("param-file.txt", new File(lastParamFilePath));
 				
+				String instanceFileAbsolutePath = trainingILWS.getInstanceFileAbsolutePath();
 				if(instanceFileAbsolutePath != null)
 				{
 					sf.copyFileToStateDir("instances.txt", new File(instanceFileAbsolutePath));
 				}
+				
+				String instanceFeatureFileAbsolutePath = trainingILWS.getInstanceFeatureFileAbsolutePath();
 				
 				if(instanceFeatureFileAbsolutePath != null)
 				{
@@ -355,6 +368,10 @@ public class AutomaticConfigurator
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
 				try {
 					String outputDir = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator;
+					
+					List<ProblemInstance> testInstances = testingILWS.getInstances();
+					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
+					
 					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true);
 				} finally
 				{
@@ -638,54 +655,63 @@ public class AutomaticConfigurator
 			log.info("==========Configuration Options==========\n{}", sb.toString());
 			pool = options.seedOptions.getSeedableRandomPool();
 			
-			log.info("Parsing instances from {}", options.scenarioConfig.instanceFile );
-			InstanceListWithSeeds ilws;
-			
-			
-			ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, pool.getRandom(SeedableRandomPoolConstants.INSTANCE_SEEDS).nextInt(), (options.scenarioConfig.algoExecOptions.deterministic));
-			
-			instanceFileAbsolutePath = ilws.getInstanceFileAbsolutePath();
-			instanceFeatureFileAbsolutePath = ilws.getInstanceFeatureFileAbsolutePath();
-			
-			instanceSeedGen = ilws.getSeedGen();
-			
-			log.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
-			if(instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
-			{
-				log.info("Instance Seed Generator reports that all instances have the same number of available seeds");
-			} else
-			{
-				log.error("Instance Seed Generator reports that some instances have a different number of seeds than others");
-				throw new ParameterException("All Training Instances must have the same number of seeds in this version of SMAC");
-			}
-			
-			instances = ilws.getInstances();
-			
-			
-			log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
-			int testSeeds = pool.getRandom(SeedableRandomPoolConstants.TEST_SEED_INSTANCES).nextInt();
-			try {
-				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
-				
-			} catch(FeatureNotFoundException e)
-			{
-				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, null, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
-			}
-			
-			testInstances = ilws.getInstances();
-			testInstanceSeedGen = ilws.getSeedGen();
-			
-			log.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialInstanceSeedCount());
-			if(testInstanceSeedGen.allInstancesHaveSameNumberOfSeeds())
-			{
-				log.info("Test Seed Generator reports that all instances have the same number of available seeds");
-			} else
-			{
-				log.info("Test Seed Generator reports that the number of seeds per instance varies.");
-			}
 			
 			
 			
+			TrainTestInstances tti = options.getTrainingAndTestProblemInstances(pool);
+			trainingILWS = tti.getTrainingInstances();
+			testingILWS = tti.getTestInstances();
+			
+//			
+//			//instancesILWS = options.
+//			log.info("Parsing instances from {}", options.scenarioConfig.instanceFile );
+//			
+//			
+//			
+//			ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, pool.getRandom(SeedableRandomPoolConstants.INSTANCE_SEEDS).nextInt(), (options.scenarioConfig.algoExecOptions.deterministic));
+//			
+//			instanceFileAbsolutePath = ilws.getInstanceFileAbsolutePath();
+//			instanceFeatureFileAbsolutePath = ilws.getInstanceFeatureFileAbsolutePath();
+//			
+//			instanceSeedGen = ilws.getSeedGen();
+//			
+//			log.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
+//			if(instanceSeedGen.allInstancesHaveSameNumberOfSeeds())
+//			{
+//				log.info("Instance Seed Generator reports that all instances have the same number of available seeds");
+//			} else
+//			{
+//				log.error("Instance Seed Generator reports that some instances have a different number of seeds than others");
+//				throw new ParameterException("All Training Instances must have the same number of seeds in this version of SMAC");
+//			}
+//			
+//			instances = ilws.getInstances();
+//			
+//			
+//			log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
+//			int testSeeds = pool.getRandom(SeedableRandomPoolConstants.TEST_SEED_INSTANCES).nextInt();
+//			try {
+//				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
+//				
+//			} catch(FeatureNotFoundException e)
+//			{
+//				ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.testInstanceFile, options.experimentDir, null, options.scenarioConfig.checkInstanceFilesExist, testSeeds,(options.scenarioConfig.algoExecOptions.deterministic ) );
+//			}
+//			
+//			testInstances = ilws.getInstances();
+//			testInstanceSeedGen = ilws.getSeedGen();
+//			
+//			log.info("Test Instance Seed Generator reports {} seeds ", testInstanceSeedGen.getInitialInstanceSeedCount());
+//			if(testInstanceSeedGen.allInstancesHaveSameNumberOfSeeds())
+//			{
+//				log.info("Test Seed Generator reports that all instances have the same number of available seeds");
+//			} else
+//			{
+//				log.info("Test Seed Generator reports that the number of seeds per instance varies.");
+//			}
+//			
+//			
+//			
 			
 			
 			

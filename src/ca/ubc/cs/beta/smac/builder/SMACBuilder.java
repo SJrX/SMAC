@@ -27,6 +27,7 @@ import ca.ubc.cs.beta.aclib.options.SMACOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
+import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
@@ -87,19 +88,20 @@ public class SMACBuilder {
 	}
 	
 	
-	public void setInstancesAndSeedGenFromOptions(SMACOptions options) throws IOException
+	public void setInstancesAndSeedGenFromOptions(SMACOptions options, SeedableRandomPool pool) throws IOException
 	{
-		InstanceListWithSeeds ilws;
+		InstanceListWithSeeds ilws;	
 		
-		ilws = ProblemInstanceHelper.getInstances(options.scenarioConfig.instanceFile,options.experimentDir, options.scenarioConfig.instanceFeatureFile, options.scenarioConfig.checkInstanceFilesExist, options.seedOptions.numRun+options.seedOptions.seedOffset+1, (options.scenarioConfig.algoExecOptions.deterministic));
+		TrainTestInstances tti = options.getTrainingAndTestProblemInstances(pool);
 		
-		instanceSeedGen = ilws.getSeedGen();
 		
+		
+		
+		
+		instanceSeedGen = tti.getTrainingInstances().getSeedGen();		
 		//logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
-		
-		
-		
-		instances = ilws.getInstances();
+
+		instances = tti.getTrainingInstances().getInstances();
 		
 	}
 	
