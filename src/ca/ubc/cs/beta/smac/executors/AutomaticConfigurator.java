@@ -204,6 +204,7 @@ public class AutomaticConfigurator
 			
 			TerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
 			
+			termCond.registerWithEventManager(eventManager);
 			switch(options.execMode)
 			{
 				case ROAR:
@@ -231,6 +232,7 @@ public class AutomaticConfigurator
 			
 			try {
 				smac.run();
+				log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
 			} finally
 			{
 				tae.notifyShutdown();
@@ -279,7 +281,7 @@ public class AutomaticConfigurator
 			smac.logSMACResult(performance);
 			
 			
-			
+			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
 			log.info("SMAC Completed Successfully. Log: " + logLocation);
 			
 			

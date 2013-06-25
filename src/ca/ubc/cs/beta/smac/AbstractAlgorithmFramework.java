@@ -60,6 +60,7 @@ import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.StateSerializer;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
+import ca.ubc.cs.beta.aclib.termination.ValueMaxStatus;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
 import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
@@ -437,6 +438,12 @@ public class AbstractAlgorithmFramework {
 				Runtime.getRuntime().totalMemory() / 1024.0 / 1024,
 				Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
 		
+		StringBuilder sb = new StringBuilder(" ");
+		for(ValueMaxStatus vms : termCond.currentStatus())
+		{
+			sb.append(vms.getStatus());
+		}
+		
 		lastLogMessage = "*****Runtime Statistics*****\n" +
 				" Iteration: " + arr[0]+
 				"\n Incumbent ID: "+ arr[1]+
@@ -445,20 +452,20 @@ public class AbstractAlgorithmFramework {
 				"\n Number of Configurations Run: " + arr[4]+ 
 				"\n Performance of the Incumbent: " + arr[5]+
 				"\n Total Number of runs performed: " + arr[6]+ 
-				"\n Last Iteration with a successful run: " + arr[7] + 
-				"\n Wallclock time: "+ arr[8] + " s" +
-				"\n Wallclock time remaining: "+ arr[9] +" s" +
-				"\n Configuration time budget used: "+ arr[10] +" s" +
-				"\n Configuration time budget remaining: "+ arr[11]+" s" +
-				"\n Sum of Target Algorithm Execution Times (treating minimum value as 0.1): "+arr[12] +" s" + 
+				"\n Last Iteration with a successful run: " + arr[7] + "\n" +
+				sb.toString().replaceAll("\n","\n ") + 
+				//"\n Wallclock time: "+ arr[8] + " s" +
+				//"\n Wallclock time remaining: "+ arr[9] +" s" +
+				//"\n Configuration time budget used: "+ arr[10] +" s" +
+				//"\n Configuration time budget remaining: "+ arr[11]+" s" +
+				"Sum of Target Algorithm Execution Times (treating minimum value as 0.1): "+arr[12] +" s" + 
 				"\n CPU time of Configurator: "+arr[13]+" s" +
 				"\n User time of Configurator: "+arr[14]+" s" +
 				"\n Total Reported Algorithm Runtime: " + arr[15] + " s" + 
 				"\n Sum of Measured Wallclock Runtime: " + arr[16] + " s" +
 				"\n Max Memory: "+arr[17]+" MB" +
 				"\n Total Java Memory: "+arr[18]+" MB" +
-				"\n Free Java Memory: "+arr[19]+" MB" + 
-				"\n " + termCond.toString();
+				"\n Free Java Memory: "+arr[19]+" MB";
 		
 		log.info(lastLogMessage);
 		
@@ -545,7 +552,6 @@ public class AbstractAlgorithmFramework {
 					incumbent = initialIncumbent;
 					log.info("Initial Incumbent set as Incumbent: {}", incumbent);
 					iteration = 0;
-					
 					
 					int N= options.initialIncumbentRuns;
 					
@@ -1569,7 +1575,6 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : runs)
 		{
 			try {
-				termCond.notifyRun(run);
 				if (have_to_stop(iteration)){
 					throw new OutOfTimeException(run);
 				} else
@@ -1619,7 +1624,7 @@ public class AbstractAlgorithmFramework {
 			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
 
 			log.info("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
-			
+			termCond.notifyRun(run);
 			eventManager.fireEvent(new AlgorithmRunCompletedEvent(run));
 		}
 		
@@ -1654,5 +1659,9 @@ public class AbstractAlgorithmFramework {
 		return Collections.unmodifiableList(tfes);
 	}
 	
+	public String getTerminationReason()
+	{
+		return termCond.getTerminationReason();
+	}
 	
 }

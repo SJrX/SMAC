@@ -144,7 +144,7 @@
 		
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions"/>
+			<arg value="ca.ubc.cs.beta.aclib.smac.ValidationExecutorOptions"/>
 			<arg value="--commandName"/>
 			<arg value="smac-validate"/>
 			<arg value="--outputFile"/>
@@ -152,12 +152,12 @@
 		</java>
 		
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
-					<arg value="--class"/>
-					<arg value="ca.ubc.cs.beta.aclib.options.SMACOptions"/>
-					<arg value="--commandName"/>
-					<arg value="smac"/>
-					<arg value="--outputFile"/>
-					<arg value="dist/util/bash_autocomplete.sh"/>
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+			<arg value="--commandName"/>
+			<arg value="smac"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
