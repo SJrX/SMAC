@@ -2,7 +2,6 @@ package ca.ubc.cs.beta.smac.executors;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -22,9 +21,7 @@ import com.beust.jcommander.ParameterException;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
@@ -36,7 +33,6 @@ import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
@@ -44,10 +40,8 @@ import ca.ubc.cs.beta.aclib.smac.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileParser;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
-import ec.util.MersenneTwister;
 
 public class ValidatorExecutor {
 
@@ -100,7 +94,7 @@ public class ValidatorExecutor {
 				
 					if(options.tunerTime == -1)
 					{
-						options.tunerTime = options.scenarioConfig.tunerTimeout;
+						options.tunerTime = options.scenarioConfig.limitOptions.tunerTimeout;
 						log.info("Using Scenario Tuner Time {} seconds", options.tunerTime );
 						
 						
@@ -173,10 +167,10 @@ public class ValidatorExecutor {
 					 {
 						 if(options.validationOptions.useWallClockTime)
 						 {
-							 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+							 options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.runtimeLimit;
 						 } else
 						 {
-							 options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+							 options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
 						 }
 					 }
 					 
@@ -290,6 +284,7 @@ public class ValidatorExecutor {
 				
 				//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) emperical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
 				log.info("Beginning Validation on {} entries", tfes.size());
+				try {
 				(new Validator()).validate(testInstances,
 						options.validationOptions,
 						options.scenarioConfig.algoExecOptions.cutoffTime,
@@ -303,9 +298,13 @@ public class ValidatorExecutor {
 						options.seedOptions.numRun,
 						options.waitForPersistedRunCompletion);
 				
+				} finally
+				{
+					validatingTae.notifyShutdown();
+				}
 				
 				log.info("Validation Completed Successfully");
-				validatingTae.notifyShutdown();
+				
 				System.exit(ACLibReturnValues.SUCCESS);
 			} catch(ParameterException e)
 			{

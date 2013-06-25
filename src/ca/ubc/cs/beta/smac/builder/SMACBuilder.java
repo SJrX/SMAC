@@ -17,7 +17,6 @@ import com.beust.jcommander.ParameterException;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
@@ -25,7 +24,6 @@ import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
@@ -36,10 +34,9 @@ import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
-import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
-import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 
@@ -171,13 +168,15 @@ public class SMACBuilder {
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj));
 		
 		StateFactory sf = options.getSaveStateFactory(outputDir);
+		TerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
+		
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName);
+				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName, termCond);
 				break;
 			case SMAC:
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen,  initialIncumbent, eventManager, rh, pool, runGroupName);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen,  initialIncumbent, eventManager, rh, pool, runGroupName, termCond);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");

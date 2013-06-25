@@ -45,7 +45,7 @@ import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
-import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
+import ca.ubc.cs.beta.aclib.options.scenario.ScenarioOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceHelper;
@@ -65,6 +65,7 @@ import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
+import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
@@ -201,17 +202,18 @@ public class AutomaticConfigurator
 	
 			ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj));
 			
+			TerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
 			
 			switch(options.execMode)
 			{
 				case ROAR:
 
-					smac = new AbstractAlgorithmFramework(options,instances,tae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName);
+					smac = new AbstractAlgorithmFramework(options,instances,tae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName, termCond);
 
 					break;
 				case SMAC:
 
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, tae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, runGroupName);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, tae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, runGroupName, termCond);
 
 					
 					break;
@@ -245,7 +247,7 @@ public class AutomaticConfigurator
 				
 				if(options.validationOptions.maxTimestamp == -1)
 				{
-					options.validationOptions.maxTimestamp = options.scenarioConfig.tunerTimeout;
+					options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
 				}
 				
 				options.scenarioConfig.algoExecOptions.taeOpts.trackRunsScheduled = false;

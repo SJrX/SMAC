@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import org.junit.*;
 import static org.junit.Assert.*;
 
-import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
+import ca.ubc.cs.beta.aclib.options.scenario.ScenarioOptions;
 
 import com.beust.jcommander.JCommander;
 
