@@ -113,6 +113,9 @@ public class AutomaticConfigurator
 	
 	private static Map<String,  AbstractOptions> taeOptions;
 	private static SeedableRandomPool pool;
+	
+	private static String outputDir;
+	
 	/**
 	 * Executes SMAC then exits the JVM {@see System.exit()}
 	 *  
@@ -149,12 +152,7 @@ public class AutomaticConfigurator
 			
 			log.info("Automatic Configurator Started");
 			
-			String runGroupName = options.getRunGroupName(taeOptions.values());;
-			/*
-			 * Build the Serializer object used in the model 
-			 */
-			String outputDir = options.getOutputDirectory(runGroupName);
-		
+			
 			
 			
 		
@@ -444,19 +442,32 @@ public class AutomaticConfigurator
 				
 				
 				runGroupName = options.getRunGroupName(taeOptions.values());
-				File outputDir = new File(options.scenarioConfig.outputDirectory);
-				if(!outputDir.exists())
-				{
-					outputDir.mkdir();
-				}
+				//File outputDir = new File(options.scenarioConfig.outputDirectory);
 				
+				
+				String runGroupName = options.getRunGroupName(taeOptions.values());;
+				/*
+				 * Build the Serializer object used in the model 
+				 */
+				outputDir = options.getOutputDirectory(runGroupName);
+			
+				File outputDirFile = new File(outputDir);
+				
+				if(!outputDirFile.exists())
+				{
+					boolean result = outputDirFile.mkdirs();
+					
+					if(!result)
+					{
+						throw new ParameterException("Could not create all folders necessary for output directory: " + outputDir);
+					}
+				}
 				
 				
 			} finally
 			{
 				
-				System.setProperty("OUTPUTDIR", options.scenarioConfig.outputDirectory);
-				System.setProperty("RUNGROUPDIR", runGroupName);
+				System.setProperty("OUTPUTDIR", outputDir);
 				System.setProperty("NUMRUN", String.valueOf(options.seedOptions.numRun));
 				System.setProperty("STDOUT-LEVEL", options.consoleLogLevel.name());
 				System.setProperty("ROOT-LEVEL",options.logLevel.name());
