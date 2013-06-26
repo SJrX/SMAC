@@ -59,8 +59,10 @@ import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.StateSerializer;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.ValueMaxStatus;
+import ca.ubc.cs.beta.aclib.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
 import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
@@ -117,8 +119,8 @@ public class AbstractAlgorithmFramework {
 
 	protected SeedableRandomPool pool;
 	
-	private final TerminationCondition termCond;
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, TerminationCondition termCond )
+	private final CompositeTerminationCondition termCond;
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, CompositeTerminationCondition termCond )
 	{
 		this.instances = instances;
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
@@ -158,8 +160,10 @@ public class AbstractAlgorithmFramework {
 			MAX_RUNS_FOR_INCUMBENT=smacOptions.maxIncumbentRuns;
 			log.info("Maximimum Number of Runs for the Incumbent Initialized to {}", MAX_RUNS_FOR_INCUMBENT);
 		}
+		TerminationCondition cond = new ConfigurationSpaceExhaustedCondition(configSpace,MAX_RUNS_FOR_INCUMBENT);
+		cond.registerWithEventManager(eventManager);
 		
-		
+		termCond.addCondition(cond);
 		//=== Initialize trajectory file.
 		try {
 			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".txt";
@@ -260,14 +264,7 @@ public class AbstractAlgorithmFramework {
 		
 	}
 		
-	/**
-	 * Function that determines whether we should stop processing or not
-	 * @param iteration - number of iterations we have done
-	 * @return
-	 */
-	protected boolean have_to_stop(int iteration){
-		return have_to_stop(iteration, 0);
-	}
+	
 	
 	
 	//Last runtime that we saw
@@ -279,7 +276,7 @@ public class AbstractAlgorithmFramework {
 	 * @param nextRunTime - the time the next run takes
 	 * @return
 	 */
-	protected boolean have_to_stop(int iteration, double nextRunTime)
+	protected boolean have_to_stop(int iteration)
 	{
 		outOfTime = true;
 		outOfTime = termCond.haveToStop();
@@ -690,13 +687,8 @@ public class AbstractAlgorithmFramework {
 				log.warn("Ran out of time while evaluating the default configuration on the first run, this is most likely a configuration error");
 				//Ignore this exception
 				//Force the incumbent to be logged in RunHistory and then we will timeout next
-				try {
-					runHistory.append(e.getAlgorithmRun());
+				throw new IllegalStateException("Out of time on the first run");
 				
-				} catch (DuplicateRunException e1) {
-
-					throw new DeveloperMadeABooBooException(e1);
-				}
 			}
 			
 		}
@@ -1575,14 +1567,9 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : runs)
 		{
 			try {
-				if (have_to_stop(iteration)){
-					throw new OutOfTimeException(run);
-				} else
-				{
 					this.sumOfWallClockTime += run.getWallclockExecutionTime();
 					this.sumOfReportedAlgorithmRunTime += run.getRuntime();
-				}
-				runHistory.append(run);
+					runHistory.append(run);
 			} catch (DuplicateRunException e) {
 				//We are trying to log a duplicate run
 				throw new IllegalStateException(e);
@@ -1608,6 +1595,10 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected List<AlgorithmRun> evaluateRun(List<RunConfig> runConfigs)
 	{
+		if (have_to_stop(iteration)){
+			log.info("Cannot schedule any more runs, out of time");
+			throw new OutOfTimeException();
+		} 
 		int i=0;
 		log.info("Iteration {}: Scheduling {} run(s):", iteration,  runConfigs.size());
 		for(RunConfig rc : runConfigs)

@@ -65,7 +65,9 @@ import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
+import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
+import ca.ubc.cs.beta.aclib.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
@@ -166,6 +168,7 @@ public class AutomaticConfigurator
 		
 			ParamConfigurationSpace configSpace = execConfig.getParamFile();
 			
+			log.info("Configuration Space Size is less than or equal to {} ", configSpace.getUpperBoundOnSize());
 			
 			StateFactory sf = options.getSaveStateFactory(outputDir);
 			
@@ -202,7 +205,10 @@ public class AutomaticConfigurator
 	
 			ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj));
 			
-			TerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
+			CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
+			
+			
+			
 			
 			termCond.registerWithEventManager(eventManager);
 			switch(options.execMode)
@@ -231,6 +237,7 @@ public class AutomaticConfigurator
 			}
 			
 			try {
+				
 				smac.run();
 				log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
 			} finally

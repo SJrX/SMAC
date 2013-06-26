@@ -16,6 +16,12 @@ public class OutOfTimeException extends SMACRuntimeException {
 		this.run = run;
 	}
 
+	public OutOfTimeException() {
+		super("Out of time");
+		this.run = null;
+		// TODO Auto-generated constructor stub
+	}
+
 	public AlgorithmRun getAlgorithmRun()
 	{
 		return run;
