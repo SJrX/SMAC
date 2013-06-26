@@ -281,37 +281,6 @@ public class AbstractAlgorithmFramework {
 		outOfTime = true;
 		outOfTime = termCond.haveToStop();
 		
-		/*
-		if(getTunerTime() + nextRunTime > options.scenarioConfig.tunerTimeout)
-		{
-			unaccountedRunTime = nextRunTime;
-			log.info("Run cost {} greater than tuner timeout {}",runHistory.getTotalRunCost() + this.timedOutRunCost + nextRunTime, options.scenarioConfig.tunerTimeout);
-			return true;
-		} else
-		{
-			unaccountedRunTime = 0;
-		}
-		
-		if(iteration > options.numIteratations)
-		{
-			log.info("Iteration {} greater than number permitted {}", iteration, options.numIteratations);
-			return true;
-		}
-		
-		if(runHistory.getAlgorithmRunData().size() >= options.totalNumRunsLimit)
-		{
-			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), options.totalNumRunsLimit);
-			return true;
-		}
-		
-		if(this.challengeIncumbentAttempts > options.challengeIncumbentAttempts)
-		{
-			Object[] args = {challengeIncumbentAttempts, options.challengeIncumbentAttempts, this.lastIterationWithARun};
-			log.info("Number of consecutive challenge attempts that resulted in no new runs {} is greater than the limit {}. Last iteration with a successful run was {} ", args );
-			return true;
-		}
-		*/
-		//outOfTime = false;
 		return outOfTime;
 	}
 	
@@ -448,7 +417,7 @@ public class AbstractAlgorithmFramework {
 				"\n Number of Instances for Incumbent: " + arr[3]+
 				"\n Number of Configurations Run: " + arr[4]+ 
 				"\n Performance of the Incumbent: " + arr[5]+
-				"\n Total Number of runs performed: " + arr[6]+ 
+				//"\n Total Number of runs performed: " + arr[6]+ 
 				"\n Last Iteration with a successful run: " + arr[7] + "\n" +
 				sb.toString().replaceAll("\n","\n ") + 
 				//"\n Wallclock time: "+ arr[8] + " s" +
