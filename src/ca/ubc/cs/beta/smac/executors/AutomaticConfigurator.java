@@ -207,7 +207,7 @@ public class AutomaticConfigurator
 			
 			
 			
-			
+			try {
 			termCond.registerWithEventManager(eventManager);
 			switch(options.execMode)
 			{
@@ -234,7 +234,7 @@ public class AutomaticConfigurator
 				restoreState(options, restoreSF, smac, configSpace, instances, execConfig, rh);
 			}
 			
-			try {
+			
 				
 				smac.run();
 				log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
@@ -324,7 +324,7 @@ public class AutomaticConfigurator
 					}
 						
 					log.info("Exiting SMAC with failure. Log: " + logLocation);
-				
+					log.info("For a list of available commands use:  --help");
 					log.info("Please see above for the available options. Further information is available in the following documents:");
 					log.info("- The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
 					log.info("- The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
@@ -397,7 +397,7 @@ public class AutomaticConfigurator
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
 		taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
 		SMACOptions options = new SMACOptions();
-		JCommander jcom = JCommanderHelper.getJCommander(options, taeOptions);
+		JCommander jcom = JCommanderHelper.getJCommanderAndCheckForHelp(args, options, taeOptions);
 		
 		jcom.setProgramName("smac");
 		
@@ -407,7 +407,7 @@ public class AutomaticConfigurator
 			//JCommanderHelper.parse(com, args);
 			try {
 				try {
-				checkArgsForUsageScreenValues(args,options);
+				
 				
 				args = processScenarioStateRestore(args);
 				jcom.parse(args);
@@ -607,13 +607,14 @@ public class AutomaticConfigurator
 			
 		} catch(ParameterException e)
 		{
+			/*
 			try {
 				
-				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(jcom.getObjects().get(0),TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
+				//ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(jcom.getObjects().get(0),TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
 			} catch (Exception e1) {
 				log.error("Exception occured while trying to generate usage screen",e1);
 				log.error("This exception did NOT cause SMAC to crash");
-			}
+			}*/
 			
 			throw e;
 		}
@@ -688,7 +689,9 @@ public class AutomaticConfigurator
 	}
 
 
-	private static void checkArgsForUsageScreenValues(String[] args, SMACOptions config) {
+	private static void checkArgsForUsageScreenValues(String[] args, SMACOptions config) 
+	{
+		
 		/*
 		@Parameter(names="--showHiddenParameters", description="show hidden parameters that no one has use for, and probably just break SMAC")
 		public boolean showHiddenParameters = false;
