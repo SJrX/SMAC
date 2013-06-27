@@ -466,8 +466,13 @@ public class AutomaticConfigurator
 				
 			} finally
 			{
-				
-				System.setProperty("OUTPUTDIR", outputDir);
+				if(outputDir != null)
+				{
+					System.setProperty("OUTPUTDIR", outputDir); 
+				} else
+				{
+					System.setProperty("OUTPUTDIR", "./");
+				}
 				System.setProperty("NUMRUN", String.valueOf(options.seedOptions.numRun));
 				System.setProperty("STDOUT-LEVEL", options.consoleLogLevel.name());
 				System.setProperty("ROOT-LEVEL",options.logLevel.name());

@@ -456,21 +456,21 @@ public class AbstractAlgorithmFramework {
 	/**
 	 * Writes the incumbent to the trajectory file
 	 * @param totalTime
-	 * @param empericalPerformance
+	 * @param empiricalPerformance
 	 * @param stdDevInc
 	 * @param thetaIdxInc
 	 * @param acTime
 	 * @param paramString
 	 */
-	private void writeIncumbent(double tunerTime, double empericalPerformance)
+	private void writeIncumbent(double tunerTime, double empiricalPerformance)
 	{
 		
-		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empericalPerformance && !outOfTime)
+		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empiricalPerformance && !outOfTime)
 		{
 			return;
 		} else
 		{
-			lastEmpericalPerformance = empericalPerformance;
+			lastEmpericalPerformance = empiricalPerformance;
 			lastIncumbent = incumbent;
 		}
 		
@@ -483,11 +483,11 @@ public class AbstractAlgorithmFramework {
 		
 		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
 		
-		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, wallTime,   empericalPerformance, acTime);
+		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, wallTime,   empiricalPerformance, acTime);
 		
 		this.tfes.add(tfe);
 		
-		String outLine = tunerTime + ", " + empericalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
+		String outLine = tunerTime + ", " + empiricalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
 		try 
 		{
 			trajectoryFileWriter.write(outLine);
@@ -1065,20 +1065,20 @@ public class AbstractAlgorithmFramework {
 			
 			
 			tfe = ents.getKey();
-			double empericalPerformance = tfe.getEmpericalPerformance();
+			double empiricalPerformance = tfe.getEmpericalPerformance();
 			
 			testSetPerformance = ents.getValue();
 			double tunerTime = tfe.getTunerTime();
 			ParamConfiguration formerIncumbent = tfe.getConfiguration();
 			
 			
-			if(formerIncumbent.equals(lastIncumbent) && empericalPerformance == lastEmpericalPerformance && lastTestSetPerformance == testSetPerformance)
+			if(formerIncumbent.equals(lastIncumbent) && empiricalPerformance == lastEmpericalPerformance && lastTestSetPerformance == testSetPerformance)
 			{
 				continue;
 			} else
 			{
 				lastIncumbent = formerIncumbent;
-				lastEmpericalPerformance = empericalPerformance;
+				lastEmpericalPerformance = empiricalPerformance;
 				lastTestSetPerformance = testSetPerformance;
 			}
 			
@@ -1086,11 +1086,11 @@ public class AbstractAlgorithmFramework {
 			
 			if(Double.isInfinite(testSetPerformance))
 			{
-				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empericalPerformance }; 
+				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance }; 
 				log.info("Total Objective of Incumbent {} ({}) at time {} on training set: {}", args2 );
 			} else
 			{
-				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empericalPerformance, testSetPerformance };
+				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance, testSetPerformance };
 				log.info("Total Objective of Incumbent {} ({}) at time {} on training set: {}; on test set: {}", args2 );
 			}
 			

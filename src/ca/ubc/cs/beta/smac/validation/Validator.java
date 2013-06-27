@@ -771,11 +771,11 @@ endloop:
 				time = ent.getKey().getTunerTime();
 			}
 			
-			double empericalPerformance = ent.getKey().getEmpericalPerformance();
+			double empiricalPerformance = ent.getKey().getEmpericalPerformance();
 			double testSetPerformance = ent.getValue();
 			double acOverhead = ent.getKey().getACOverhead();
 			
-			sb.append(time).append(",").append(empericalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
+			sb.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
 		}
 		if(!f.canWrite())
 		{

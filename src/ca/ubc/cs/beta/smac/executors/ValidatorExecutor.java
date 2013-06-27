@@ -120,9 +120,9 @@ public class ValidatorExecutor {
 						options.wallTime = 0;
 					}
 					
-					if(options.empericalPerformance == -1)
+					if(options.empiricalPerformance == -1)
 					{
-						options.empericalPerformance = 0;
+						options.empiricalPerformance = 0;
 						
 					}
 					
@@ -250,7 +250,7 @@ public class ValidatorExecutor {
 					int i=0;
 					for(ParamConfiguration config : configToValidate)
 					{
-						tfes.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empericalPerformance, options.tunerOverheadTime + i));
+						tfes.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empiricalPerformance, options.tunerOverheadTime + i));
 						
 						if(options.autoIncrementTunerTime)
 						{
@@ -282,7 +282,7 @@ public class ValidatorExecutor {
 				
 				
 				
-				//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) emperical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
+				//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) empirical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
 				log.info("Beginning Validation on {} entries", tfes.size());
 				try {
 				(new Validator()).validate(testInstances,
