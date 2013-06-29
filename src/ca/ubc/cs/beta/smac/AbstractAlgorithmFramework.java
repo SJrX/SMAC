@@ -160,6 +160,7 @@ public class AbstractAlgorithmFramework {
 			MAX_RUNS_FOR_INCUMBENT=smacOptions.maxIncumbentRuns;
 			log.info("Maximimum Number of Runs for the Incumbent Initialized to {}", MAX_RUNS_FOR_INCUMBENT);
 		}
+		
 		TerminationCondition cond = new ConfigurationSpaceExhaustedCondition(configSpace,MAX_RUNS_FOR_INCUMBENT);
 		cond.registerWithEventManager(eventManager);
 		

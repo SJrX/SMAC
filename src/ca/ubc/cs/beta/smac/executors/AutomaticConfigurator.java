@@ -436,6 +436,18 @@ public class AutomaticConfigurator
 					}
 				}
 				
+				if(options.randomForestOptions.logModel == null)
+				{
+					switch(options.scenarioConfig.runObj)
+					{
+					case RUNTIME:
+						options.randomForestOptions.logModel = true;
+						
+					case QUALITY:
+						options.randomForestOptions.logModel = false;
+					}
+				}
+				
 				
 				
 				
