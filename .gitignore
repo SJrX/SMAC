@@ -12,3 +12,4 @@
 *.aux
 *.tex.bak
 .directory
+/version
