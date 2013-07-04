@@ -514,7 +514,7 @@ public class AutomaticConfigurator
 			
 			validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 			
-			logCallString(args);
+			JCommanderHelper.logCallString(args, AutomaticConfigurator.class);
 			
 			/*
 			
@@ -809,29 +809,7 @@ public class AutomaticConfigurator
 
 
 
-	private static void logCallString(String[] args) {
-		StringBuilder sb = new StringBuilder("java -cp ");
-		sb.append(System.getProperty("java.class.path")).append(" ");
-		sb.append(AutomaticConfigurator.class.getCanonicalName()).append(" ");
-		for(String arg : args)
-		{
-			boolean escape = false;
-			if(arg.contains(" "))
-			{
-				escape = true;
-				arg = arg.replaceAll(" ", "\\ ");
-			}
-			
-			
-			if(escape) sb.append("\"");
-			sb.append(arg);
-			if(escape) 	sb.append("\"");
-			sb.append(" ");
-		}
-		
-		log.info("Call String:");
-		log.info("{}", sb.toString());
-	}
+	
 	
 	private static Pattern modelHashCodePattern = Pattern.compile("^(Preprocessed|Random) Forest Built with Hash Code:\\s*\\d+?\\z");
 	

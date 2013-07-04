@@ -61,7 +61,7 @@ public class ValidatorExecutor {
 		try {
 				
 			jcom.parse( args);
-			
+			JCommanderHelper.logCallString(args, ValidatorExecutor.class);
 			log.info("==========Configuration Options==========\n{}", options.toString());
 			VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 			VersionTracker.logVersions();
