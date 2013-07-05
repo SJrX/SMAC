@@ -34,6 +34,7 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
+import ca.ubc.cs.beta.aclib.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentChangeEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
@@ -115,7 +116,7 @@ public class AbstractAlgorithmFramework {
 	
 	private final ParamConfiguration initialIncumbent;
 
-	private final EventManager eventManager;
+	private final EventManager evtManager;
 
 	protected SeedableRandomPool pool;
 	
@@ -134,7 +135,7 @@ public class AbstractAlgorithmFramework {
 		
 		
 		this.initialIncumbent = initialIncumbent;
-		this.eventManager = manager;
+		this.evtManager = manager;
 		this.pool = pool;
 		
 		this.termCond = termCond;
@@ -162,7 +163,7 @@ public class AbstractAlgorithmFramework {
 		}
 		
 		TerminationCondition cond = new ConfigurationSpaceExhaustedCondition(configSpace,MAX_RUNS_FOR_INCUMBENT);
-		cond.registerWithEventManager(eventManager);
+		cond.registerWithEventManager(evtManager);
 		
 		termCond.addCondition(cond);
 		//=== Initialize trajectory file.
@@ -377,73 +378,7 @@ public class AbstractAlgorithmFramework {
 		writeIncumbent();
 		
 	}
-	private String lastLogMessage = "No statistics logged";
-	protected void logRuntimeStatistics()
-	{
-		
-		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
-		double tunerTime = getTunerTime();
-		
-		Object[] arr = { iteration,
-				runHistory.getThetaIdx(incumbent) + " (" + incumbent +")",
-				runHistory.getTotalNumRunsOfConfig(incumbent),
-				runHistory.getInstancesRan(incumbent).size(),
-				runHistory.getUniqueParamConfigurations().size(),
-				runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime),
-				runHistory.getAlgorithmRuns().size(), 
-				lastIterationWithARun,
-				wallTime ,
-				"N/A", //options.runtimeLimit - wallTime 
-				tunerTime,
-				"N/A", //options.scenarioConfig.tunerTimeout - tunerTime,
-				runHistory.getTotalRunCost(),
-				getCPUTime() / 1000.0 / 1000 / 1000,
-				getCPUUserTime() / 1000.0 / 1000 / 1000 ,
-				sumOfReportedAlgorithmRunTime + this.timedOutRunCost,
-				sumOfWallClockTime,
-				Runtime.getRuntime().maxMemory() / 1024.0 / 1024,
-				Runtime.getRuntime().totalMemory() / 1024.0 / 1024,
-				Runtime.getRuntime().freeMemory() / 1024.0 / 1024 };
-		
-		StringBuilder sb = new StringBuilder(" ");
-		for(ValueMaxStatus vms : termCond.currentStatus())
-		{
-			sb.append(vms.getStatus());
-		}
-		
-		lastLogMessage = "*****Runtime Statistics*****\n" +
-				" Iteration: " + arr[0]+
-				"\n Incumbent ID: "+ arr[1]+
-				"\n Number of Runs for Incumbent: " + arr[2] +
-				"\n Number of Instances for Incumbent: " + arr[3]+
-				"\n Number of Configurations Run: " + arr[4]+ 
-				"\n Performance of the Incumbent: " + arr[5]+
-				//"\n Total Number of runs performed: " + arr[6]+ 
-				"\n Last Iteration with a successful run: " + arr[7] + "\n" +
-				sb.toString().replaceAll("\n","\n ") + 
-				//"\n Wallclock time: "+ arr[8] + " s" +
-				//"\n Wallclock time remaining: "+ arr[9] +" s" +
-				//"\n Configuration time budget used: "+ arr[10] +" s" +
-				//"\n Configuration time budget remaining: "+ arr[11]+" s" +
-				"Sum of Target Algorithm Execution Times (treating minimum value as 0.1): "+arr[12] +" s" + 
-				"\n CPU time of Configurator: "+arr[13]+" s" +
-				"\n User time of Configurator: "+arr[14]+" s" +
-				"\n Total Reported Algorithm Runtime: " + arr[15] + " s" + 
-				"\n Sum of Measured Wallclock Runtime: " + arr[16] + " s" +
-				"\n Max Memory: "+arr[17]+" MB" +
-				"\n Total Java Memory: "+arr[18]+" MB" +
-				"\n Free Java Memory: "+arr[19]+" MB";
-		
-		log.info(lastLogMessage);
-		
-	}
 	
-	
-	public void afterValidationStatistics()
-	{
-		log.info(lastLogMessage);
-		
-	}
 	
 	
 	private void writeIncumbent()
@@ -505,6 +440,13 @@ public class AbstractAlgorithmFramework {
 	{
 		return iteration;
 	}
+	
+	private void fireEvent(AutomaticConfiguratorEvent evt)
+	{
+		this.evtManager.fireEvent(evt);
+		this.evtManager.flush();
+		
+	}
 	/**
 	 * Actually performs the Automatic Configuration
 	 */
@@ -541,7 +483,6 @@ public class AbstractAlgorithmFramework {
 					
 					logConfiguration("New Incumbent", incumbent);
 					logIncumbent(iteration);
-					logRuntimeStatistics();
 				} else
 				{
 					//We are restoring state
@@ -560,13 +501,13 @@ public class AbstractAlgorithmFramework {
 						iteration++;
 						log.info("Starting Iteration {}", iteration);
 						
-						eventManager.fireEvent(new ModelBuildStartEvent());
+						fireEvent(new ModelBuildStartEvent(termCond));
 						
 						StopWatch t = new AutoStartStopWatch();
 						learnModel(runHistory, configSpace);
 						log.info("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
-						eventManager.fireEvent(new ModelBuildEndEvent());
+						fireEvent(new ModelBuildEndEvent(termCond));
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 						challengers.addAll(selectConfigurations());
 						
@@ -578,12 +519,11 @@ public class AbstractAlgorithmFramework {
 						intensify(challengers, intensifyTime);
 						
 						logIncumbent(iteration);
-						logRuntimeStatistics();
+						
 					} 
 				} catch(OutOfTimeException e){
 					// We're out of time.
 					logIncumbent(iteration);
-					logRuntimeStatistics();
 				}
 				
 				
@@ -612,7 +552,7 @@ public class AbstractAlgorithmFramework {
 		{
 			try {
 				
-				eventManager.fireEvent(new AutomaticConfigurationEnd(incumbent, currentIncumbentCost, applicationStartTime, getTunerTime()));
+				fireEvent(new AutomaticConfigurationEnd(termCond, incumbent, currentIncumbentCost));
 				
 				trajectoryFileWriter.close();
 			} catch (IOException e) {
@@ -1214,7 +1154,7 @@ public class AbstractAlgorithmFramework {
 				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 				evaluateRun(incumbentRunConfig);
 				
-				eventManager.fireEvent(new IncumbentChangeEvent(  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
+				fireEvent(new IncumbentChangeEvent(termCond,  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
 				
 				
 				
@@ -1424,7 +1364,7 @@ public class AbstractAlgorithmFramework {
 		logConfiguration("New Incumbent", challenger);
 		
 		
-		eventManager.fireEvent(new IncumbentChangeEvent( currentIncumbentCost, challenger, runHistory.getTotalNumRunsOfConfig(challenger)));
+		fireEvent(new IncumbentChangeEvent( termCond, currentIncumbentCost, challenger, runHistory.getTotalNumRunsOfConfig(challenger)));
 	}
 
 	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
@@ -1586,7 +1526,7 @@ public class AbstractAlgorithmFramework {
 
 			log.info("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 			termCond.notifyRun(run);
-			eventManager.fireEvent(new AlgorithmRunCompletedEvent(run));
+			fireEvent(new AlgorithmRunCompletedEvent(termCond, run));
 		}
 		
 		

@@ -30,7 +30,12 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
+import ca.ubc.cs.beta.aclib.eventsystem.EventHandler;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentChangeEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.handlers.LogRuntimeStatistics;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
@@ -207,8 +212,19 @@ public class AutomaticConfigurator
 			
 			
 			
+			LogRuntimeStatistics logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime());
+			
 			try {
 			termCond.registerWithEventManager(eventManager);
+			
+			
+			
+			
+			eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
+			eventManager.registerHandler(IncumbentChangeEvent.class,logRT);
+			eventManager.registerHandler(AlgorithmRunCompletedEvent.class, logRT);
+			
+			
 			switch(options.execMode)
 			{
 				case ROAR:
@@ -282,9 +298,10 @@ public class AutomaticConfigurator
 			
 			
 			smac.logIncumbentPerformance(performance);
-			smac.afterValidationStatistics();
+
 			smac.logSMACResult(performance);
 			
+			logRT.logLastRuntimeStatistics();
 			
 			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
 			log.info("SMAC Completed Successfully. Log: " + logLocation);
