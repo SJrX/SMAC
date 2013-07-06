@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
+import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
+import ca.ubc.cs.beta.aclib.configspace.tracking.RealParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
@@ -69,8 +71,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, CompositeTerminationCondition termCond) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, runGroupName, termCond);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, runGroupName, termCond, configTracker);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
@@ -225,6 +227,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		log.info("Random Forest Built");
 	}
 	
+	private int selectionCount = 0;
 	protected List<ParamConfiguration> selectConfigurations()
 	{
 		Random configSpaceRandomInterleave = pool.getRandom("SMAC_RANDOM_INTERLEAVED_CONFIG_PRNG");
@@ -263,7 +266,6 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			log.debug("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
 		}
-		
 		
 		return challengers;
 	}
@@ -484,17 +486,29 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			results.add(eic.getValue());
 		}
 		
+		
+		for(int i = 0; i < Math.min(25, bestResults.size()); i++)
+		{
+			ParamWithEI eic = bestResults.get(i);
+			configTracker.addConfiguration(eic.getValue(), "Model-Builder-" +this.getIteration(),"EIMethod="+options.expFunc, "EI=" + eic.getAssociatedValue() , "firstArg(k)=" + fmin, "ModelVersion=" + this.getIteration() , "ModelPoints=" + this.runHistory.getAlgorithmRuns().size());
+		}
+		
+		
+		
+		
+		
 		//== More debugging.
+		/*
 		configArrayToDebug = new double[results.size()][];
 		j=0; 
 		for(ParamConfiguration c : results)
 		{
-			configArrayToDebug[j++] = c.toValueArray();
+		configArrayToDebug[j++] = c.toValueArray();
 		}
 		if(SELECT_CONFIGURATION_SYNC_DEBUGGING)
 		{
 			log.debug("Re-sorted Local Search Selected Configurations & Random Configs Hash Code {}", matlabHashCode(configArrayToDebug));
-		}
+		}*/
 		
 		
 		return Collections.unmodifiableList(results);	
@@ -635,6 +649,12 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			i++;
 		}
 		return applyMarginalModel(configArrays);		
+	}
+	
+	@Override
+	protected Object getModel()
+	{
+		return this.preparedForest;
 	}
 	
 }

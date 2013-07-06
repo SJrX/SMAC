@@ -18,7 +18,16 @@ import com.beust.jcommander.ParameterException;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
+import ca.ubc.cs.beta.aclib.configspace.tracking.RealParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.handlers.LogRuntimeStatistics;
+import ca.ubc.cs.beta.aclib.eventsystem.handlers.ParamConfigurationIncumbentChangerOriginTracker;
+import ca.ubc.cs.beta.aclib.eventsystem.handlers.ParamConfigurationOriginLogger;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
@@ -37,6 +46,7 @@ import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileLogger;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 
@@ -170,13 +180,33 @@ public class SMACBuilder {
 		StateFactory sf = options.getSaveStateFactory(outputDir);
 		CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
 		
+		LogRuntimeStatistics logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime());
+		TrajectoryFileLogger tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent);
+	
+		
+		termCond.registerWithEventManager(eventManager);
+		eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
+		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
+		eventManager.registerHandler(AlgorithmRunCompletedEvent.class, logRT);
+		eventManager.registerHandler(AutomaticConfigurationEnd.class, logRT);
+		
+		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
+		eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
+		
+		ParamConfigurationOriginTracker configTracker = new RealParamConfigurationOriginTracker();
+		configTracker.addConfiguration(initialIncumbent, "DEFAULT", "true");
+		eventManager.registerHandler(AutomaticConfigurationEnd.class, new ParamConfigurationOriginLogger(configTracker, outputDir + File.separator + "state-run" + options.seedOptions.numRun + File.separator , rh, System.currentTimeMillis(), execConfig.getAlgorithmCutoffTime()));
+		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, new ParamConfigurationIncumbentChangerOriginTracker(configTracker, rh, execConfig.getAlgorithmCutoffTime()));
+		
+		
+		
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName, termCond);
+				smac = new AbstractAlgorithmFramework(options,instances,algoEval,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName, termCond, configTracker);
 				break;
 			case SMAC:
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen,  initialIncumbent, eventManager, rh, pool, runGroupName, termCond);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, algoEval, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen,  initialIncumbent, eventManager, rh, pool, runGroupName, termCond, configTracker);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");

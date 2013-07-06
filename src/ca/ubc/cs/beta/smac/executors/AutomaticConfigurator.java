@@ -28,15 +28,21 @@ import java.util.regex.Pattern;
 
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
+import ca.ubc.cs.beta.aclib.configspace.tracking.RealParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.eventsystem.EventHandler;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.handlers.LogRuntimeStatistics;
+import ca.ubc.cs.beta.aclib.eventsystem.handlers.ParamConfigurationIncumbentChangerOriginTracker;
+import ca.ubc.cs.beta.aclib.eventsystem.handlers.ParamConfigurationOriginLogger;
 import ca.ubc.cs.beta.aclib.exceptions.FeatureNotFoundException;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
@@ -63,6 +69,7 @@ import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aclib.smac.ExecutionMode;
 import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateDeserializer;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
@@ -78,6 +85,7 @@ import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileLogger;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
+import ca.ubc.cs.beta.smac.handler.ChallengePredictionHandler;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
@@ -226,22 +234,40 @@ public class AutomaticConfigurator
 			
 			eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
 			eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
+			
+			ParamConfigurationOriginTracker configTracker = options.trackingOptions.getTracker(eventManager, initialIncumbent, outputDir, rh, execConfig, options.seedOptions.numRun);
+			
+			
+			
 			switch(options.execMode)
 			{
 				case ROAR:
 
-					smac = new AbstractAlgorithmFramework(options,instances,tae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName, termCond);
+					smac = new AbstractAlgorithmFramework(options,instances,tae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, runGroupName, termCond, configTracker);
 
 					break;
 				case SMAC:
 
-					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, tae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, runGroupName, termCond);
+					smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, tae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, runGroupName, termCond, configTracker);
 
 					
 					break;
 				default:
 					throw new IllegalArgumentException("Execution Mode Specified is not supported");
 			}
+			
+			if(options.trackingOptions.configTracking && options.execMode.equals(ExecutionMode.SMAC))
+			{
+				ChallengePredictionHandler cph = new ChallengePredictionHandler(smac, configTracker);
+				eventManager.registerHandler(ModelBuildStartEvent.class, cph);
+				eventManager.registerHandler(ModelBuildEndEvent.class, cph);
+				eventManager.registerHandler(ChallengeStartEvent.class, cph);
+				
+			}
+			
+			
+			
+			
 			
 			
 			options.saveContextWithState(configSpace, trainingILWS, sf);

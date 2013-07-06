@@ -28,9 +28,12 @@ import ca.ubc.cs.beta.aclib.algorithmrun.RunResult;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
+import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
+import ca.ubc.cs.beta.aclib.configspace.tracking.RealParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
@@ -113,7 +116,8 @@ public class AbstractAlgorithmFramework {
 	protected SeedableRandomPool pool;
 	
 	private final CompositeTerminationCondition termCond;
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, CompositeTerminationCondition termCond )
+	protected final ParamConfigurationOriginTracker configTracker;
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker )
 	{
 		this.instances = instances;
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
@@ -176,6 +180,7 @@ public class AbstractAlgorithmFramework {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);
 		}*/
+		this.configTracker = originTracker;
 	}
 
 	
@@ -436,7 +441,7 @@ public class AbstractAlgorithmFramework {
 						learnModel(runHistory, configSpace);
 						log.info("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
-						fireEvent(new ModelBuildEndEvent(termCond));
+						fireEvent(new ModelBuildEndEvent(termCond, getModel()));
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
 						challengers.addAll(selectConfigurations());
 						
@@ -1020,11 +1025,17 @@ public class AbstractAlgorithmFramework {
 	}
 
 	
+	protected Object getModel()
+	{
+		return null;
+	}
+	private int selectionCount =0;
 	protected List<ParamConfiguration> selectConfigurations()
 	{
-		ParamConfiguration c = configSpace.getRandomConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
-		log.debug("Selecting a random configuration {}", c);
-		return Collections.singletonList(c);
+		ParamConfiguration config = configSpace.getRandomConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
+		log.debug("Selecting a random configuration {}", config);
+		configTracker.addConfiguration(config, "RANDOM", "SelectionCount="+selectionCount);
+		return Collections.singletonList(config);
 	}
 	/**
 	 * Intensification
@@ -1058,8 +1069,7 @@ public class AbstractAlgorithmFramework {
 	
 	private void challengeIncumbent(ParamConfiguration challenger)
 	{
-		
-		
+		fireEvent(new ChallengeStartEvent(termCond, challenger));
 		this.challengeIncumbent(challenger, true);
 	}
 	
@@ -1244,20 +1254,26 @@ public class AbstractAlgorithmFramework {
 			//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.		
 			if (incCost + Math.pow(10, -6)  < chalCost){
 				log.info("Challenger {} ({}) is worse; aborting its evaluation",  runHistory.getThetaIdx(challenger), challenger );
+				configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(challenger), "Continue=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
+				
 				break;
 			} else if (sMissing.isEmpty())
 			{	
 				if(chalCost < incCost - Math.pow(10,-6))
 				{
+					configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
 					changeIncumbentTo(challenger);
 				} else
 				{
+					configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
 					log.info("Challenger {} ({}) has all the runs of the incumbent, but did not outperform it", runHistory.getThetaIdx(challenger), challenger );
+					
 				}
 				
 				break;
 			} else
 			{
+				configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getTotalNumRunsOfConfig(challenger), "Continue=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost,"RunsNeededLeft="+(runHistory.getTotalNumRunsOfConfig(incumbent)-runHistory.getTotalNumRunsOfConfig(challenger)));
 				N *= 2;
 				Object[] args3 = { runHistory.getThetaIdx(challenger), challenger, N};
 				log.trace("Increasing additional number of runs for challenger {} ({}) to : {} ", args3);
