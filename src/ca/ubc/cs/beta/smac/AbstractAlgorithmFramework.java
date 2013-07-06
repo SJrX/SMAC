@@ -1,11 +1,6 @@
 package ca.ubc.cs.beta.smac;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.Serializable;
-import java.lang.management.ManagementFactory;
-import java.lang.management.ThreadMXBean;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,7 +31,7 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentChangeEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
@@ -62,7 +57,6 @@ import ca.ubc.cs.beta.aclib.state.StateSerializer;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
-import ca.ubc.cs.beta.aclib.termination.ValueMaxStatus;
 import ca.ubc.cs.beta.aclib.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
@@ -97,8 +91,8 @@ public class AbstractAlgorithmFramework {
 		
 	private final StateFactory stateFactory;
 	
-	private final FileWriter trajectoryFileWriter;
-	private final FileWriter trajectoryFileWriterCSV;
+	//private final FileWriter trajectoryFileWriter;
+	//private final FileWriter trajectoryFileWriterCSV;
 	
 	private int iteration = 0;
 	protected ParamConfiguration incumbent = null;
@@ -109,9 +103,7 @@ public class AbstractAlgorithmFramework {
 	private final List<TrajectoryFileEntry> tfes = new ArrayList<TrajectoryFileEntry>();
 	
 	
-	private double sumOfWallClockTime = 0;
-	private double sumOfReportedAlgorithmRunTime = 0;
-
+	
 	protected InstanceSeedGenerator instanceSeedGen;
 	
 	private final ParamConfiguration initialIncumbent;
@@ -167,6 +159,7 @@ public class AbstractAlgorithmFramework {
 		
 		termCond.addCondition(cond);
 		//=== Initialize trajectory file.
+		/*
 		try {
 			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".txt";
 			this.trajectoryFileWriter = new FileWriter(new File(outputFileName));
@@ -182,7 +175,7 @@ public class AbstractAlgorithmFramework {
 		} catch (IOException e) {
 			
 			throw new IllegalStateException("Could not create trajectory file: " , e);
-		}
+		}*/
 	}
 
 	
@@ -292,72 +285,7 @@ public class AbstractAlgorithmFramework {
 		logIncumbent(-1);
 	}
 	
-	/**
-	 * Returns the total CPU Time for this JVM
-	 * 
-	 * @return cpu time for this jvm if enabled&supported 0 otherwise
-	 */
-	public long getCPUTime()
-	{
-		try 
-		{
-			ThreadMXBean b = ManagementFactory.getThreadMXBean();
-		
-			long cpuTime = 0;
-			for(long threadID : b.getAllThreadIds())
-			{
-				long threadTime =  b.getThreadCpuTime(threadID);
-				if(threadTime == -1)
-				{ //This JVM doesn't have CPU time enabled
-			      //We check every iteration because some threads (the current thread may give us something other than -1)
-					
-					log.debug("JVM does not have CPU Time enabled");
-					return 0; 
-				}
-				
-				cpuTime += threadTime;
-			}
-			
-			return cpuTime;
-		} catch(UnsupportedOperationException e)
-		{
-			log.debug("JVM does not support CPU Time measurements");
-			return 0;
-		}
-		
-	}
 	
-	/**
-	 * Returns the total CPU Time for this JVM
-	 * 
-	 * @return cpu user time for this jvm if enabled&supported 0 otherwise */
-	public long getCPUUserTime()
-	{
-		try
-		{
-			ThreadMXBean b = ManagementFactory.getThreadMXBean();
-			
-			long cpuTime = 0;
-			for(long threadID : b.getAllThreadIds())
-			{
-				long threadTime =  b.getThreadUserTime(threadID);
-				if(threadTime == -1)
-				{ //This JVM doesn't have CPU time enabled
-				      //We check every iteration because some threads (the current thread may give us something other than -1)
-					log.debug("JVM does not have CPU Time enabled");
-					return 0; 
-				}
-				cpuTime += threadTime;
-			}
-	
-			return cpuTime;
-		
-		} catch(UnsupportedOperationException e)
-		{
-			log.debug("JVM does not support CPU Time measurements");
-			return 0;
-		}
-	}
 	
 	
 	/**
@@ -375,19 +303,19 @@ public class AbstractAlgorithmFramework {
 		{
 			log.info("Incumbent currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
 		}				
-		writeIncumbent();
+		//writeIncumbent();
 		
 	}
 	
 	
 	
-	private void writeIncumbent()
+	/*private void writeIncumbent()
 	{
 		writeIncumbent(getTunerTime()+unaccountedRunTime,runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime));
-	}
+	}*/
 	
-	private double lastEmpericalPerformance = Double.NaN;
-	private ParamConfiguration lastIncumbent = null;
+	//private double lastEmpericalPerformance = Double.NaN;
+	//private ParamConfiguration lastIncumbent = null;
 	
 	/**
 	 * Writes the incumbent to the trajectory file
@@ -398,44 +326,44 @@ public class AbstractAlgorithmFramework {
 	 * @param acTime
 	 * @param paramString
 	 */
-	private void writeIncumbent(double tunerTime, double empiricalPerformance)
-	{
-		
-		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empiricalPerformance && !outOfTime)
-		{
-			return;
-		} else
-		{
-			lastEmpericalPerformance = empiricalPerformance;
-			lastIncumbent = incumbent;
-		}
-		
-		int thetaIdxInc = runHistory.getThetaIdx(incumbent);
-		double acTime = getCPUTime() / 1000.0 / 1000 / 1000;
-		
-		//-1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
-		
-		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
-		
-		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
-		
-		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, wallTime,   empiricalPerformance, acTime);
-		
-		this.tfes.add(tfe);
-		
-		String outLine = tunerTime + ", " + empiricalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
-		try 
-		{
-			trajectoryFileWriter.write(outLine);
-			trajectoryFileWriter.flush();
-			trajectoryFileWriterCSV.write(outLine);
-			trajectoryFileWriterCSV.flush();
-		} catch(IOException e)
-		{
-			throw new IllegalStateException("Could not update trajectory file", e);
-		}
-
-	}
+//	private void writeIncumbent(double tunerTime, double empiricalPerformance)
+//	{
+//		
+//		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empiricalPerformance && !outOfTime)
+//		{
+//			return;
+//		} else
+//		{
+//			lastEmpericalPerformance = empiricalPerformance;
+//			lastIncumbent = incumbent;
+//		}
+//		
+//		int thetaIdxInc = runHistory.getThetaIdx(incumbent);
+//		double acTime = getCPUTime() / 1000.0 / 1000 / 1000;
+//		
+//		//-1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
+//		
+//		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
+//		
+//		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
+//		
+//		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, wallTime,   empiricalPerformance, acTime);
+//		
+//		this.tfes.add(tfe);
+//		
+//		String outLine = tunerTime + ", " + empiricalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
+//		try 
+//		{
+//			trajectoryFileWriter.write(outLine);
+//			trajectoryFileWriter.flush();
+//			trajectoryFileWriterCSV.write(outLine);
+//			trajectoryFileWriterCSV.flush();
+//		} catch(IOException e)
+//		{
+//			throw new IllegalStateException("Could not update trajectory file", e);
+//		}
+//
+//	}
 	public int getIteration()
 	{
 		return iteration;
@@ -482,12 +410,13 @@ public class AbstractAlgorithmFramework {
 					
 					
 					logConfiguration("New Incumbent", incumbent);
+					updateIncumbentCost();
 					logIncumbent(iteration);
 				} else
 				{
 					//We are restoring state
 				}
-				
+				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfig(incumbent), this.initialIncumbent));
 				/**
 				 * Main Loop
 				 */
@@ -550,14 +479,14 @@ public class AbstractAlgorithmFramework {
 			}
 		} finally
 		{
-			try {
+			//try {
 				
 				fireEvent(new AutomaticConfigurationEnd(termCond, incumbent, currentIncumbentCost));
 				
-				trajectoryFileWriter.close();
-			} catch (IOException e) {
-				log.error("Trying to close Trajectory File failed with exception {}", e);
-			}
+				//trajectoryFileWriter.close();
+			//} catch (IOException e) {
+			//	log.error("Trying to close Trajectory File failed with exception {}", e);
+			//}
 		}
 	}
 	
@@ -587,7 +516,7 @@ public class AbstractAlgorithmFramework {
 			log.trace("New Problem Instance Seed Pair generated {}", pisp);
 			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 			//Create initial row
-			writeIncumbent(0, Double.MAX_VALUE);
+
 			try { 
 			evaluateRun(incumbentRunConfig);
 			
@@ -644,7 +573,6 @@ public class AbstractAlgorithmFramework {
 		ParamConfiguration initialIncumbent = this.initialIncumbent;
 		
 		incumbent = initialIncumbent;
-		writeIncumbent(0, Double.MAX_VALUE);
 		
 		allSuccessfulConfigs.add(initialIncumbent);
 		
@@ -1127,11 +1055,10 @@ public class AbstractAlgorithmFramework {
 	/**
 	 * Counter that controls number of attempts for challenge Incumbent to not hit the limit before giving up
 	 */
-	private int challengeIncumbentAttempts = 0;
-	private int lastIterationWithARun = 0;
+	
 	private void challengeIncumbent(ParamConfiguration challenger)
 	{
-		challengeIncumbentAttempts++;
+		
 		
 		this.challengeIncumbent(challenger, true);
 	}
@@ -1153,8 +1080,10 @@ public class AbstractAlgorithmFramework {
 				ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory,instanceSeedGen, incumbent, instances, pool.getRandom("CHALLENGE_INCUMBENT_INSTANCE_SELECTION"),options.deterministicInstanceOrdering);
 				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 				evaluateRun(incumbentRunConfig);
+				updateIncumbentCost();
+				//fireEvent(new IncumbentChangeEvent(termCond,  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
+				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfig(incumbent),incumbent));
 				
-				fireEvent(new IncumbentChangeEvent(termCond,  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
 				
 				
 				
@@ -1204,8 +1133,7 @@ public class AbstractAlgorithmFramework {
 		        return;
 			} else
 			{
-				challengeIncumbentAttempts = 0;
-				lastIterationWithARun = this.iteration;
+			
 			}
 			Collections.sort(aMissing);
 			
@@ -1357,14 +1285,13 @@ public class AbstractAlgorithmFramework {
 	private static double currentIncumbentCost;
 
 	private void changeIncumbentTo(ParamConfiguration challenger) {
-		// TODO Auto-generated method stub
+		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
 		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
-		logConfiguration("New Incumbent", challenger);
-		
-		
-		fireEvent(new IncumbentChangeEvent( termCond, currentIncumbentCost, challenger, runHistory.getTotalNumRunsOfConfig(challenger)));
+		logConfiguration("New Incumbent", challenger);		
+		fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfig(incumbent),oldIncumbent));
+
 	}
 
 	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
@@ -1477,8 +1404,6 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : runs)
 		{
 			try {
-					this.sumOfWallClockTime += run.getWallclockExecutionTime();
-					this.sumOfReportedAlgorithmRunTime += run.getRuntime();
 					runHistory.append(run);
 			} catch (DuplicateRunException e) {
 				//We are trying to log a duplicate run
@@ -1533,19 +1458,6 @@ public class AbstractAlgorithmFramework {
 		
 		updateRunHistory(completedRuns);
 		return completedRuns;
-	}
-
-
-	public double getTunerTime() {
-		
-		double cpuTime = 0;
-		
-		if(options.scenarioConfig.limitOptions.countSMACTimeAsTunerTime)
-		{
-			cpuTime = getCPUTime() / 1000.0 / 1000 / 1000;
-		}
-		
-		return cpuTime + runHistory.getTotalRunCost() + this.timedOutRunCost;
 	}
 
 

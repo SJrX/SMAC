@@ -32,7 +32,8 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamFileHelper;
 import ca.ubc.cs.beta.aclib.eventsystem.EventHandler;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentChangeEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.handlers.LogRuntimeStatistics;
@@ -74,6 +75,7 @@ import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileLogger;
 import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
 import ca.ubc.cs.beta.smac.validation.Validator;
@@ -213,18 +215,17 @@ public class AutomaticConfigurator
 			
 			
 			LogRuntimeStatistics logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime());
+			TrajectoryFileLogger tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent);
 			
 			try {
 			termCond.registerWithEventManager(eventManager);
-			
-			
-			
-			
 			eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
-			eventManager.registerHandler(IncumbentChangeEvent.class,logRT);
+			eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
 			eventManager.registerHandler(AlgorithmRunCompletedEvent.class, logRT);
+			eventManager.registerHandler(AutomaticConfigurationEnd.class, logRT);
 			
-			
+			eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
+			eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
 			switch(options.execMode)
 			{
 				case ROAR:
@@ -261,7 +262,7 @@ public class AutomaticConfigurator
 			
 			pool.logUsage();
 			
-			List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
+			List<TrajectoryFileEntry> tfes = tLog.getTrajectoryFileEntries();
 			SortedMap<TrajectoryFileEntry, Double> performance;
 			if(options.doValidation)
 			{
@@ -303,6 +304,7 @@ public class AutomaticConfigurator
 			
 			logRT.logLastRuntimeStatistics();
 			
+			eventManager.shutdown();
 			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
 			log.info("SMAC Completed Successfully. Log: " + logLocation);
 			

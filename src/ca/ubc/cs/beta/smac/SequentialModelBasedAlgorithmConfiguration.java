@@ -37,7 +37,6 @@ import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
-import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
 
