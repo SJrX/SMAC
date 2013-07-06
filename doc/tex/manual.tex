@@ -127,16 +127,29 @@ Value & Error Name & Description \\
 			
 			
 			\end{enumerate}
+
+			\item[Version 2.04.02 (Jul-2013)] Minor Bug Fix of Java SMAC
+				\begin{enumerate}
+ 					\item Incumbent Performance now displayed when validation is turned off.
+ 					\item \textbf{-$~\!$-runtimeLimit} option is no longer just for show.
+				\end{enumerate}
+
+
+
+
 		
 	\end{description}
 \subsection{Known Issues}
 
 \begin{enumerate}
-\item SMAC may crash with a \texttt{ConvergenceException} when \textbf{-$~\!$-adaptiveCapping} is \texttt{true}, this has happened only once out of thousands of Runs, but we have no fix at this time other than trying a different seed.
-\item Trajectory file does not output standard deviation
+\item When using the \textbf{-$~\!$-initialIncumbent} option you \textbf{MUST} specify \textsc{ALL} parameters (even non-active ones), failure to do so may result in the model suffering poor performance or crashing.
+\item Parameter files with values containing quotation marks, cannot be read by smac-validate.
+\item SMAC may crash with a \texttt{ConvergenceException} when \textbf{-$~\!$-adaptiveCapping} is \texttt{true}, this has happened only once out of thousands of Runs, but we have no fix at this time other than trying a different seed. \textsc{Note}: The cause of this has been found and it will be fixed in version 2.06.
+\item Trajectory file does not output standard deviation. \textsc{Note}: This column is now the wallclock time, and not standard deviation.
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
+
 \end{enumerate}
 
 \subsection{Options Reference}
