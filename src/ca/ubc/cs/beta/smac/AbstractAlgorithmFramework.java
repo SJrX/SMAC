@@ -223,6 +223,14 @@ public class AbstractAlgorithmFramework {
 			log.info("Number of runs {} is greater than the number permitted {}",runHistory.getAlgorithmRunData().size(), options.totalNumRunsLimit);
 			return true;
 		}
+		
+		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
+		
+		if(wallTime >= options.runtimeLimit)
+		{
+			log.info("Wall-clock time measured: {} (s) is greater than {} s", wallTime, options.runtimeLimit);
+			return true;
+		}
 		outOfTime = false;
 		return false;
 	}
