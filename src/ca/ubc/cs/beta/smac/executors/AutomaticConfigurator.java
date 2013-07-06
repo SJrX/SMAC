@@ -304,6 +304,9 @@ public class AutomaticConfigurator
 			
 				
 			smac.run();
+			SortedMap<TrajectoryFileEntry, Double> performance;
+			List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
+			
 			if(options.doValidation)
 			{
 				
@@ -319,21 +322,25 @@ public class AutomaticConfigurator
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig, execConfig, false);
 				String outputDir = options.scenarioConfig.outputDirectory + File.separator + options.runGroupName + File.separator;
 				
-				List<TrajectoryFileEntry> tfes = smac.getTrajectoryFileEntries();
+			
 				
 				
-				SortedMap<TrajectoryFileEntry, Double> performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun);
+				performance = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.numRun);
 				
 				
 				
-				smac.logIncumbentPerformance(performance);
-				smac.afterValidationStatistics();
-				smac.logSMACResult(performance);
 				
-				
+			} else
+			{
+				performance = new TreeMap<TrajectoryFileEntry, Double>();
+				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
 			}
 			
+		
 			
+			smac.logIncumbentPerformance(performance);
+			smac.afterValidationStatistics();
+			smac.logSMACResult(performance);
 			
 			logger.info("SMAC Completed Successfully. Log: " + logLocation);
 			
