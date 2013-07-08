@@ -226,7 +226,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		log.info("Random Forest Built");
 	}
 	
-	private int selectionCount = 0;
+	//private int selectionCount = 0;
 	protected List<ParamConfiguration> selectConfigurations()
 	{
 		Random configSpaceRandomInterleave = pool.getRandom("SMAC_RANDOM_INTERLEAVED_CONFIG_PRNG");

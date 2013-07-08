@@ -503,7 +503,7 @@ public class AbstractAlgorithmFramework {
 		
 		iteration = 0;
 		
-		boolean firstRun = true;
+		
 		int N= options.initialIncumbentRuns;
 		
 		N = Math.min(N, instances.size());
@@ -550,6 +550,7 @@ public class AbstractAlgorithmFramework {
 	
 	double timedOutRunCost;
 	
+	@SuppressWarnings("unused")
 	protected void iterativeCapping()
 	{
 		log.info("Using Iterative Capping Method");
@@ -1449,7 +1450,7 @@ public class AbstractAlgorithmFramework {
 			log.info("Cannot schedule any more runs, out of time");
 			throw new OutOfTimeException();
 		} 
-		int i=0;
+	
 		log.info("Iteration {}: Scheduling {} run(s):", iteration,  runConfigs.size());
 		for(RunConfig rc : runConfigs)
 		{

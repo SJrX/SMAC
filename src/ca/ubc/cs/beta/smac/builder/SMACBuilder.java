@@ -31,7 +31,7 @@ import ca.ubc.cs.beta.aclib.eventsystem.handlers.ParamConfigurationOriginLogger;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
-import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
+
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
@@ -97,19 +97,11 @@ public class SMACBuilder {
 	
 	public void setInstancesAndSeedGenFromOptions(SMACOptions options, SeedableRandomPool pool) throws IOException
 	{
-		InstanceListWithSeeds ilws;	
-		
 		TrainTestInstances tti = options.getTrainingAndTestProblemInstances(pool);
 		
-		
-		
-		
-		
 		instanceSeedGen = tti.getTrainingInstances().getSeedGen();		
-		//logger.info("Instance Seed Generator reports {} seeds ", instanceSeedGen.getInitialInstanceSeedCount());
-
+	
 		instances = tti.getTrainingInstances().getInstances();
-		
 	}
 	
 	
