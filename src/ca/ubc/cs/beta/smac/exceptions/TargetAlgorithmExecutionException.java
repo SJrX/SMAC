@@ -1,4 +1,4 @@
-package ca.ubc.cs.beta.smac.ac.exceptions;
+package ca.ubc.cs.beta.smac.exceptions;
 
 public class TargetAlgorithmExecutionException extends SMACRuntimeException {
 	

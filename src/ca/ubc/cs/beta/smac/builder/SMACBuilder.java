@@ -47,8 +47,8 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileLogger;
-import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
-import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
+import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
+import ca.ubc.cs.beta.smac.configurator.SequentialModelBasedAlgorithmConfiguration;
 
 /**
  * Builds an Automatic Configurator

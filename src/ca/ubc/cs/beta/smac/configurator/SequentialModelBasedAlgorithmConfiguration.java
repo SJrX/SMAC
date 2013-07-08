@@ -1,4 +1,4 @@
-package ca.ubc.cs.beta.smac;
+package ca.ubc.cs.beta.smac.configurator;
 
 import java.util.ArrayList;
 

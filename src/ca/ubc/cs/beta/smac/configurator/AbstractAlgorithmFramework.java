@@ -1,4 +1,4 @@
-package ca.ubc.cs.beta.smac;
+package ca.ubc.cs.beta.smac.configurator;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -62,7 +62,7 @@ import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
-import ca.ubc.cs.beta.smac.ac.exceptions.OutOfTimeException;
+import ca.ubc.cs.beta.smac.exceptions.OutOfTimeException;
 
 public class AbstractAlgorithmFramework {
 

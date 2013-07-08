@@ -83,8 +83,8 @@ import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileLogger;
-import ca.ubc.cs.beta.smac.AbstractAlgorithmFramework;
-import ca.ubc.cs.beta.smac.SequentialModelBasedAlgorithmConfiguration;
+import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
+import ca.ubc.cs.beta.smac.configurator.SequentialModelBasedAlgorithmConfiguration;
 import ca.ubc.cs.beta.smac.handler.ChallengePredictionHandler;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
