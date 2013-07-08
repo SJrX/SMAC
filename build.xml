@@ -90,8 +90,10 @@
 		<javac srcdir="src" destdir="build/classes" debug="true">
 		<classpath refid="compile.classpath"/>
 		</javac>
-		
-		
+		<path id="build.classpath">
+			<path refid="compile.classpath"/>
+			<path location="build/classes"/>
+		</path>
 	</target>
 	
 	
@@ -130,9 +132,9 @@
 			<fileset refid="lib"/>
 			<!--<fileset refid="fastrf"/>-->
 			<fileset refid="aclib"/>
-			<fileset dir="scripts">
+			<!--<fileset dir="scripts">
 				<include name="*"/>
-			</fileset>
+			</fileset>-->
 		</copy>
 		 
 		<echo file="dist/git-hashes.txt" append="true">${ant.project.name} ${git.commit} ${git.dirty}${line.separator}</echo>
@@ -141,7 +143,10 @@
 		<echo>I am probably copying the lastdeployfile as well, this should be fixed one day :)</echo>
 		
 		<mkdir dir="dist/util"/>
-		
+		<mkdir dir="dist/patches"/>
+		<mkdir dir="dist/plugins"/>
+				
+				
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.aclib.smac.ValidationExecutorOptions"/>
@@ -161,21 +166,45 @@
 		</java>
 		
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
-							<arg value="--class"/>
-							<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunnerOptions"/>
-							<arg value="--commandName"/>
-							<arg value="smac-algotest"/>
-							<arg value="--outputFile"/>
-							<arg value="dist/util/bash_autocomplete.sh"/>
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunnerOptions"/>
+			<arg value="--commandName"/>
+			<arg value="smac-algotest"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
-			
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.smac.executors.AutomaticConfigurator"/>
+			<arg value="--name"/>
+			<arg value="smac"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+		</java>
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunner"/>
+			<arg value="--name"/>
+			<arg value="algo-test"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+		</java>
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.smac.executors.ValidatorExecutor"/>
+			<arg value="--name"/>
+			<arg value="smac-validate"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+		</java>
+		
 						
 		<chmod perm="750">
 			<fileset dir="dist/">
 				<include name="smac"/>
 				<include name="smac-possible-restores"/>
 				<include name="smac-validate"/>
-				<include name="smac-algotest"/>
+				<include name="algo-test"/>
 				<include name="example_saps/ubcsat"/>
 				<include name="example_spear/Spear-32_1.2.1"/>
 				<include name="util/bash_autocomplete.sh"/>
