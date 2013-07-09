@@ -404,7 +404,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			randomConfigs.add(configSpace.getRandomConfiguration(configSpaceEIRandom));
 		} 
 		
-		log.debug("Generating {} Random Configurations took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
+		log.debug("Generating {} Random Configurations for EI took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
 		
 		t = new AutoStartStopWatch();
 		double[][] randomConfigToDebug = new double[randomConfigs.size()][];
