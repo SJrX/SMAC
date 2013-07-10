@@ -26,6 +26,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.ubc.cs.beta.aclib.algorithmrun.CommandLineAlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
@@ -56,7 +57,7 @@ import ca.ubc.cs.beta.aclib.model.builder.HashCodeVerifyingModelBuilder;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
-import ca.ubc.cs.beta.aclib.options.ConfigToLaTeX;
+import ca.ubc.cs.beta.aclib.options.docgen.OptionsToLaTeX;
 import ca.ubc.cs.beta.aclib.options.scenario.ScenarioOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -76,6 +77,7 @@ import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
@@ -350,7 +352,24 @@ public class AutomaticConfigurator
 					log.error(exception, "Message: {}",t.getMessage());
 					
 					
-					if(!(t instanceof ParameterException))
+					if(t instanceof ParameterException)
+					{
+						log.info("Don't forget that some options are set by default from files in ~/.aclib/");
+						log.debug("Exception stack trace", t);
+						
+						
+					} else if(t instanceof TargetAlgorithmAbortException)
+					{
+						log.error("A serious problem occured during target algorithm execution and we are aborting execution ",t );
+						
+						
+						log.error("We tried to call the target algorithm wrapper, but this call failed.");
+						log.error("The problem is (most likely) somewhere in the wrapper.");
+						log.error("There is also possibly additional error information above (in this log)");
+						log.error("The easiest way to debug this problem is to manually execute the call we tried and see why it did not return the correct result");
+						log.error("The required syntax is something like \"Final Result for ParamILS: x,x,x,x,x\".);");
+						log.error("Specifically the regex we are matching is {}", CommandLineAlgorithmRun.AUTOMATIC_CONFIGURATOR_RESULT_REGEX);
+					}	else
 					{
 						log.info("Maybe try running in DEBUG mode if you are missing information");
 						
@@ -359,13 +378,6 @@ public class AutomaticConfigurator
 						PrintWriter writer = new PrintWriter(sWriter);
 						t.printStackTrace(writer);
 						log.error(stackTrace, "StackTrace:{}",sWriter.toString());
-						
-						
-						
-					} else
-					{
-						log.info("Don't forget that some options are set by default from files in ~/.aclib/");
-						log.debug("Exception stack trace", t);
 					}
 						
 					log.info("Exiting SMAC with failure. Log: " + logLocation);
@@ -523,22 +535,12 @@ public class AutomaticConfigurator
 				
 			} finally
 			{
-				if(outputDir != null)
-				{
-					System.setProperty("OUTPUTDIR", outputDir); 
-				} else
-				{
-					System.setProperty("OUTPUTDIR", "./");
-				}
-				System.setProperty("NUMRUN", String.valueOf(options.seedOptions.numRun));
-				System.setProperty("STDOUT-LEVEL", options.consoleLogLevel.name());
-				System.setProperty("ROOT-LEVEL",options.logLevel.name());
 				
-				logLocation = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator + "log-run" + options.seedOptions.numRun+ ".txt";
+				options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
+				AutomaticConfigurator.logLocation = options.logOptions.getLogLocation(outputDir,options.seedOptions.numRun);
 				
-				System.out.println("*****************************\nLogging to: " + logLocation +  "\n*****************************");
-				//Generally has the format: ${OUTPUTDIR}/${RUNGROUPDIR}/log-run${NUMRUN}.txt
 				log = LoggerFactory.getLogger(AutomaticConfigurator.class);
+				
 				exception = MarkerFactory.getMarker("EXCEPTION");
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
@@ -561,17 +563,7 @@ public class AutomaticConfigurator
 			
 			JCommanderHelper.logCallString(args, AutomaticConfigurator.class);
 			
-			/*
-			
-			*/
-			
-			if(options.logLevel.lessVerbose(options.consoleLogLevel))
-			{
-				log.warn("The console has been set to be more verbose than the log. This is generally an error, except if you have modified the conf.xml to have certain loggers be more specific");
-				//throw new ParameterException("The console can NOT be more verbose than the logs (This will have no effect)");
-				
-			}
-				
+		
 			
 			
 			 
@@ -653,25 +645,11 @@ public class AutomaticConfigurator
 			return options;
 		} catch(IOException e)
 		{
-			//com.setColumnSize(getConsoleSize());
-			try {
-				ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(jcom.getObjects().get(0), TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
-			} catch (Exception e1) {
-				log.error("Exception occured while trying to generate usage screen",e1);
-				log.error("This exception did NOT cause SMAC to crash");
-			}
 			throw e;
 			
 		} catch(ParameterException e)
 		{
-			/*
-			try {
-				
-				//ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(jcom.getObjects().get(0),TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
-			} catch (Exception e1) {
-				log.error("Exception occured while trying to generate usage screen",e1);
-				log.error("This exception did NOT cause SMAC to crash");
-			}*/
+		
 			
 			throw e;
 		}
@@ -746,71 +724,6 @@ public class AutomaticConfigurator
 	}
 
 
-	private static void checkArgsForUsageScreenValues(String[] args, SMACOptions config) 
-	{
-		
-		/*
-		@Parameter(names="--showHiddenParameters", description="show hidden parameters that no one has use for, and probably just break SMAC")
-		public boolean showHiddenParameters = false;
-		
-		@Parameter(names={"--help","-?","/?","-h"}, description="show help")
-		public boolean showHelp = false;
-		
-		@Parameter(names={"-v","--version"}, description="print version and exit")
-		public boolean showVersion = false;
-		*/
-		
-		try {
-			Set<String> possibleValues = new HashSet<String>(Arrays.asList(args));
-			
-			String[] helpNames =  config.getClass().getField("showHelp").getAnnotation(Parameter.class).names();
-			for(String helpName : helpNames)
-			{
-				if(possibleValues.contains(helpName))
-				{
-					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config, TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()));
-					System.exit(ACLibReturnValues.SUCCESS);
-				}
-			}
-			
-			
-			String[] hiddenNames =  config.getClass().getField("showHiddenParameters").getAnnotation(Parameter.class).names();
-			for(String helpName : hiddenNames)
-			{
-				if(possibleValues.contains(helpName))
-				{
-					ConfigToLaTeX.usage(ConfigToLaTeX.getParameters(config, TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators()), true);
-					System.exit(ACLibReturnValues.SUCCESS);
-				}
-			}
-			
-			
-			String[] versionNames = config.getClass().getField("showVersion").getAnnotation(Parameter.class).names();
-			for(String helpName : versionNames)
-			{
-				if(possibleValues.contains(helpName))
-				{
-					//Turn off logging
-					System.setProperty("logback.configurationFile", "logback-off.xml");
-					VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
-					System.out.println(VersionTracker.getVersionInformation());
-					
-					
-					System.exit(ACLibReturnValues.SUCCESS);
-				}
-			}
-			
-			
-			
-			
-		} catch (Exception e) {
-			
-			throw new IllegalStateException(e);
-		}
-		
-		
-		
-	}
 
 
 	/**
