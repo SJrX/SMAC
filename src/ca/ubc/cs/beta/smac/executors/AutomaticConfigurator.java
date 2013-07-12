@@ -193,7 +193,7 @@ public class AutomaticConfigurator
 			
 			options.checkProblemInstancesCompatibleWithVerifySAT(instances);
 			
-			ParamConfiguration initialIncumbent = configSpace.getConfigurationFromString(options.initialIncumbent, StringFormat.NODB_SYNTAX);
+			ParamConfiguration initialIncumbent = configSpace.getConfigurationFromString(options.initialIncumbent, StringFormat.NODB_SYNTAX, pool.getRandom(SeedableRandomPoolConstants.INITIAL_INCUMBENT_SELECTION));
 		
 			
 			if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
