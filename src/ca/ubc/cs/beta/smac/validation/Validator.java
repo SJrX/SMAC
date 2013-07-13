@@ -64,7 +64,7 @@ public class Validator {
 		*/
 		
 	
-public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen, TargetAlgorithmEvaluator validatingTae, 
+public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
 		final String outputDir,
 		final RunObjective runObj,
 		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns) 
@@ -261,8 +261,14 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 					{
 						finalPerformance.put(tfe, testSetPerformance.get(tfe.getConfiguration()));
 					}
-
-					appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime);
+					if(runs.get(0) != null)
+					{
+						appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime, runs.get(0).getRunConfig(), validatingTae);
+					} else
+					{
+						appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime, null, null);
+					}
+					
 					
 					
 					
@@ -686,7 +692,7 @@ endloop:
 	{
 		
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
-		File f = new File(outputDir + "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
+		File f = new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
 		
 		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
@@ -715,7 +721,7 @@ endloop:
 	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, String outputDir, long numRun) throws IOException
 	{
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
-		File f = new File(outputDir + "rawValidationExecutionResults"+suffix+"-run" + numRun + ".csv");
+		File f = new File(outputDir + File.separator +  "rawValidationExecutionResults"+suffix+"-run" + numRun + ".csv");
 		log.info("Raw Validation Results File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -738,27 +744,45 @@ endloop:
 	}
 	
 
-	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions, boolean useWallTime) throws IOException {
+	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions, boolean useWallTime, RunConfig rc, TargetAlgorithmEvaluator tae) throws IOException {
 		
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		
 		
-		File f = new File(outputDir +  File.separator + "classicValidationResults"+suffix+"-run" + numRun + ".csv");
+		File classicValidationFile = new File(outputDir +  File.separator + "classicValidationResults"+suffix+"-run" + numRun + ".csv");
 		
+		File validationFile = new File(outputDir +  File.separator + "validationResults"+suffix+"-run" + numRun + ".csv");
 		
+		log.info("Validation Results File Written to: {}", validationFile.getAbsolutePath());
+		log.info("Classic Validation Results File Written to: {}", classicValidationFile.getAbsolutePath());
 	
-		if(!f.exists())
+		if(!classicValidationFile.exists())
 		{
-			f.createNewFile();
+			classicValidationFile.createNewFile();
 			
 		} else
 		{
-			f.delete();
-			f.createNewFile();
+			classicValidationFile.delete();
+			classicValidationFile.createNewFile();
 		}
 		
 		
-		StringBuilder sb = new StringBuilder();
+		if(!validationFile.exists())
+		{
+			validationFile.createNewFile();
+			
+		} else
+		{
+			validationFile.delete();
+			validationFile.createNewFile();
+		}
+		
+	
+		
+		
+		StringBuilder sbClassicValidation = new StringBuilder();
+		StringBuilder sbValidation = new StringBuilder("\"Tuner Time\",\"Training (Emperical) Performance\",\"Test Set Performance\",\"AC Overhead Time\",\"Sample Call String\",\n");
+		
 		for(Entry<TrajectoryFileEntry, Double > ent : finalPerformance.entrySet())
 		{
 			double time;
@@ -775,22 +799,34 @@ endloop:
 			double testSetPerformance = ent.getValue();
 			double acOverhead = ent.getKey().getACOverhead();
 			
-			sb.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
+			sbClassicValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
+			String callString = "Unavailable as we did no runs";
+			if(tae != null && rc != null)
+			{
+				callString = tae.getManualCallString(rc);
+			}
+			sbValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append(",\"").append(callString).append("\",\n");
 		}
-		if(!f.canWrite())
+		if(!classicValidationFile.canWrite())
 		{
-			log.error("Could not write trajectory file would have written: {}" , sb.toString());
-			
-		
-			
+			log.error("Could not write classic trajectory file would have written: {}" , sbClassicValidation.toString());
 		} else
 		{
-		
-			PrintWriter output = new PrintWriter(new FileOutputStream(f,true));
-			output.append(sb);
-			
+			PrintWriter output = new PrintWriter(new FileOutputStream(classicValidationFile,true));
+			output.append(sbClassicValidation);
 			output.close();
 		}
+		
+		if(!validationFile.canWrite())
+		{
+			log.error("Could not write trajectory file would have written: {}" , sbValidation.toString());
+		} else
+		{
+			PrintWriter output = new PrintWriter(new FileOutputStream(validationFile,true));
+			output.append(sbValidation);
+			output.close();
+		}
+		
 		
 		
 }

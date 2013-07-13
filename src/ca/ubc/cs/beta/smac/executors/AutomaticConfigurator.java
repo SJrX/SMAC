@@ -26,7 +26,6 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ca.ubc.cs.beta.aclib.algorithmrun.CommandLineAlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
@@ -77,6 +76,7 @@ import ca.ubc.cs.beta.aclib.state.StateFactory;
 import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.aclib.state.nullFactory.NullStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
@@ -205,7 +205,7 @@ public class AutomaticConfigurator
 			}
 			
 			
-			TargetAlgorithmEvaluator tae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, true, true, taeOptions, null, new File(options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator), options.seedOptions.numRun);
+			TargetAlgorithmEvaluator tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator(execConfig, taeOptions, outputDir, options.seedOptions.numRun);
 			
 
 			if(options.modelHashCodeFile != null)
@@ -452,8 +452,9 @@ public class AutomaticConfigurator
 	private static SMACOptions parseCLIOptions(String[] args) throws ParameterException, IOException
 	{
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
-		taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
+		
 		SMACOptions options = new SMACOptions();
+		taeOptions = options.scenarioConfig.algoExecOptions.taeOpts.getAvailableTargetAlgorithmEvaluators();
 		JCommander jcom = JCommanderHelper.getJCommanderAndCheckForHelp(args, options, taeOptions);
 		
 		jcom.setProgramName("smac");
@@ -605,14 +606,7 @@ public class AutomaticConfigurator
 				log.debug("==========System Properties==============\n{}", sb.toString() );
 			 }
 			
-		
-			StringBuilder sb = new StringBuilder();
-			for(Object o : jcom.getObjects())
-			{
-				sb.append(o.toString()).append("\n");
-			}
-				
-			log.info("==========Configuration Options==========\n{}", sb.toString());
+			JCommanderHelper.logConfiguration(jcom);
 			pool = options.seedOptions.getSeedableRandomPool();
 			
 			
