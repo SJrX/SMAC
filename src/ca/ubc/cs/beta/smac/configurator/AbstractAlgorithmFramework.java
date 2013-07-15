@@ -267,7 +267,6 @@ public class AbstractAlgorithmFramework {
 	
 	
 	//Last runtime that we saw
-	double unaccountedRunTime = 0;
 	boolean outOfTime = false;
 	/**
 	 * Function that determines whether we should stop processing or not
@@ -1324,8 +1323,8 @@ public class AbstractAlgorithmFramework {
 		return (lowerBoundOnEmpiricalPerformance(challenger, pisp, aMissing, instanceSet, cutofftime, BEST_POSSIBLE_VALUE) > bound_inc);
 	}
 	
-	private final double BEST_POSSIBLE_VALUE = 0;
-	private final double UNCOMPETITIVE_CAPTIME = 0;
+	private static final double BEST_POSSIBLE_VALUE = 0;
+	private static final double UNCOMPETITIVE_CAPTIME = 0;
 	private double computeCapBinSearch(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> missingInstances, double cutofftime, double bound_inc,  double lowerBound, double upperBound)
 	{
 	
