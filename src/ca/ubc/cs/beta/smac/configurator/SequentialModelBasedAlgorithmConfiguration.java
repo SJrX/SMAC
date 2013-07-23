@@ -19,6 +19,7 @@ import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 
 import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
+import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
@@ -70,8 +71,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, runGroupName, termCond, configTracker);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;

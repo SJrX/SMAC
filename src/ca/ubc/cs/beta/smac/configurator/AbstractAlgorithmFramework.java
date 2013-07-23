@@ -34,11 +34,12 @@ import ca.ubc.cs.beta.aclib.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
+import ca.ubc.cs.beta.aclib.exceptions.OutOfTimeException;
+import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
@@ -62,7 +63,6 @@ import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
 import ca.ubc.cs.beta.aclib.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
-import ca.ubc.cs.beta.smac.exceptions.OutOfTimeException;
 
 public class AbstractAlgorithmFramework {
 
@@ -116,7 +116,10 @@ public class AbstractAlgorithmFramework {
 	
 	private final CompositeTerminationCondition termCond;
 	protected final ParamConfigurationOriginTracker configTracker;
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, String runGroupName, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker )
+	
+	private final InitializationProcedure initProc; 
+	
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc )
 	{
 		this.instances = instances;
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
@@ -180,6 +183,7 @@ public class AbstractAlgorithmFramework {
 			throw new IllegalStateException("Could not create trajectory file: " , e);
 		}*/
 		this.configTracker = originTracker;
+		this.initProc = initProc;
 	}
 
 	
@@ -310,63 +314,7 @@ public class AbstractAlgorithmFramework {
 		
 	}
 	
-	
-	
-	/*private void writeIncumbent()
-	{
-		writeIncumbent(getTunerTime()+unaccountedRunTime,runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), this.cutoffTime));
-	}*/
-	
-	//private double lastEmpericalPerformance = Double.NaN;
-	//private ParamConfiguration lastIncumbent = null;
-	
-	/**
-	 * Writes the incumbent to the trajectory file
-	 * @param totalTime
-	 * @param empiricalPerformance
-	 * @param stdDevInc
-	 * @param thetaIdxInc
-	 * @param acTime
-	 * @param paramString
-	 */
-//	private void writeIncumbent(double tunerTime, double empiricalPerformance)
-//	{
-//		
-//		if(incumbent.equals(lastIncumbent) && lastEmpericalPerformance == empiricalPerformance && !outOfTime)
-//		{
-//			return;
-//		} else
-//		{
-//			lastEmpericalPerformance = empiricalPerformance;
-//			lastIncumbent = incumbent;
-//		}
-//		
-//		int thetaIdxInc = runHistory.getThetaIdx(incumbent);
-//		double acTime = getCPUTime() / 1000.0 / 1000 / 1000;
-//		
-//		//-1 should be the variance but is allegedly the sqrt in compareChallengersagainstIncumbents.m and then is just set to -1.
-//		
-//		double wallTime = (System.currentTimeMillis() - applicationStartTime) / 1000.0;
-//		
-//		String paramString = incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX);
-//		
-//		TrajectoryFileEntry tfe = new TrajectoryFileEntry(incumbent, tunerTime, wallTime,   empiricalPerformance, acTime);
-//		
-//		this.tfes.add(tfe);
-//		
-//		String outLine = tunerTime + ", " + empiricalPerformance + ", " + wallTime + ", " + thetaIdxInc + ", " + acTime + ", " + paramString +"\n";
-//		try 
-//		{
-//			trajectoryFileWriter.write(outLine);
-//			trajectoryFileWriter.flush();
-//			trajectoryFileWriterCSV.write(outLine);
-//			trajectoryFileWriterCSV.flush();
-//		} catch(IOException e)
-//		{
-//			throw new IllegalStateException("Could not update trajectory file", e);
-//		}
-//
-//	}
+
 	public int getIteration()
 	{
 		return iteration;
@@ -393,25 +341,11 @@ public class AbstractAlgorithmFramework {
 					log.info("Initial Incumbent set as Incumbent: {}", incumbent);
 					iteration = 0;
 					
-					int N= options.initialIncumbentRuns;
+					log.debug("Initialization Procedure Started");
+					initProc.run();
+					log.debug("Initialization Procedure Completed");
 					
-					N = Math.min(N, instances.size());
-					N = Math.min(N, options.maxIncumbentRuns);
-					log.debug("Scheduling initial configuration for {} runs",N);
-					for(int i=0; i <N; i++)
-					switch(options.initializationMode)
-					{
-					case CLASSIC:
-						classicInitialization();
-						break;
-					case ITERATIVE_CAPPING:
-						iterativeCapping();
-						break;
-					default:
-						throw new IllegalStateException("New mode was implemented and the developer didn't catch it");
-					}
-					
-					
+					incumbent =initProc.getIncumbent(); 
 					logConfiguration("New Incumbent", incumbent);
 					updateIncumbentCost();
 					logIncumbent(iteration);
@@ -482,70 +416,12 @@ public class AbstractAlgorithmFramework {
 			}
 		} finally
 		{
-			//try {
-				
-				fireEvent(new AutomaticConfigurationEnd(termCond, incumbent, currentIncumbentCost));
-				
-				//trajectoryFileWriter.close();
-			//} catch (IOException e) {
-			//	log.error("Trying to close Trajectory File failed with exception {}", e);
-			//}
+			fireEvent(new AutomaticConfigurationEnd(termCond, incumbent, currentIncumbentCost));
+			tae.notifyShutdown();
 		}
 	}
 	
 	
-	protected void classicInitialization()
-	{
-		log.info("Using Classic Initialization");
-		incumbent = this.initialIncumbent;
-		log.info("Configuration Set as Incumbent: {}", incumbent);
-		
-		iteration = 0;
-		
-		
-		int N= options.initialIncumbentRuns;
-		
-		N = Math.min(N, instances.size());
-		N = Math.min(N, options.maxIncumbentRuns);
-		log.debug("Scheduling default configuration for {} runs",N);
-		for(int i=0; i <N; i++)
-		{
-			
-			/**
-			 * Evaluate Default Configuration
-			 */
-			
-			ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory, this.instanceSeedGen, incumbent, instances, pool.getRandom("CLASSIC_INITIALIZATION"),options.deterministicInstanceOrdering);
-			log.trace("New Problem Instance Seed Pair generated {}", pisp);
-			RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
-			//Create initial row
-
-			try { 
-			evaluateRun(incumbentRunConfig);
-			
-		
-			} catch(OutOfTimeException e)
-			{
-				log.warn("Ran out of time while evaluating the default configuration on the first run, this is most likely a configuration error");
-				//Ignore this exception
-				//Force the incumbent to be logged in RunHistory and then we will timeout next
-				throw new IllegalStateException("Out of time on the first run");
-				
-			}
-			
-		}
-	}
-	
-	
-	/**
-	 * Stores the final cost of evaluating the incumbent
-	 */
-	///double incumbentFinalCost = 0;
-	
-	/**
-	 * Stores the final cost of all the initialization runs (including the eventual incumbent) 
-	 */
-	//double allInitializationRunCosts = 0;
 	
 	double timedOutRunCost;
 	
@@ -1465,8 +1341,6 @@ public class AbstractAlgorithmFramework {
 			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
 
 			log.info("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
-			termCond.notifyRun(run);
-			fireEvent(new AlgorithmRunCompletedEvent(termCond, run));
 		}
 		
 		
