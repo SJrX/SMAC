@@ -37,6 +37,7 @@ import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.smac.SMACOptions;
+import ca.ubc.cs.beta.aclib.state.StateFactoryOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
 
@@ -458,72 +459,11 @@ public class SMACExecutor {
 		}
 	}
 	
-
-	
 	private static String[] processScenarioStateRestore(String[] args) {
-		
-		
-		ArrayList<String> inputArgs = new ArrayList<String>(Arrays.asList(args));
-		
-		
-		ListIterator<String> inputIt =  inputArgs.listIterator();
-		
-		
-		Iterator<String> firstPass = inputArgs.iterator();
-		
-		
-		boolean foundIteration = false;
-		while(firstPass.hasNext())
-		{
-			String arg = firstPass.next();
-			if(arg.trim().equals("--restoreIteration") || arg.trim().equals("--restoreStateIteration"))
-			{
-				if(firstPass.hasNext())
-				{
-					foundIteration= true;
-				}
-			}
-		}
-		while(inputIt.hasNext())
-		{
-			String input = inputIt.next();
-			
-			if(input.trim().equals("--restoreScenario"))
-			{
-				if(!inputIt.hasNext())
-				{
-					throw new ParameterException("Failed to parse argument --restoreScenario expected 1 more argument");
-				} else
-				{
-					String dir = inputIt.next();
-					
-					
-					inputIt.add("--restoreStateFrom");
-					inputIt.add(dir);
-					if(!foundIteration)
-					{
-						inputIt.add("--restoreIteration");
-						inputIt.add(String.valueOf(Integer.MAX_VALUE));
-					}
-					inputIt.add("--scenarioFile");
-					inputIt.add(dir + File.separator + "scenario.txt");
-					inputIt.add("--instanceFeatureFile");
-					inputIt.add(dir + File.separator + "instance-features.txt");
-					inputIt.add("--instanceFile");
-					inputIt.add(dir + File.separator + "instances.txt");
-					inputIt.add("--paramFile");
-					inputIt.add(dir + File.separator + "param-file.txt");
-					inputIt.add("--testInstanceFile");
-					inputIt.add(dir + File.separator + "instances.txt");
-					
-				}
-				
-				
-			}
-			
-		}
-		
-		return inputArgs.toArray(new String[0]);
+		return StateFactoryOptions.processScenarioStateRestore(args);
+	
 	}
+		
+
 
 }

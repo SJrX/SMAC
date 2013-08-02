@@ -206,8 +206,8 @@
 				<include name="smac-possible-restores"/>
 				<include name="smac-validate"/>
 				<include name="algo-test"/>
-				<include name="example_saps/ubcsat"/>
-				<include name="example_spear/Spear-32_1.2.1"/>
+				<include name="example_scenarios/saps/ubcsat"/>
+				<include name="example_scenarios/spear/Spear-32_1.2.1"/>
 				<include name="util/bash_autocomplete.sh"/>
 			</fileset>
 		</chmod>
@@ -227,8 +227,8 @@
 						<exclude name="smac-possible-restores"/>
 						<exclude name="smac-validate"/>
 						<exclude name="algo-test"/>
-						<exclude name="example_saps/ubcsat*"/>
-						<exclude name="example_spear/Spear-32_1.2.1"/>
+						<exclude name="example_scenarios/saps/ubcsat*"/>
+						<exclude name="example_scenarios/spear/Spear-32_1.2.1"/>
 					</tarfileset>
 					<tarfileset dir="dist/" filemode="750" prefix="${outputfilename}/">
 						<!-- Exclude any file you include here from above, these are all executable files -->
@@ -237,8 +237,8 @@
 						<include name="smac-possible-restores"/>
 						<include name="smac-validate"/>
 						<include name="algo-test"/>
-						<include name="example_saps/ubcsat*"/>
-						<include name="example_spear/Spear-32_1.2.1*"/>
+						<include name="example_scenarios/saps/ubcsat*"/>
+						<include name="example_scenarios/spear/Spear-32_1.2.1*"/>
 					</tarfileset>
 		</tar>
 		<copy file="zip/${outputfilename}.tar.gz" tofile="${software.dir}/${outputfilename}.tar.gz"/>
@@ -303,10 +303,22 @@
 					<arg value="--class"/>
 					<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
 					<arg value="--file-to-write"/>
-					<arg value="${doc.buildpath}/options-ref.tex"/>	
+					<arg value="${doc.buildpath}/options-basic-ref.tex"/>
+					<arg value="--level"/>
+					<arg value="BASIC"/>
+					<arg value="--aliases"/>
+					<arg value="false"/>
 		</java>
 				
-			
+		
+		<java classname="ca.ubc.cs.beta.aclib.options.docgen.OptionsToLaTeX" failonerror="true" classpathref="build.classpath" fork="true">
+					<arg value="--class"/>
+					<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+					<arg value="--file-to-write"/>
+					<arg value="${doc.buildpath}/options-ref.tex"/>	
+		</java>
+						
+		
 		
 		
 		<!-- We do everything twice to generate some the toc and stuff I'm sure someone else knows how to do this properly -->

@@ -64,6 +64,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	 * Last build of sanitized data
 	 */
 	private SanitizedModelData sanitizedData;
+	
 	private final ExpectedImprovementFunction ei;
 	
 	
@@ -151,7 +152,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		i = 0;
 		for(ParamConfiguration pc : paramConfigs)
 		{
-			if(smacConfig.maskInactiveConditionalParametersAsDefaultValue)
+			if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
 			{
 				thetaMatrix[i++] = pc.toComparisonValueArray();
 			} else
@@ -169,7 +170,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		double[] runResponseValues = runHistory.getRunResponseValues();
 		boolean[] censored = runHistory.getCensoredFlagForRuns();
-		if(smacConfig.maskCensoredDataAsKappaMax)
+		if(smacConfig.mbOptions.maskCensoredDataAsKappaMax)
 		{
 			for(int j=0; j < runResponseValues.length; j++)
 			{
@@ -194,13 +195,13 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), runHistory.getCensoredFlagForRuns(), configSpace);
 		
 		
-		if(smacConfig.maskCensoredDataAsUncensored)
+		if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
 		{
 			sanitizedData = new MaskCensoredDataAsUncensored(sanitizedData);
 		}
 		
 		
-		if(smacConfig.maskInactiveConditionalParametersAsDefaultValue)
+		if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
 		{
 			sanitizedData = new MaskInactiveConditionalParametersWithDefaults(sanitizedData, configSpace);
 		}
@@ -213,7 +214,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		preparedForest = null;
 		if(options.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG"), smacConfig.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG"), smacConfig.mbOptions.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
