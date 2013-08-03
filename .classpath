@@ -12,11 +12,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" path="/RandomForests"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/AutomaticConfiguratorLibrary"/>
-	<classpathentry kind="src" path=".apt_generated">
-		<attributes>
-			<attribute name="optional" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/jcommander.jar"/>
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/spi-0.2.4.jar"/>
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/opencsv-2.3.jar"/>
@@ -26,5 +21,10 @@
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/logback-core-1.0.0.jar"/>
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/slf4j-api-1.6.4.jar"/>
 	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/jcip-annotations.jar" sourcepath="/AutomaticConfiguratorLibrary/lib/jcip-annotations-src.jar"/>
+	<classpathentry kind="src" path=".apt_generated">
+		<attributes>
+			<attribute name="optional" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

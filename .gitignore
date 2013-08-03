@@ -13,3 +13,5 @@
 *.tex.bak
 .directory
 /version
+/zip
+/.apt_generated
