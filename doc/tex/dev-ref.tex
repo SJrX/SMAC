@@ -22,14 +22,11 @@ The scope of this document governs only the first two projects. At the time of w
 
 
 \begin{itemize}
-\item 	A sizable portion of the ~30 or so classes exist only for the porting process of SMAC from MATLAB to Java, and will be removed in future.
 
-\item	The bulk of the code necessary to run SMAC lives in three classes \\ \texttt{AbstractAlgorithmFramework}, \\
- \texttt{SequentialModelBasedAlgorithmConfiguration} and finally, \\ \texttt{AutomaticConfigurator}. Each of these three classes has problems with poor cohesion (\ie{They are all basically doing too much, and could easily be broken up into smaller classes}).
-
+\item	The bulk of the code necessary to run SMAC lives in four classes \\ \texttt{AbstractAlgorithmFramework}, \\
+ \texttt{SequentialModelBasedAlgorithmConfiguration}, \texttt{SMACBuilder} and finally, \\ \texttt{SMACExecutor}. 
 \end{itemize}
 
-As most of the SMAC code is in the \textbf{Automatic Configurator Library}, these issues are hardly fatal, and will most likely just be suprising at how disjoint the code bases seem. While the \textbf{Automatic Configurator Library} is relatively stable, the \textbf{SMAC} portion of the code will be refactored over the coming months to clean up many of its deficiencies.
 
 
 \subsection{Class Overview}
@@ -118,13 +115,18 @@ Name  & Description \\
 \hline
 
 
-\texttt{AutomaticConfigurator} & Constructs all objects necessary to execute SMAC (SMAC entrypoint)\\
-\hline
 
 \texttt{AbstractAlgorithmFramework } & \emph{Non-abstract} class that provides a default Automatic Configurator (ROAR)\\
 \hline
 
 \texttt{SequentialModelBasedAlgorithmConfiguration} & Class that subtypes \texttt{AbstractAlgorithmFramework} and implements the methods required for SMAC \\
+
+\texttt{SMACExecutor} & Parses command line options and creates some of the objects SMAC needs to execute (SMAC entrypoint)\\
+\hline
+
+\texttt{SMACBuilder} & Takes the options parsed by SMACExecutor or some other utility, and builds everything necessary to create an instance of \texttt{AbstractAlgorithmFramework}. If you want to plug smac into your application, you generally want to mimic what SMACExecutor does to invoke SMACBuilder.\\
+\hline
+
 
 \hline
 \texttt{Validator} & Performs Validation of selected configurations\\
@@ -138,6 +140,10 @@ Name  & Description \\
 \normalsize
 
 \subsection{Target Algorithm Evaluator}
+
+
+\Large{\textbf{\textsc{\textcolor{red}{Warning:}}}  The Target Algorithm Evaluator API has changed a bit since this section was written, you are encouraged to look in the code for an example of how it now works. Much of this is still relevant, and this section will be fixed for v2.06.00, but for v2.05.00 it may contain some inaccuracies.}\\
+
 \label{sec:target-algorithm-evaluators}
 
 The \textbf{Target Algorithm Evaluator} subsystem is the part of the code you will be modifying if you would like to change how target algorithms are run. On the next page is a UML class diagram showing most of how this part of the code works.
@@ -188,13 +194,12 @@ see the product name and version printed in the logs.
 \textbf{Example:}
 \small
 \begin{verbatim}
-[INFO ] Version of Automatic Configurator Library is v1.00.04dev-307 
-[INFO ] Version of Random Forest Library is v1.04.01dev-50 
-[INFO ] Version of SMAC is v2.00.01dev-318 
-[INFO ] Version of Surrogate is v1.01dev-227 
+[INFO ] Version of Automatic Configurator Library is v2.06.00-development-583 (2e12acc92f41) 
+[INFO ] Version of Random Forest Library is v1.05.01-development-95 (4a8077e95b21) 
+[INFO ] Version of SMAC is v2.06.00b-development-561 (abb03ff41e82) 
 \end{verbatim}
 \normalsize 
-	This can make debugging and managing reproducability much easier.
+	This can make debugging and managing reproducibility much easier. Most projects include the first 12 characters of the git commit hash to make it easy to find that commit.
 	
 	
 \subsection{Run Hash Codes}

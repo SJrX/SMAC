@@ -135,6 +135,7 @@ public class SMACExecutor {
 			List<TrajectoryFileEntry> tfes = smacBuilder.getTrajectoryFileLogger().getTrajectoryFileEntries();
 			
 			SortedMap<TrajectoryFileEntry, Double> performance;
+			options.doValidation = (options.validationOptions.numberOfValidationRuns > 0) ? options.doValidation : false;
 			if(options.doValidation)
 			{
 			
@@ -145,7 +146,8 @@ public class SMACExecutor {
 					options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
 				}
 				
-				options.scenarioConfig.algoExecOptions.taeOpts.trackRunsScheduled = false;
+				
+				options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
 				
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
 				try {

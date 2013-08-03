@@ -58,7 +58,8 @@ http://www.cs.ubc.ca/labs/beta/Projects/SMAC/smac-\version{}\unskip.tar.gz
 \end{alltt}}
 
 This will create a new folder named \texttt{smac-\version} containing SMAC and several example scenarios. 
-From this folder, you can run SMAC using the simple bash script \texttt{./smac}. If bash is not available (\eg{}, on Windows), you can run SMAC directly using \texttt{java}.\footnote{The main entry point class is {\scriptsize\texttt{ca.ubc.cs.beta.smac.executors.AutomaticConfigurator}} and you need to include every jar in the folder in the classpath. You would call it using: \texttt{java -cp <jar files> {ca.ubc.cs.beta.smac.executors.AutomaticConfigurator}.}}
+From this folder, you can run SMAC using the simple bash script \texttt{./smac}.  On windows please use the corresponding .bat files, if bash is otherwise unavailable you will need to manually construct a java call string. The class name needed can be retrieved by opening up the smac file.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Basic Usage Example}
@@ -69,7 +70,7 @@ We will use one of them as an example:
 
 {\footnotesize
 \begin{alltt}
-example_spear/scenario-Spear-QCP-sat-small-train-small-test-mixed.txt
+example_scenarios/spear/spear-scenario.txt
 \end{alltt}}
 
 This configures the systematic tree search algorithm Spear for a small training set of 5 SAT instances.
@@ -79,21 +80,25 @@ From \texttt{smac-\input{versionfull}}\unskip, you can start SMAC on this scenar
 
 {\footnotesize
 \begin{alltt}
-./smac --scenarioFile 
-example_spear/scenario-Spear-QCP-sat-small-train-small-test-mixed.txt
---runGroupName example_out --numRun 0 --numberOfValidationRuns 10
+./smac --scenario-file ./example_scenarios/spear/spear-scenario.txt --seed 1 --num-validation-runs 10
 \end{alltt}}
 
 %example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt
-This command executes SMAC on this simple configuration scenario (which should take just above 30 seconds) and writes several output files to folder
+This command executes SMAC on this simple configuration scenario (which should take just above 30 seconds) and writes several output files to a subfolder of: 
 
 {\footnotesize
 \begin{alltt}
-smac-\version\unskip/example_out
+smac-\version\unskip/smac-output/
 \end{alltt}}
 
-The \texttt{numRun} parameter controls SMAC's random seed and output filenames in that folder; since SMAC is highly randomized and its performance differs across runs, we recommend to perform several parallel runs (with different values for \texttt{numRun}) and use the one with the best training performance (see \cite{HutHooLey12-ParallelAC} for details).
-The parameter \texttt{numberOfValidationRuns} controls the number of runs to perform for validating the final incumbent SMAC finds at the end of its runtime budget (again, here we set this to a small number of 10 to facilitate a quick example run, but in practice one would use a much larger number, \eg{} the default of 1\,000 validation runs). Note that validation runs are carried out on a benchmark test set disjoint from the training set; this is done to guard against over-tuning since performance on the training set is a biased (optimistic) estimator of generalization performance.
+In this case the folder will look like:
+
+{\footnotesize
+\begin{alltt}
+smac-\version\unskip/smac-output/spear-scenario-SMAC-ac-true-cores1-cutoff5.0-\textit{DATE}
+\end{alltt}}
+The \texttt{--seed} parameter controls SMAC's random seed and output filenames in that folder; since SMAC is highly randomized and its performance differs across runs, we recommend to perform several parallel runs (with different values for \texttt{--seed}) and use the one with the best training performance (see \cite{HutHooLey12-ParallelAC} for details).
+The parameter \texttt{--num-validation-runs} controls the number of runs to perform for validating the final incumbent SMAC finds at the end of its runtime budget (again, here we set this to a small number of 10 to facilitate a quick example run, but in practice one would use a much larger number, \eg{} the default of 1\,000 validation runs). Note that validation runs are carried out on a benchmark test set disjoint from the training set; this is done to guard against over-tuning since performance on the training set is a biased (optimistic) estimator of generalization performance.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Interpreting output files}
@@ -111,22 +116,17 @@ This file lists a lot of information about the run and at its end includes an ex
 
 {\footnotesize
 \begin{alltt}
-[INFO ] Total Objective of Final Incumbent 13 (0x2923B)
-on training set: 0.09066666666666667; on test set: 0.053
-[INFO ] Sample Call for Final Incumbent 13 (0x2923B)
-cd /ubc/cs/project/arrow/hutter/smac/smac-\version{}\unskip/example\_spear;
-ruby spear_wrapper.rb example_data/SWGCP-satisfiable-instances/SWlin2006.8287.cnf
-0 5.0 2147483647 3724427 -sp-clause-activity-inc '0.5463890824415055'
--sp-clause-decay '1.052825346704275' -sp-clause-del-heur '2' -sp-first-restart
-'162' -sp-learned-clause-sort-heur '12' -sp-learned-clauses-inc '1.2595926598325478'
--sp-learned-size-factor '0.24332560173797435' -sp-max-res-lit-inc '2.5150171126927' 
--sp-max-res-runs '4' -sp-orig-clause-sort-heur '0' -sp-phase-dec-heur
-'4' -sp-rand-phase-dec-freq '0.001' -sp-rand-phase-scaling '1.0144220679252771'
--sp-rand-var-dec-freq '0.005' -sp-rand-var-dec-scaling '0.6040334190120095'
--sp-res-cutoff-cls '2' -sp-res-cutoff-lits '101' -sp-res-order-heur '13'
--sp-resolution '2' -sp-restart-inc '1.36773341049033' -sp-update-dec-queue
-'1' -sp-use-pure-literal-rule '0' -sp-var-activity-inc '0.5541449022276423'
--sp-var-dec-heur '17' -sp-variable-decay '1.0871444238524568' 
+[INFO ] Total Objective of Final Incumbent 65 (0xBD98E) on training set: 0.0316; on test set: 0.036
+[INFO ] Sample Call for Final Incumbent 65 (0xBD98E) 
+cd ./example_scenarios/spear; ruby spear_wrapper.rb instances/qcplin2006.10408.cnf 0 5.0 2147483647
+15643122 -sp-update-dec-queue '1' -sp-rand-var-dec-scaling '0.9192384779217873' 
+-sp-clause-decay '1.3443711377045175' -sp-variable-decay '1.1655745641981787'
+-sp-orig-clause-sort-heur '5' -sp-rand-phase-dec-freq '0.0001' -sp-clause-del-heur '2'
+-sp-learned-clauses-inc '1.3325108654268105' -sp-restart-inc '1.1118337573922332' 
+-sp-resolution '0' -sp-clause-activity-inc '0.7748363656557136' -sp-learned-clause-sort-heur '13'
+-sp-var-activity-inc '0.6522039283230536' -sp-rand-var-dec-freq '0.01' -sp-use-pure-literal-rule '1'
+-sp-learned-size-factor '1.0325284104478474' -sp-var-dec-heur '5'
+-sp-phase-dec-heur '6' -sp-rand-phase-scaling '0.3537413161162636' -sp-first-restart '345'  
 \end{alltt}
 }
 
@@ -180,7 +180,7 @@ This file is not actually required since all its contents can also be specified 
 
 {\footnotesize
 \begin{alltt}
-example_spear/scenario-Spear-QCP-sat-small-train-small-test-mixed.txt
+example_scenarios/spear/spear-scenario.txt
 \end{alltt}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -190,7 +190,7 @@ This file, referenced in the scenario file, specifies the configurable parameter
 
 {\footnotesize
 \begin{alltt}
-example_spear/spear-params-mixed.txt
+example_scenarios/spear/spear-params-mixed.pcs
 \end{alltt}
 }
 
@@ -205,7 +205,7 @@ In the Spear example above, the wrapper is the Ruby script
 
 {\footnotesize
 \begin{alltt}
-example_spear/spear_wrapper.rb.
+example_scenarios/spear/spear_wrapper.rb
 \end{alltt}
 }
 
@@ -220,10 +220,6 @@ Result for ParamILS: <solved>, <measured_runtime>, <measured_runlength>,
 
 Note that while this output line is compatible with our previous ParamILS software, SMAC can also parse other result lines. See Section 4.5 in the manual for this and further details on the wrapper.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Wrapper Changes}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Compared to ParamILS, we allow a new possible result code \emph{ABORT} that is used to signify that not only did the program fail, but that if this occurs the configuration procedure should abort.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Instance File}
@@ -233,15 +229,17 @@ In the Spear example above, this file is
 
 {\footnotesize
 \begin{alltt}
-example_spear/example_data/SPEAR-QCP-train.txt
+example_scenario/spear/instances-train.txt
 \end{alltt}}
 
 There is also a file with test instances that will not be used at configuration time, but are used for offline validation of the final incumbent SMAC found; in the Spear example above, this file is
 
 {\footnotesize
 \begin{alltt}
-example_spear/example_data/SPEAR-QCP-test.txt
+example_scenario/spear/instances-test.txt
 \end{alltt}}
+
+More detailed information about this file format is in Section 4.2 of the manual.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Feature file}
@@ -251,8 +249,10 @@ Any domain-specific instance characteristics (or ``features'') that might correl
 
 {\footnotesize
 \begin{alltt}
-example_spear/SPEAR-QCP-train-features.csv
+example_scenario/spear/features.csv
 \end{alltt}}
+
+More detailed information about this file format is in Section 4.3 of the manual.
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Differences Between SMAC and ParamILS}

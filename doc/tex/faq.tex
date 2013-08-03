@@ -64,14 +64,13 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 
 \subsection{Can I run SMAC on Windows?}
 
-	We have made our best effort to ensure that SMAC works on windows. SMAC includes \texttt{.bat} files for execution that behave similarly to the unix shell scripts. Most wrappers require that you have ruby (which is available from: ruby http://rubyinstaller.org/). 
+	We have done our best to ensure that SMAC works on windows. SMAC includes \texttt{.bat} files for execution that behave similarly to the unix shell scripts. Most wrappers require that you have ruby (which is available from: ruby http://rubyinstaller.org/). 
 	
-	Most of the included scenarios will not work but \\ \texttt{example\_saps\textbackslash scenario-win-Saps-SWGCP-sat-small-train-small-test.txt} \\
-	 is a scenario that works with windows. If you are having trouble running it, try placing the example\_data directory in the example\_saps scenario (which gets lost due to the lack of symlinks).
+	Most of the included scenarios will not work but those in the \texttt{analytic} folder and the \\texttt{saps/saps-scenario-windows.txt} should work out of the box.
 
 \subsection{Can I run SMAC on Mac OS X or other Unix environments?}
 
-	SMAC should work on any unix environment that supports Java 6. Unfortunately aside from the one Windows scenario, all the other scenarios require Linux currently.
+	SMAC should work on any Unix environment that supports Java 6. Unfortunately the only scenarios that are completely portable are those in the analytic folder.
  
 \subsection{I don't have any instance features, is there any benefit I can get from running SMAC?}
 

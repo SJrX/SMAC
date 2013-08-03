@@ -1,0 +1,147 @@
+\documentclass[manual.tex]{subfiles}
+\begin{document}
+	\subsubsection{SMAC Options}
+
+General Options for Running SMAC
+	\begin{description}[itemsep=.5pt,parsep=.5pt]		\item{\quad\large\textsc{Basic Options}}
+		\item[-~$\!$-~$\!$experiment-~$\!$dir] root directory for experiments Folder
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] $<$current working directory$>$ 
+		\end{description}
+		\item[-~$\!$-~$\!$help] show help
+
+		\item[-~$\!$-~$\!$help-~$\!$level] Show options at this level or lower
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] BASIC 
+			\item[Domain:] $\{BASIC, INTERMEDIATE, ADVANCED, DEVELOPER\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$num-~$\!$run] number of this run (also used as part of seed)
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[REQUIRED]
+			\item[Default Value:] 0 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$restore-~$\!$scenario] Restore the scenario \& state in the state folder
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] null 
+			\item[Domain:] FILES 
+		\end{description}
+		\item[-~$\!$-~$\!$rungroup] name of subfolder of outputdir to save all the output files of this run to
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] %SCENARIO\_NAME-%executionMode-ac-%adaptiveCapping-cores%cores-cutoff%cutoffTime-%DATE 
+		\end{description}
+		\item[-~$\!$-~$\!$validation] perform validation when SMAC completes
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] true 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$v] print version and exit
+
+	\end{description}
+
+
+	\subsubsection{Scenario Options}
+
+Standard Scenario Options for use with SMAC. In general consider using the --scenarioFile directive to specify these parameters and Algorithm Execution Options
+	\begin{description}[itemsep=.5pt,parsep=.5pt]		\item{\quad\large\textsc{Basic Options}}
+		\item[-~$\!$-~$\!$feature-~$\!$file] file that contains the all the instances features
+
+		\item[-~$\!$-~$\!$instance-~$\!$file] file containing a list of instances to use during the automatic configuration phase (see Instance File Format section of the manual)
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[REQUIRED]
+			\item[Default Value:] null 
+		\end{description}
+		\item[-~$\!$-~$\!$intra-~$\!$obj] objective function used to aggregate multiple runs for a single instance
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] MEAN10 
+			\item[Domain:] $\{MEAN, MEAN1000, MEAN10\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$output-~$\!$dir] Output Directory
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] $<$current working directory$>$/smac-output 
+		\end{description}
+		\item[-~$\!$-~$\!$run-~$\!$obj] per target algorithm run objective type that we are optimizing for
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] RUNTIME 
+			\item[Domain:] $\{RUNTIME, QUALITY\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$scenario-~$\!$file] scenario file
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Domain:] FILES 
+		\end{description}
+		\item[-~$\!$-~$\!$test-~$\!$instance-~$\!$file] file containing a list of instances to use during the validation phase (see Instance File Format section of the manual)
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] null 
+		\end{description}
+	\end{description}
+
+
+	\subsubsection{Scenario Configuration Limit Options}
+
+Options that control how long the scenario will run for
+	\begin{description}[itemsep=.5pt,parsep=.5pt]		\item{\quad\large\textsc{Basic Options}}
+		\item[-~$\!$-~$\!$tunertime-~$\!$limit] limits the total cpu time allowed between SMAC and the target algorithm runs during the automatic configuration phase
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] 2147483647 
+			\item[Domain:] [0, 2147483647] 
+		\end{description}
+		\item[-~$\!$-~$\!$wallclock-~$\!$limit] limits the total wall-clock time allowed during the automatic configuration phase
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] 2147483647 
+			\item[Domain:] (0, 2147483647] 
+		\end{description}
+	\end{description}
+
+
+	\subsubsection{Algorithm Execution Options}
+
+Options related to invoking the target algorithm
+	\begin{description}[itemsep=.5pt,parsep=.5pt]		\item{\quad\large\textsc{Basic Options}}
+		\item[-~$\!$-~$\!$algo-~$\!$cutoff-~$\!$time] CPU time limit for an individual target algorithm run
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[REQUIRED]
+			\item[Default Value:] 0.0 
+			\item[Domain:] (0, $\infty$) 
+		\end{description}
+		\item[-~$\!$-~$\!$algo-~$\!$deterministic] treat the target algorithm as deterministic
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] false 
+			\item[Domain:] $\{true, false\}$ 
+		\end{description}
+		\item[-~$\!$-~$\!$algo-~$\!$exec] command string to execute algorithm with
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[REQUIRED]
+			\item[Default Value:] null 
+		\end{description}
+		\item[-~$\!$-~$\!$algo-~$\!$exec-~$\!$dir] working directory to execute algorithm in
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[REQUIRED]
+			\item[Default Value:] null 
+		\end{description}
+		\item[-~$\!$-~$\!$param-~$\!$file] File containing algorithm parameter space information (see Algorithm Parameter File in the Manual). You can specify "SINGLETON" to get a singleton configuration space or "NULL" to get a null one.
+
+		\vspace{-5pt}		\begin{description}[itemsep=.5pt,parsep=.5pt]
+			\item[Default Value:] null 
+		\end{description}
+	\end{description}
+
+
+\end{document}

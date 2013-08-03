@@ -1,0 +1,161 @@
+\documentclass[manual.tex]{subfiles}
+\begin{document}
+The PCS format requires each line to contain one of the following 3 clauses, or only whitespace/comments.
+\begin{itemize}
+\item \textbf{Parameter Declaration Clauses} specify the names of parameters, their domains, and default values.
+\item \textbf{Conditional Parameter Clauses} specify when a parameter is active/inactive.
+\item \textbf{Forbidden Parameter Clauses} specify when a combination of parameter settings is illegal.
+\end{itemize}
+Comments are allowed throughout the file; they begin with a \#, and run to the end of a line. 
+%When a PCS file is parsed the first step in parsing a line should be to strip away everything from the first \# onwards.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Parameter Declaration Clauses}\label{sec:param_decl_clauses}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The PCS format supports two types of parameters: categorical and numeric. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Categorical parameters}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Categorical parameters take one of a finite set of values. Each line specifying a categorical parameter should be of the form:
+
+\begin{verbatim}
+<parameter_name> {<value 1>, ..., <value N>} [<default value>]
+\end{verbatim}
+where `\texttt{<default value>}' has to be one of the set of possible values. 
+
+\paragraph{Example 1:}
+\begin{verbatim}
+decision-heuristic {1,2,3} [1]
+\end{verbatim}
+This means that the parameter `\texttt{decision-heuristic}' can be given one of three possible values, with the default assignment being `\texttt{1}'.
+
+\paragraph{Example 2:}
+\begin{verbatim}
+@1:loops {common,distinct,shared,no}[no]
+\end{verbatim}
+In this example, the somewhat cryptic parameter name `\texttt{@1:loops}' is perfectly legal; the only forbidden characters in parameter names are spaces, commas, quotes, and parentheses.
+%
+Categorical parameter values are also strings with the same restrictions; in particular, there is no restriction for categorical parameter values to be numbers. 
+
+\paragraph{Example 3:}
+\begin{verbatim}
+DS {TinyDataStructure, FastDataStructure}[TinyDataStructure]
+\end{verbatim}
+As this example shows, the parameter values can even be Java class names (to be used, e.g., via reflection).
+
+\paragraph{Example 4:}
+\begin{verbatim}
+random-variable-frequency {0, 0.05, 0.1, 0.2} [0.05]
+\end{verbatim}
+Finally, as this example shows, numerical parameters can trivially be treated as categorical ones by simply discretizing their domain (selecting a subset of reasonable values).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Numerical parameters} \label{sec:numerical-params}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Numerical parameters (both real and integer) are specified as follows:
+
+\begin{verbatim}
+<parameter_name> [<min value>, <max value>] [<default value>] [i] [l]
+\end{verbatim}
+The trailing `\texttt{i}' and/or trailing `\texttt{l}' are optional. The `\texttt{i}' means the parameter is an integer parameter,
+and the `\texttt{l}' means that the parameter domain should be log-transformed for optimization (see Examples 3 and 4 below).
+
+\paragraph{Example 1:}
+
+\begin{verbatim}
+sp-rand-var-dec-scaling [0.3, 1.1] [1]
+\end{verbatim}
+Parameter \texttt{sp-rand-var-dec-scaling} is real-valued with a default value of 1, and we can choose values for it from the (closed) interval \texttt{[0.3, 1.1]}.
+Note that there may be other parameter values outside this interval that are in principle legal values for the parameter (e.g., your solver might accept any positive floating point value for the parameter). What you specify here is the range that automated configuration procedures should search (i.e., a range you expect a priori to contain good values); of course, every value in the specified range must be legal. There is a tradeoff in choosing the best range size; see Section \ref{sec:tips} for some tips on defining a `good' parameter space.
+
+\paragraph{Example 2:}
+\begin{verbatim}
+mult-factor [2, 15] [5]i
+\end{verbatim}
+Parameter \texttt{mult-factor} is integer-valued, takes any integer value between \texttt{2} and \texttt{15} (inclusive), and has a default value of 5. 
+Technically, one could also specify this as a categorical parameter with possible values \texttt{\{2,3,4,5,6,7,8,9,10,11,12,13,14,15\}}. 
+However, categorical parameters are not ordered, and using an integer parameter allows the configuration procedure to make use of the natural order relation (this is useful since, a priori, we expect close-by values to yield similar performance).
+
+\paragraph{Example 3:}
+\begin{verbatim}
+DLSc [0.00001, 0.1] [0.01]l
+\end{verbatim}
+Parameter \texttt{DLSc} is real-valued with a default value of \texttt{0.01}, and we can choose values for it from the (closed) interval \texttt{[0.00001, 0.1]}.
+The trailing `\texttt{l}' denotes that this parameter naturally varies on a log scale. If we were to discretize the parameter, a natural choice would be
+\texttt{\{0.00001, 0.0001, 0.001, 0.01, 0.1\}}. That means, a priori the distance between parameter values \texttt{0.001} and \texttt{0.01} is identical to that between \texttt{0.01} and \texttt{0.1} (after a log$_{10}$ transformation, \texttt{0.001}, \texttt{0.01}, and \texttt{0.1} become -3, -2, and -1, respectively).
+We express this natural variation on a log scale by the `\texttt{l}' flag. See Section \ref{sec:tips} for further tips on transformations.
+
+\paragraph{Example 4:}
+\begin{verbatim}
+first-restart [10, 1000] [100]il
+\end{verbatim}
+Parameter \texttt{first-restart} is integer-valued with a default value of \texttt{100}, and we can choose values for it from the (closed) interval \texttt{[10, 1000]}.
+It also varies naturally on a logarithmic scale. For example, due to this logarithmic scale, after the transformation drawing a uniform random value of \texttt{first-restart} will yield a number below \texttt{100} half the time.
+
+\paragraph{Restrictions}
+\begin{itemize} 
+	\item Numerical integer parameters must have their lower and upper bounds specified as integers, and the default must also be an integer.
+	\item The bounds for parameters with a log scale must be strictly positive.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Conditional Parameter Clause}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Depending on the instantiation of some `higher-level' parameters, certain `lower-level' parameters may not be active.
+For example, the subparameters of a heuristic are not important (i.e., active) if the heuristic is not selected.
+%
+All parameters are considered to be active by default, and conditional parameter clauses express 
+under which conditions a parameter is not active. The syntax for conditional parameter clauses is as follows:
+
+\begin{verbatim}
+<child name> | <parent name> in {<parent val1>, ..., <parent valK>}
+\end{verbatim}
+%
+This can be read as ``The child parameter \texttt{<child name>} is only active if the parent parameter \texttt{<parent name>} takes one of the K specified values.''
+Parameters that are not listed as a child parameter in any conditional parameter clause are always active.
+A parameter can also be listed as a child in multiple conditional parameter clauses, and it is only active if the conditions
+of each such clause are met.
+
+\paragraph{Example:}
+
+\begin{verbatim}
+sort-algo{quick,insertion,merge,heap,stooge,bogo} [bogo]
+quick-revert-to-insertion{1,2,4,8,16,32,64} [16]
+quick-revert-to-insertion|sort-algo in {quick}
+\end{verbatim}
+In this example, \texttt{quick-revert-to-insertion} is conditional on the \texttt{sort-algo} parameter being set to \texttt{quick}, and will be ignored otherwise.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Forbidden Parameter Clauses}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Forbidden Parameters are combinations of parameter values which are invalid (e.g., a certain data structure may be incompatible with a lazy heuristic that does not update the data structure, resulting in incorrect algorithm behaviour).
+%
+Configuration methods should never try to run an algorithm with a forbidden parameter configuration. 
+%
+The syntax for forbidden parameter combinations is as follows:
+
+\begin{verbatim}
+{<parameter name 1>=<value 1>, ..., <parameter name N>=<value N>}
+\end{verbatim}
+
+\paragraph{Example:}
+\begin{verbatim}
+DSF {DataStructure1, DataStructure2, DataStructure3}[DataStructure1]
+PreProc {NoPreProc, SimplePreproc, ComplexPreproc}[ComplexPreproc]
+{DSF=DataStructure2, PreProc=ComplexPreproc}
+{DSF=DataStructure3, PreProc=SimplePreproc}
+{DSF=DataStructure3, PreProc=ComplexPreproc}
+\end{verbatim}
+
+In this example, there are different data structures and different simplifications.
+\texttt{DataStructure2} is incompatible with \texttt{ComplexPreproc}, and 
+\texttt{DataStructure2} is incompatible with both \texttt{SimplePreproc} and \texttt{ComplexPreproc}.
+Note that the default parameter setting is not allowed to contain a forbidden combination of parameter values.
+
+\end{document}

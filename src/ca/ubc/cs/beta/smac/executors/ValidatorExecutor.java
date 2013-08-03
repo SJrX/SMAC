@@ -64,11 +64,7 @@ public class ValidatorExecutor {
 			VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 			VersionTracker.logVersions();
 			
-			//Logs the available target algorithm evaluators
-			for(String name : taeOptions.keySet())
-			{
-				log.info("Target Algorithm Evaluator Available: {} ", name);
-			}
+			
 			
 			for(String name : jcom.getParameterFilesToRead())
 			{
@@ -83,6 +79,10 @@ public class ValidatorExecutor {
 			}
 			
 			
+			if(options.validationOptions.numberOfValidationRuns == 0)
+			{
+				throw new ParameterException("You must be willing to do at least one run with the stand alone utility");
+			}
 			
 			//Set some default options
 			if(options.trajectoryFileOptions.trajectoryFile != null)
@@ -125,8 +125,6 @@ public class ValidatorExecutor {
 				log.info("Using manually set configurations");
 			}
 			
-		
-	
 			//log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
 			
 			
@@ -257,6 +255,13 @@ public class ValidatorExecutor {
 			}
 			
 			options.checkProblemInstancesCompatibleWithVerifySAT(testInstances);
+			
+			log.debug("Hard coding abort on crash, checkSATConsistencyException abort on first run crash options to false as they do more harm than good here");
+			options.scenarioConfig.algoExecOptions.taeOpts.checkSATConsistencyException = false;
+			options.scenarioConfig.algoExecOptions.taeOpts.abortOnCrash = false;
+			options.scenarioConfig.algoExecOptions.taeOpts.abortOnFirstRunCrash = false;
+			
+			options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
 			
 			TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false,taeOptions);
 			

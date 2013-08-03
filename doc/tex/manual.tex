@@ -4,8 +4,11 @@
 \usepackage{setspace}
 \usepackage{subfiles}
 \usepackage{graphicx}
+\usepackage{color}
 %%\usepackage{hyperref}
-
+\usepackage{enumitem}
+\usepackage{probsoln}
+\PSNrandseed{\time}
 \newcommand{\note}[1]{}
 % comment the next line to turn off notes
 \renewcommand{\note}[1]{~\\\frame{\begin{minipage}[c]{\textwidth}\vspace{2pt}\center{#1}\vspace{2pt}\end{minipage}}\vspace{3pt}\\}
@@ -56,7 +59,11 @@ Vancouver, BC\ \ V6T~1Z4, Canada\\
 \section{Acknowledgements}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-We are indebted to Jonathan Shen for porting our random forest code from C to Java in preparation for a Java port of all of SMAC. We thank Marius Schneider for many valuable bug reports and suggestions for improvements. Thanks also to Chris Thornton, and Alexandre Fr\'echette for being a secondary beta testers.
+We are indebted to Jonathan Shen for porting our random forest code from C to Java in preparation for a Java port of all of SMAC. Alexandre Fr\'echette and Chris Thornton for their constant feedback and patches to SMAC.  We would also like to thank Marius Schneider for many valuable early bug reports and suggestions for improvements. 
+
+%%%%
+% Steve Ramage flipped a coin on August 3rd, witnessed by Alex Fr\'echette who called Tails, and it landed tails so he goes first
+%%%
 
 
 \renewcommand{\bibsection}{\section{References}}
@@ -124,22 +131,64 @@ Value & Error Name & Description \\
 . ./util/bash_autocomplete.sh
 \end{verbatim}
 
-			
-			
 			\end{enumerate}
+
+			 \item[Version 2.04.02 (Jul-2013)] Minor Bug Fix of Java SMAC
+	              \begin{enumerate}
+                     \item Incumbent Performance now displayed when validation is turned off.
+                     \item \textbf{-$~\!$-runtimeLimit} option is no longer just for show.
+                  \end{enumerate}
+
+			 \item[Version 2.05.00b (Aug-2013)] Preview Release of SMAC v2.06
+	              \begin{enumerate}
+                     \item Scenario now ends if the configuration space is exhausted
+					 \item SMAC now lets you search only a subspace for good configurations
+					 \item Validation output formats improved with headers
+					 \item Option to always compare with the initial incumbent (to prevent an early poor choice from derailing the run) (See \textbf{-$~\!$-always-run-initial-config})
+					 \item SMAC reports an error if runs give different answers for \textbf{SAT} and \textbf{UNSAT} now
+					 \item New \textbf{-$~\!$-restore-scenario} option to make restoring scenarios easier
+					 \item Can now set seeds to different parts of SMAC using \textbf{-S}
+					 \item Runtime Statistics and Termination Reasons now rewritten
+					 \item New validation options \textbf{-$~\!$-validate-all}, \textbf{-$~\!$-validate-only-if-tunertime-reached} (See the validation options for all of them)
+					 \item SMAC now checks limits \textit{before} scheduling a run, rather than immediately after the run as in previous versions. (This means that if the last run went over, but changed the incumbent it will be logged.)
+					 \item Instances can now be ordered deterministically (that is in the order they are declared in the instance file via \textbf{-$~\!$-determinstic-instance-ordering}.
+					 \item Usage improved via new help levels which are displayed with \textbf{-$~\!$-help-level} and new usage screens.
+					 \item Improvements to bash auto completion.
+					 \item Target Algorithm Evaluators now take options.
+					 \item Fixes for CPU Time calculation in SMAC.
+					 \item Example scenarios cleaned up, new ones provided.
+					 \item SMAC should be more forgiving with relative paths in a scenario file.
+					 \item Default option files now supported (SMAC will read from \texttt{~/.aclib/smac.opt}, \texttt{~/.aclib/tae.opt} and \texttt{~/.aclib/help.opt}. It will also read from defaults for plugins that are available.
+					 \item Rungroup name is now configurable.
+					 \item Logging of some objects is cleaned up.
+					 \item Windows Startup scripts, and improved Unix start up scripts.
+					 \item Fixed lock-up issue with wrappers launching unterminating subprocesses.
+					 \item Fixed ConvergenceException error message.
+					 \item Options now have a primary non-camel case format.
+					 \item Manual now has a basic options section, before listing all the options.
+					 \item Significant API changes to the Target Algorithm Evaluators so previous plugins will need to be refactored (and another change will come either in v2.06 or v2.08).
+                  \end{enumerate}
+
+
 		
 	\end{description}
 \subsection{Known Issues}
 
 \begin{enumerate}
-\item SMAC may crash with a \texttt{ConvergenceException} when \textbf{-$~\!$-adaptiveCapping} is \texttt{true}, this has happened only once out of thousands of Runs, but we have no fix at this time other than trying a different seed.
-\item Trajectory file does not output standard deviation
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
 \end{enumerate}
 
-\subsection{Options Reference}
+\subsection{Basic Options Reference}
+The following sections outline only the basic options
+\label{sec:options-basic-ref}
+\subfile{options-basic-ref}
+
+
+\clearpage
+
+\subsection{Complete Options Reference}
 \label{sec:options-ref}
 \subfile{options-ref}
 

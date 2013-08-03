@@ -7,7 +7,7 @@ SMAC outputs a variety of information to log files, trajectory files,
 and state files. Most of the files are human readable, and this section
 describes these files.
 \\
-\textsc{Note:} All output is written to the \textbf{outdir} in the \textbf{-~$\!$-runGroupName} sub-directory.
+\textsc{Note:} All output is written to the \textbf{outdir} in the \textbf{-~$\!$-rungroup} sub-directory.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Logging Output}
@@ -16,7 +16,7 @@ describes these files.
 \input{logging-blurb}
 
 
-By default SMAC writes the following logging files out to disk (\textsc{Note:} The $N$ represents the \textbf{-~$\!$-numRun} setting): 
+By default SMAC writes the following logging files out to disk (\textsc{Note:} The $N$ represents the \textbf{-~$\!$-seed} setting): 
 \begin{description}
 \item [{log-run$N$.txt}] A log file that contains a full dump of all the information logged, and where it was logged from.
 \item [{log-warn$N$.txt}] Contains the same information as the above file,
@@ -25,7 +25,7 @@ except only from warning and higher level messages.
 except only from error messages.
 %% Removed in 2.0.2
 %% \item [{raw-run$N$.txt}] Only the actual logging messages (this is easier to grep for needed information).
-\item [{runhashes-run$N$.txt}] A file that contains only the Run Hash Codes for a given run see the corresponding entry in the \textbf{FAQ}.
+%% \item [{runhashes-run$N$.txt}] A file that contains only the Run Hash Codes for a given run see the corresponding entry in the \textbf{FAQ}.
 
 \end{description}
 
@@ -41,28 +41,31 @@ SMAC basically goes through three phases when executing:
 \item Automatic Configuration Phase: SMAC is now actively configuring the target algorithm. SMAC will spend most of it's time here, and outputs it's progress. The most important output is the Runtime Statistics which will appear like:
 \scriptsize{
 \begin{verbatim}
-[INFO ] *****Runtime Statistics*****
- Iteration: 35
- Incumbent ID: 64 (0x18824F)
- Number of Runs for Incumbent: 70
- Number of Instances for Incumbent: 70
- Number of Configurations Run: 67
- Performance of the Incumbent: 1589.1414639125514
- Total Number of runs performed: 242
- Wallclock time: 18.213 s
- Wallclock time remaining: 2.147483628787E9 s
- Configuration time budget used: 84056.83939320213 s
- Configuration time budget remaining: 2343.160606797872 s
+ *****Runtime Statistics*****
+ Count: 15
+ Incumbent ID: 11 (0x1D8A2)
+ Number of Runs for Incumbent: 33
+ Number of Instances for Incumbent: 5
+ Number of Configurations Run: 30
+ Performance of the Incumbent: 0.04219047619047619
+ Configuration Time Budget used: 30.038589432000038 s (100%)
+ Configuration Time Budget remaining: -0.038589432000037505 s
+ Wall-clock Time Budget used: 36.816 s (0%)
+ Wall-clock Time Budget remaining: 2.147483610184E9 s
+ Algorithm Runs used: 104.0  (0%)
+ Algorithm Runs remaining: 9.223372036854776E18 
+ Model/Iteration used: 14.0  (0%)
+ Model/Iteration remaining: 2.147483633E9 
+ Configuration Space Searched 0.0 % 
  Sum of Target Algorithm Execution Times \
- 	(treating minimum value as 0.1): 84036.36939320213 s
- CPU time of Configurator: 20.47 s
- User time of Configurator: 19.6 s
- Total Reported Algorithm Runtime: 84033.27806288192 s
- Sum of Measured Wallclock Runtime: 0.0 s
- Max Memory: 3505.8125 MB
- Total Java Memory: 1249.0625 MB
- Free Java Memory: 719.8940582275391 MB
-[INFO ] **********************************************
+ (treating minimum value as 0.1): 27.20000000000004 s
+ CPU time of Configurator: 2.838245764 s
+ User time of Configurator: 2.8384146279999998 s
+ Total Reported Algorithm Runtime: 21.05999999999998 s
+ Sum of Measured Wallclock Runtime: 30.20900000000001 s
+ Max Memory: 910.25 MB
+ Total Java Memory: 226.8125 MB
+ Free Java Memory: 199.03646850585938 MB
 \end{verbatim}
 }
 
@@ -78,7 +81,7 @@ The second ID (0x18824F) is a hex-code that represents the configuration anywher
 
 This represents the performance of the incumbent under the given \textbf{run\_obj} and \textbf{overall\_obj} on the runs so far.
 
-\texttt{Configuration time budget used}
+\texttt{Configuration Time Budget used}
 
 The tuner time that has been used so far.
 
@@ -106,7 +109,7 @@ At the end of Validation the Runtime Statistics (from the Automatic Configuratio
 \subsection{State Files}\label{subsec:state-files}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-State files allow you to examine and potentially restore the state of SMAC at a specific point of it's execution. The files are written to the state-run$N$/ sub-directory, where $N$ is the value of \textbf{-~$\!$-numRun} option. 
+State files allow you to examine and potentially restore the state of SMAC at a specific point of it's execution. The files are written to the state-run$N$/ sub-directory, where $N$ is the value of \textbf{-~$\!$-seed} option. 
 
 
 All files have the following convention as a suffix either \texttt{it} or \texttt{CRASH} followed by either the iteration number $M$, or in some cases \texttt{quick} or \texttt{quick-bak}.
@@ -131,13 +134,13 @@ The following files are saved in this state directory (ignoring the suffix):
 	\item[\texttt{Run Result Code}]	This is a mapping from the \texttt{Run Result} to an integer for use with previous versions.
 	\end{enumerate}
 	
-	\item[param-file] If \textbf{-$~\!$-saveContext} is enabled, a copy of the \textbf{paramfile} will be in the state folder 
+	\item[param-file] If \textbf{-$~\!$-save-context} is enabled, a copy of the \textbf{paramfile} will be in the state folder 
 	
-	\item[instances] If \textbf{-$~\!$-saveContext} is enabled, a copy of the \textbf{instance\_file} will be in the state folder 
+	\item[instances] If \textbf{-$~\!$-save-context} is enabled, a copy of the \textbf{instance\_file} will be in the state folder 
 	
-	\item[instance-features] If \textbf{-$~\!$-saveContext} is enabled, and SMAC is running with features, then a copy of the \textbf{feature\_file} will be in the state folder.
+	\item[instance-features] If \textbf{-$~\!$-save-context} is enabled, and SMAC is running with features, then a copy of the \textbf{feature\_file} will be in the state folder.
 
-	\item[scenario] If \textbf{-$~\!$-saveContext} is enabled, and SMAC is using a scenario file, then a copy of the  \textbf{-$~\!$-scenarioFile} will be in the state folder.
+	\item[scenario] If \textbf{-$~\!$-save-context} is enabled, and SMAC is using a scenario file, then a copy of the  \textbf{-$~\!$-scenario-file} will be in the state folder.
 	
 	
 		
@@ -149,7 +152,7 @@ The following files are saved in this state directory (ignoring the suffix):
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 SMAC also outputs a trajectory file into identical files \texttt{traj-run-$N$.txt} \footnote{This file is outputted for backwards compatibility with existing scripts.} and \texttt{traj-run-$N$.csv}. These files outline the incumbent (by id) over the course of execution and it's performance. The first line gives the 
-\textbf{-~$\!\!$-runGroupName}, and then the  \textbf{-~$\!\!$-numRun}.
+\textbf{-~$\!\!$-rungroup}, and then the  \textbf{-~$\!\!$-seed}.
 
 The rest of the file follows the following format:
 
@@ -160,8 +163,8 @@ Column Name & Description\tabularnewline
 \hline 
 Total Time & Sum of all execution times \\ & and CPU time of SMAC\tabularnewline
 \hline 
-Incumbents Mean Performance & Performance of the Incumbent under the given \\ &  \textbf{--runObjective
-}and \textbf{--overallObjective}\tabularnewline
+Incumbents Mean Performance & Performance of the Incumbent under the given \\ &  \textbf{--run-obj
+}and \textbf{--overall-obj}\tabularnewline
 \hline 
 Wallclock Time $\sigma$ & Time of entry with respect to wallclock time. %Standard deviation of the Incumbent under the given \textbf{--runObjective }and \textbf{--overallObjective}
 \tabularnewline
@@ -179,7 +182,7 @@ Remaining Columns & Give a name value mapping for the \\& configuration value as
 \subsection{Validation Output}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-When Validation is completed four files are outputted, (again $N$ is the value of the \textbf{-~$\!\!$-numRun} argument):
+When Validation is completed four files are outputted, (again $N$ is the value of the \textbf{-~$\!\!$-seed} argument):
 
 \begin{enumerate}
 
@@ -203,7 +206,7 @@ on each line, the next column is the aggregation of the remaining columns under 
 gives the aggregation of all the individual \textbf{overall\_obj},
 aggregated in the same way.
 
-\texttt{classicValidationResults-run$N$.csv}
+\texttt{validationResults-run$N$.csv}
 \\
 CSV File containing the result of the validation. The columns are defined as follows:
 
@@ -220,6 +223,8 @@ Test Set Performance & The incumbent's performance on the test set \tabularnewli
 \hline
 AC Overhead Time & Total CPU Time Used by the Automatic Configurator  \tabularnewline
 \hline 
+Sample Call String \tabularnewline
+\hline
 
 \end{tabular}
 

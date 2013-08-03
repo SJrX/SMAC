@@ -28,9 +28,9 @@ Academic \& non-commercial usage is permitted free of charge. Please contact us 
 
 SMAC itself requires only Java 6 \footnote{Sun Java version 1.6.0\_23 or later recommended} or newer to run. 
 
-SMAC is primarily intended to run on Unix like platforms, but now includes start up scripts so that it can run on Windows. In all the examples below you should add \texttt{.bat} to the end of every executable, for instance \texttt{./smac --scenarioFile scen.txt --numRun 0} becomes \texttt{smac.bat --scenarioFile scen.txt --numRun 0}.
+SMAC is primarily intended to run on Unix like platforms, but now includes start up scripts so that it can run on Windows. In all the examples below you should add \texttt{.bat} to the end of every executable, for instance \texttt{./smac --scenario-file scen.txt --seed 1} becomes \texttt{smac.bat --scenario-file scen.txt --seed 1}.
 
-The included scenarios require ruby and Linux 32-bit libraries to run. There is one scenario for Windows:\\ \texttt{example\_saps\textbackslash scenario-win-Saps-SWGCP-sat-small-train-small-test.txt}. If you are having trouble running it, try placing the example\_data directory in the example\_saps scenario. Unfortunately there are no scenarios for Mac OS X currently.
+Most of the included scenarios (in \texttt{./example\_scenarios/} require ruby and Linux 32-bit libraries to run. The scenarios in \texttt{./example\_scenarios/analytic/} use optimize functions internal to smac and are completely cross platform. There is one scenario for windows available currently in\texttt{example\_scenarios\textbackslash saps\textbackslash\saps-scenario-windows.txt}.
 
 
 \subsection{Version}
