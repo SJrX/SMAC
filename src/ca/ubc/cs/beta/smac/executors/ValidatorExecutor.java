@@ -43,7 +43,7 @@ import ca.ubc.cs.beta.smac.validation.Validator;
 
 public class ValidatorExecutor {
 
-	private static Logger log = LoggerFactory.getLogger(ValidatorExecutor.class);
+	private static Logger log;
 	private static Marker exception;
 	private static Marker stackTrace;
 	
@@ -53,12 +53,19 @@ public class ValidatorExecutor {
 		ValidationExecutorOptions options = new ValidationExecutorOptions();
 		Map<String, AbstractOptions> taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
 		
-		JCommander jcom = JCommanderHelper.getJCommanderAndCheckForHelp(args,options, taeOptions);
 		
-		jcom.setProgramName("validate");
 		try {
-				
-			jcom.parse( args);
+			JCommander jcom = JCommanderHelper.parseCheckingForHelpAndVersion(args,options, taeOptions);
+			
+			String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
+			
+			if(options.useScenarioOutDir)
+			{
+				outputDir = options.scenarioConfig.outputDirectory + File.separator;
+			}
+			
+			options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
+			log = LoggerFactory.getLogger(ValidatorExecutor.class);
 			JCommanderHelper.logCallString(args, ValidatorExecutor.class);
 			log.info("==========Configuration Options==========\n{}", options.toString());
 			VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
@@ -70,9 +77,7 @@ public class ValidatorExecutor {
 			{
 				log.info("Parsing (default) options from file: {} ", name);
 			}
-			
-			
-			
+
 			if(options.incumbent != null && options.trajectoryFileOptions.trajectoryFile != null)
 			{
 				throw new ParameterException("You cannot specify both a configuration and a trajectory file");
@@ -92,15 +97,12 @@ public class ValidatorExecutor {
 				{
 					options.tunerTime = options.scenarioConfig.limitOptions.tunerTimeout;
 					log.info("Using Scenario Tuner Time {} seconds", options.tunerTime );
-					
-					
 				}
 				
 				if(options.wallTime == -1)
 				{
 					options.wallTime = options.tunerTime;
 					//options.wallTime = options.scenarioConfig.
-					
 				}
 				
 				
@@ -265,9 +267,6 @@ public class ValidatorExecutor {
 			
 			TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false,taeOptions);
 			
-			
-			String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
-			
 			if(options.useScenarioOutDir)
 			{
 				outputDir = options.scenarioConfig.outputDirectory + File.separator;
@@ -352,6 +351,7 @@ public class ValidatorExecutor {
 				}
 				
 			}
+			
 			
 			System.exit(returnValue);
 		}
