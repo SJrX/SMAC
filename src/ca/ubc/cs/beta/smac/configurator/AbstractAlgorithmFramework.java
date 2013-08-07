@@ -205,16 +205,40 @@ public class AbstractAlgorithmFramework {
 	{
 		log.info("Restoring State");
 		
-		iteration = sd.getIteration();
 		
 		
-		
+		int myIteration = sd.getIteration();
+		if(myIteration >= 0)
+		{
+			iteration = myIteration;
+		} else
+		{
+			log.info("No iteration info found it state file, staying at iteration 0");
+		}
 		
 		
 		runHistory = new ThreadSafeRunHistoryWrapper(sd.getRunHistory());
 		
-		this.pool = (SeedableRandomPool) sd.getObjectStateMap().get(OBJECT_MAP_POOL_KEY);
-		this.instanceSeedGen = (InstanceSeedGenerator) sd.getObjectStateMap().get(OBJECT_MAP_INSTANCE_SEED_GEN_KEY);
+		Map<String, Serializable> map = sd.getObjectStateMap();
+		
+			
+		if(map.get(OBJECT_MAP_POOL_KEY) != null)
+		{
+			this.pool = (SeedableRandomPool) map.get(OBJECT_MAP_POOL_KEY);
+		} else
+		{
+			log.info("Incomplete state detected using existing Random Pool object");
+		}
+		
+		
+		if(map.get(OBJECT_MAP_INSTANCE_SEED_GEN_KEY) != null)
+		{
+			this.instanceSeedGen = (InstanceSeedGenerator) map.get(OBJECT_MAP_INSTANCE_SEED_GEN_KEY);
+		} else
+		{
+			log.info("Incomplete state detected using existing instance seed generator");
+		}
+		
 		
 		if(this.pool == null)
 		{
@@ -226,9 +250,19 @@ public class AbstractAlgorithmFramework {
 			throw new IllegalStateException("The instance seed generator we restored was null, this state file cannot be restored in SMAC");
 		}
 		incumbent = sd.getIncumbent();
+		if(incumbent == null)
+		{
+			incumbent = this.initialIncumbent;
+		}
+		
 		log.info("Incumbent Set To {}",incumbent);
 		
 		tae.seek(runHistory.getAlgorithmRuns());
+		
+		for(AlgorithmRun run: runHistory.getAlgorithmRuns())
+		{
+			termCond.notifyRun(run);
+		}
 		
 		log.info("Restored to Iteration {}", iteration);
 	}
