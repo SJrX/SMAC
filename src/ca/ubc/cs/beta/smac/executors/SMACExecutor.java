@@ -339,12 +339,13 @@ public class SMACExecutor {
 				
 				if(!outputDirFile.exists())
 				{
-					boolean result = outputDirFile.mkdirs();
-					
-					if(!result)
+					outputDirFile.mkdirs();
+					//Check again to ensure there isn't a race condition
+					if(!outputDirFile.exists())
 					{
 						throw new ParameterException("Could not create all folders necessary for output directory: " + outputDir);
 					}
+					
 				}
 				
 				
