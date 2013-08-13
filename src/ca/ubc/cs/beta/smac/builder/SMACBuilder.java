@@ -116,13 +116,15 @@ public class SMACBuilder {
 		CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
 		
 		
+
 		
-		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime());
 		tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
 		eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
 		
-	
+
+		
+		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime());
 		termCond.registerWithEventManager(eventManager);	
 		eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);

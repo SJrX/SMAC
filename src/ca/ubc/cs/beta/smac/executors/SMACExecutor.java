@@ -116,6 +116,7 @@ public class SMACExecutor {
 			
 			SMACBuilder smacBuilder = new SMACBuilder();
 			
+			
 			//EventManager eventManager = smacBuilder.getEventManager();
 			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
 
@@ -123,6 +124,7 @@ public class SMACExecutor {
 			
 			
 			smac.run();
+			
 			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
 		
 			
