@@ -78,7 +78,40 @@ public class SMACBuilder {
 	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfig execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool)
 	{	
 		StateFactory restoreSF = options.getRestoreStateFactory(outputDir);
-			
+		
+		
+
+		if(options.adaptiveCapping == null)
+		{
+			switch(options.scenarioConfig.runObj)
+			{
+			case RUNTIME:
+				options.adaptiveCapping = true;
+				break;
+				
+			case QUALITY:
+				options.adaptiveCapping = false;
+				break;
+				
+			default:
+				//You need to add something new here
+				throw new IllegalStateException("Not sure what to default too");
+			}
+		}
+		
+		if(options.randomForestOptions.logModel == null)
+		{
+			switch(options.scenarioConfig.runObj)
+			{
+			case RUNTIME:
+				options.randomForestOptions.logModel = true;
+				break;
+			case QUALITY:
+				options.randomForestOptions.logModel = false;
+			}
+		}
+		
+		
 		ParamConfigurationSpace configSpace = execConfig.getParamFile();
 		
 		log.info("Configuration Space Size is less than or equal to {} ", configSpace.getUpperBoundOnSize());
@@ -105,9 +138,6 @@ public class SMACBuilder {
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 		
 		TargetAlgorithmEvaluator tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator(execConfig, taeOptions, outputDir, options.seedOptions.numRun);
-		
-		
-		EventManager eventManager = new EventManager();
 		
 		AbstractAlgorithmFramework smac;
 
