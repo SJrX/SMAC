@@ -82,6 +82,18 @@ directory, use:
 \end{verbatim}
 
 
+\subsection{Warm-Starting the Model}
+\begin{verbatim}
+./smac --scenario-file <file> --seed 0 --warmstart <foldername>
+\end{verbatim}
+Using the same state data as in Section \ref{sec:state-restoration}, you can also just choose to warm-up the model with previous runs. Instead of the \textbf{-~$\!$-restore-scenario} option use \textbf{-~$\!$-warmstart} instead. SMAC will operate normally, but when building the model the above data will also be used. Please keep in mind the following.\\
+
+\textsc{Note}: If the execution mode is ROAR, this option has no effect.\\
+
+\textsc{Warning}: Due to design limitations of the state restoration format in this version of SMAC you cannot / should not have any differences between the instance distribution used to warmstart the model, and the instance distribution we are configuring against. In the best case you will simply get a random exception at some point (perhaps a \texttt{NullPointerException}), and in the worst case it will just load the model with junk. \\
+
+\textsc{Tip}: The included state-merge utility allows you to easily merge a bunch of different runs of SMAC into one state that you can use for a warm start.
+
 \subsection{Named Rungroups}
 \begin{verbatim}
 ./smac --scenario-file <file> --rungroup <foldername> --seed 1

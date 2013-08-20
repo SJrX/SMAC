@@ -33,7 +33,9 @@ import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.TeeRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateFactory;
@@ -70,14 +72,20 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
 	
-	
+	private final RunHistory modelRunHistory;
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc) {
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH) {
 		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
 		this.ei = ei;
+		
+		if(modelRH.getAlgorithmRunData().size() > 0)
+		{
+			log.info("Model warmstart payload detected with {} runs ", modelRH.getAlgorithmRunData().size());
+		}
+		this.modelRunHistory = modelRH;
 	 
 	}
 
@@ -101,6 +109,14 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) 
 	{
 		
+		
+		runHistory = modelRunHistory;
+		
+		
+		if(runHistory.getAlgorithmRuns().size() == 0)
+		{
+			throw new IllegalStateException("Expected one run to be done before building model");
+		}
 		
 		if(options.randomForestOptions.subsampleValuesWhenLowMemory)
 		{
