@@ -119,14 +119,14 @@ public class SMACExecutor {
 			
 			//EventManager eventManager = smacBuilder.getEventManager();
 			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
-
-			AbstractAlgorithmFramework smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
+			
+			AbstractAlgorithmFramework smac;
+			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
 			
 			
 			smac.run();
 			
 			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
-		
 			
 			pool.logUsage();
 			

@@ -36,10 +36,12 @@ import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.state.StateRestoredEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.exceptions.OutOfTimeException;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
+import ca.ubc.cs.beta.aclib.misc.MapList;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
@@ -203,6 +205,9 @@ public class AbstractAlgorithmFramework {
 	private static final String OBJECT_MAP_INSTANCE_SEED_GEN_KEY = "INSTANCE_SEED_GEN";
 	public void restoreState(StateDeserializer sd)
 	{
+		
+		try 
+		{
 		log.info("Restoring State");
 		
 		
@@ -255,6 +260,20 @@ public class AbstractAlgorithmFramework {
 			incumbent = this.initialIncumbent;
 		}
 		
+		Set<ProblemInstanceSeedPair> allPisps = new HashSet<ProblemInstanceSeedPair>();
+		for(AlgorithmRun run : runHistory.getAlgorithmRuns())
+		{
+			ProblemInstanceSeedPair pisp = run.getRunConfig().getProblemInstanceSeedPair();
+			allPisps.add(run.getRunConfig().getProblemInstanceSeedPair());
+			log.debug("Blacklisting problem instance seed pair: {} ", pisp);
+			this.instanceSeedGen.take(pisp.getInstance(), pisp.getSeed());
+		}
+		
+		if(runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).size() != allPisps.size())
+		{
+			throw new ParameterException("Incumbent has been run on "+ runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).size()+ " problem instance seed pair(s), but there have been a total of "+  allPisps.size() +" run. This generally means the state data used to restore SMAC needs to be repaired to preserve this invariant. Please run the state data through the state-merge utility to repair this invariant");
+		}
+		
 		log.info("Incumbent Set To {}",incumbent);
 		
 		tae.seek(runHistory.getAlgorithmRuns());
@@ -264,7 +283,17 @@ public class AbstractAlgorithmFramework {
 			termCond.notifyRun(run);
 		}
 		
+		
+		this.fireEvent(new StateRestoredEvent(termCond, this.iteration, this.runHistory, this.incumbent));
+
 		log.info("Restored to Iteration {}", iteration);
+		
+		} catch(RuntimeException e)
+		{
+			tae.notifyShutdown();
+			throw e;
+		}
+		
 	}
 	
 	
@@ -459,374 +488,7 @@ public class AbstractAlgorithmFramework {
 	
 	double timedOutRunCost;
 	
-	@SuppressWarnings("unused")
-	protected void iterativeCapping()
-	{
-		log.info("Using Iterative Capping Method");
-		log.warn("We don't compute the actual objectives correctly. We assume no multiple runs per instance.");
-		
-		double kappaStart = cutoffTime;
-		while(kappaStart/2 > 0.1)
-		{
-			kappaStart /=2;
-		}
 	
-		
-		boolean defaultSuccess = false;
-		Set<AlgorithmRun> completedRuns = new HashSet<AlgorithmRun>();
-		ConcurrentHashMap<ParamConfiguration, Set<ProblemInstanceSeedPair>> completedPispsByConfig = new ConcurrentHashMap<ParamConfiguration, Set<ProblemInstanceSeedPair>>();
-		ConcurrentHashMap<ParamConfiguration, Set<AlgorithmRun>> completedRunsByConfig = new ConcurrentHashMap<ParamConfiguration, Set<AlgorithmRun>>();
-		
-		int successfulRuns = 0;
-		
-		Set<RunConfig> attemptedRuns = new HashSet<RunConfig>();
-		
-		//=== Use a LinkedHashSet here because we may end up adding some randoms to the end of this, and 
-		Set<ParamConfiguration> allSuccessfulConfigs = new LinkedHashSet<ParamConfiguration>(); 
-		Set<ProblemInstanceSeedPair> allSuccessfulPisps = new HashSet<ProblemInstanceSeedPair>();
-		ParamConfiguration initialIncumbent = this.initialIncumbent;
-		
-		incumbent = initialIncumbent;
-		
-		allSuccessfulConfigs.add(initialIncumbent);
-		
-		Random rand = pool.getRandom("ITERATIVE_CAPPING_CONFIG_PRNG");
-		partOneLoop:
-		for(double kappa = kappaStart; kappa <= cutoffTime; kappa *= 2)
-		{
-			Object[] myArgs = { successfulRuns,  options.iterativeCappingK, kappa};
-			log.debug("Have {} completed runs out of {}, starting kappa={} secs  " ,myArgs );
-			int newRCGenerationAttempts = 0;
-			int defaultFinished = 0;
-			for(int i=0; i < options.iterativeCappingK*options.iterativeCappingK; i++)
-			{
-				ParamConfiguration configToRun;
-				
-				
-				if(i == 0 && !defaultSuccess )
-				{
-					
-					configToRun = initialIncumbent;
-					log.debug("Trying run with default {} ", configToRun);
-				} else
-				{
-					configToRun = configSpace.getRandomConfiguration(rand);
-					log.debug("Trying run with random {} ", configToRun);
-				}
-				 
-			
-				completedPispsByConfig.putIfAbsent(configToRun, new HashSet<ProblemInstanceSeedPair>());
-				completedRunsByConfig.putIfAbsent(configToRun, new HashSet<AlgorithmRun>());
-				
-				ProblemInstance pi =instances.get(rand.nextInt(instances.size()));
-				if(!instanceSeedGen.hasNextSeed(pi))
-				{
-					i--; 
-					continue;
-				}
-				ProblemInstanceSeedPair pisp = new ProblemInstanceSeedPair(pi,instanceSeedGen.getNextSeed(pi));
-				boolean capped = kappa < cutoffTime;
-				
-				RunConfig rc = new RunConfig(pisp, kappa, configToRun, capped);
-				if(attemptedRuns.add(rc))
-				{
-					//Added successfully
-					newRCGenerationAttempts = 0;
-				} else
-				{ 
-					//Already existed run, we will try again
-					i--;
-					newRCGenerationAttempts++;
-					if(newRCGenerationAttempts > 10000)
-					{
-						throw new DeveloperMadeABooBooException("Please e-mail the developers and alert them that in fact Frank Owes Steve a beer, because he said this would never happen... Anyway the product of the number of problem instance times the number of seeds times the number of possible configurations is too small, we have tried sampling from this space 10,000 times and are still generating duplicates. Please lower the number of samples needed in the options");
-					}
-				}
-				
-				AlgorithmRun result = tae.evaluateRun(rc).get(0);
-				
-				//allInitializationRunCosts += result.getRuntime();
-				
-				
-				if(!result.getRunResult().equals(RunResult.TIMEOUT) || kappa == cutoffTime)
-				{
-					//Log successful run
-					successfulRuns++;
-					completedRuns.add(result);
-					
-					
-					if(configToRun.equals(initialIncumbent))
-					{
-						log.debug("Default configuration {} succeeded ", configToRun);
-						defaultSuccess = true;
-					}
-					allSuccessfulConfigs.add(configToRun);
-					allSuccessfulPisps.add(pisp);
-					
-					completedPispsByConfig.get(configToRun).add(pisp);
-					completedRunsByConfig.get(configToRun).add(result);
-					defaultFinished = (defaultSuccess) ? 0 : 1;
-					Object[] args = { successfulRuns, options.iterativeCappingK + defaultFinished, configToRun};
-					log.debug("Got Successful Run, have {} out of {} required with config {}", args );
-					try {
-						runHistory.append(result);
-					} catch (DuplicateRunException e) {
-						throw new DeveloperMadeABooBooException("Didn't expect this exception to occur here, the initialization phase has failed due to a duplicate run");
-					}
-					
-				} else
-				{
-					this.timedOutRunCost += result.getRuntime();
-				}
-				
-				
-				
-				if(successfulRuns >= (options.iterativeCappingK + defaultFinished))
-				{ //Abort if |S| = K, or |S| = K-1 & !defaultSuccess
-					break partOneLoop;
-				} else if(successfulRuns > (options.iterativeCappingK + defaultFinished))
-				{
-					//throw new IllegalStateException("Should have terminated before");
-				} else
-				{
-					log.info("Have {} Successful Runs need {} runs ", successfulRuns, options.iterativeCappingK + defaultFinished);
-				}
-				
-				
-			}
-		}
-		
-		
-		log.debug("Part one of initialization over, we have {} successful for {} required", successfulRuns, options.iterativeCappingK);
-		
-		RunObjective runObj = options.scenarioConfig.runObj; 
-		while(successfulRuns > options.iterativeCappingK)
-		{
-			AlgorithmRun maxRun = null;
-			double obj = Double.NEGATIVE_INFINITY;
-			for(AlgorithmRun run : completedRuns)
-			{
-				if(maxRun == null)
-				{
-					maxRun = run;
-					obj = runObj.getObjective(run);
-					continue;
-				}
-			
-				if(runObj.getObjective(run) > obj)
-				{
-					maxRun = run;
-					obj = runObj.getObjective(run);
-				}
-				
-			}
-			
-			completedRuns.remove(maxRun);
-			ParamConfiguration config = maxRun.getRunConfig().getParamConfiguration();
-			
-			log.info("Performance of {} was highest {} and so truncated", config, obj);
-			successfulRuns--;
-			if(allSuccessfulPisps.size() == allSuccessfulConfigs.size())
-			{
-				log.info("Truncated Pisp for associated configuration {}, {} ", config, maxRun.getRunConfig().getProblemInstanceSeedPair());
-				allSuccessfulPisps.remove(maxRun.getRunConfig().getProblemInstanceSeedPair());
-			}
-			allSuccessfulConfigs.remove(config);
-			
-		}
-		
-		
-		
-		
-		int attempts = 0; 
-		while(allSuccessfulConfigs.size() < options.iterativeCappingK)
-		{
-			if(!allSuccessfulConfigs.add(configSpace.getRandomConfiguration(rand)))
-			{
-				attempts++;
-				
-				if(attempts > 10000)
-				{
-					throw new DeveloperMadeABooBooException("Please e-mail the developers and alert them that in fact Frank Owes Steve a beer, because he said this would never happen... Anyway the product of the number of problem instance times the number of seeds times the number of possible configurations is too small, we have tried sampling from this space 10,000 times and are still generating duplicates. Please lower the number of samples needed in the options");
-				}
-			}
-			
-		}
-		
-		if(!defaultSuccess)
-		{ 
-			
-			ProblemInstance pi =instances.get(rand.nextInt(instances.size()));
-			ProblemInstanceSeedPair pisp = new ProblemInstanceSeedPair(pi,instanceSeedGen.getNextSeed(pi));
-			allSuccessfulPisps.add(pisp);
-			log.info("Default did not finish anything, adding a new PISP: {}", pisp);
-			
-		}
-		
-		ProblemInstance pi =instances.get(rand.nextInt(instances.size()));
-		ProblemInstanceSeedPair pisp2 = new ProblemInstanceSeedPair(pi,instanceSeedGen.getNextSeed(pi));
-		allSuccessfulPisps.add(pisp2);
-		log.debug("Adding a new PISP to the set {} ", pisp2);
-		//ParamConfiguration incumbent = null;
-		
-		ConcurrentSkipListMap<Double, ParamConfiguration> miniMap = new ConcurrentSkipListMap<Double, ParamConfiguration>();
-		
-		log.info("Challengers need {} runs total ", allSuccessfulPisps.size());
-		/**
-		 * We should have K configurations  at this point, and K+1 PISPS, each K configuration (except possible the default) has a completed run.
-		 * 
-		 * So now we run each configuration on each uncompleted PISP.
-		 * 
-		 * We start kappa at just above 1, and then increase. We then take the incumbent with the lowest OverallObjective 
-		 * 
-		 */
-		partTwoLoop:
-		for(double kappa = kappaStart; kappa <= cutoffTime; kappa *= 2)
-		{
-			log.info("Phase Two of Initialization phase starting with kappa: {} seconds", kappa);
-			boolean incumbentFound = false;
-			partTwoInnerLoop:
-			for(ParamConfiguration config : allSuccessfulConfigs)
-			{
-				for(ProblemInstanceSeedPair pisp : allSuccessfulPisps)
-				{
-					if(completedPispsByConfig.get(config).contains(pisp))
-					{
-						continue;
-					}
-					
-					boolean capped = kappa < cutoffTime;
-					RunConfig rc = new RunConfig(pisp, kappa, config, capped);
-					
-					AlgorithmRun result = tae.evaluateRun(rc).get(0);
-					
-					if(!result.getRunResult().equals(RunResult.TIMEOUT) || kappa == cutoffTime)
-					{
-						//Log successful run
-						completedPispsByConfig.get(config).add(pisp);
-						completedRunsByConfig.get(config).add(result);
-					} 
-					
-					try {
-						runHistory.append(result);
-					} catch (DuplicateRunException e) {
-						throw new DeveloperMadeABooBooException("Didn't expect this exception to occur here, the initialization phase has failed.");
-					}
-					
-					
-					Object[] args = { config, completedRunsByConfig.get(config).size(), allSuccessfulPisps.size()}; 
-					log.info("Challenger {} has {} runs out of {} required", args);
-				
-					//allInitializationRunCosts += result.getRuntime();
-					if(completedRunsByConfig.get(config).size() == options.iterativeCappingK + 1)
-					{
-						log.info("Found incumbent {} has all required runs", config);
-						
-						incumbentFound = true;
-						if(options.iterativeCappingBreakOnFirstCompletion)
-						{
-							break partTwoInnerLoop;
-						}
-					} 
-				}
-			}
-			
-			this.instanceSeedGen.reinit();
-			
-			
-			for(ParamConfiguration config : runHistory.getAllParameterConfigurationsRan())
-			{
-				for(ProblemInstanceSeedPair pisp : runHistory.getAlgorithmInstanceSeedPairsRan(config))
-				{
-					this.instanceSeedGen.take(pisp.getInstance(), pisp.getSeed());
-				}
-			}
-			
-			
-			if(incumbentFound)
-			{
-				
-				
-				
-				
-				break;
-			}
-		}
-		
-		
-		
-		int maxRunsForConfig = 0;
-		Set<ParamConfiguration> bestConfigs = new HashSet<ParamConfiguration>();
-		
-		Set<ProblemInstanceSeedPair> pispsOfIncumbent = new HashSet<ProblemInstanceSeedPair>();
-		
-		//=== Find the incumbent
-		// Step one is find the configurations with the most runs
-		for(ParamConfiguration config : runHistory.getAllParameterConfigurationsRan())
-		{
-			int runsForConfig = runHistory.getTotalNumRunsOfConfig(config);
-			if(runsForConfig > maxRunsForConfig)
-			{
-				bestConfigs.clear();
-				pispsOfIncumbent.clear();
-				maxRunsForConfig = runsForConfig;			
-			}
-			if(runsForConfig == maxRunsForConfig)
-			{
-				bestConfigs.add(config);
-				pispsOfIncumbent.addAll(runHistory.getAlgorithmInstanceSeedPairsRan(config));
-				if(maxRunsForConfig != pispsOfIncumbent.size())
-				{
-					throw new IllegalStateException("Expected that all potential incumbents ran on the same set of seeds " + maxRunsForConfig + " pisps " + pispsOfIncumbent);
-				}
-			}
-			
-		}
-		Set<ProblemInstance> pis = new HashSet<ProblemInstance>();
-		for(ProblemInstanceSeedPair pisp : pispsOfIncumbent)
-		{
-			pis.add(pisp.getInstance());
-		}
-		
-		double bestScore = Double.MAX_VALUE;
-		
-		for(ParamConfiguration config : bestConfigs)
-		{
-			double cBest = runHistory.getEmpiricalCost(config, pis, options.scenarioConfig.algoExecOptions.cutoffTime);
-			log.info("Challenger {} has objective performance {}", config, cBest);
-			if(cBest < bestScore)
-			{
-				bestScore = cBest;
-				incumbent = config;
-			}
-		}
-		
-		
-		
-		
-		
-		
-		if(incumbent == null)
-		{
-			throw new IllegalStateException("Should have an incumbent by now");
-		}
-		
-		/*
-		for(Entry<ParamConfiguration, Set<AlgorithmRun>> runs : completedRunsByConfig.entrySet())
-		{
-			for(AlgorithmRun run : runs.getValue())
-			{
-			
-			}
-		}*/
-
-		
-		log.debug("Incumbent selected as {} with performance {} ", incumbent, bestScore);
-		
-	}
-	
-
-
 
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) {
 	}
@@ -939,6 +601,7 @@ public class AbstractAlgorithmFramework {
 		return null;
 	}
 	private int selectionCount =0;
+	
 	protected List<ParamConfiguration> selectConfigurations()
 	{
 		ParamConfiguration config = configSpace.getRandomConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
