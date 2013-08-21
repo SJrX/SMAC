@@ -20,6 +20,7 @@ import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEven
 import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.state.StateRestoredEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.handlers.LogRuntimeStatistics;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
@@ -165,7 +166,7 @@ public class SMACBuilder {
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
 		eventManager.registerHandler(AlgorithmRunCompletedEvent.class, logRT);
 		eventManager.registerHandler(AutomaticConfigurationEnd.class, logRT);
-		
+		eventManager.registerHandler(StateRestoredEvent.class, logRT);
 		
 		ParamConfigurationOriginTracker configTracker = options.trackingOptions.getTracker(eventManager, initialIncumbent, outputDir, rh, execConfig, options.seedOptions.numRun);
 		
