@@ -420,15 +420,11 @@ public class SMACExecutor {
 			JCommanderHelper.logConfiguration(jcom);
 			pool = options.seedOptions.getSeedableRandomPool();
 			
-			
-			
-			
-			TrainTestInstances tti = options.getTrainingAndTestProblemInstances(pool);
+
+			TrainTestInstances tti = options.getTrainingAndTestProblemInstances(pool, new SeedableRandomPool(options.validationSeed + options.seedOptions.seedOffset,pool.getInitialSeeds()));
 			trainingILWS = tti.getTrainingInstances();
 			testingILWS = tti.getTestInstances();
 		
-			
-			
 			try {
 				//We don't handle this more gracefully because this seems like a super rare incident.
 				if(ManagementFactory.getThreadMXBean().isThreadCpuTimeEnabled())
@@ -447,6 +443,7 @@ public class SMACExecutor {
 			{
 				log.warn("NumRun {} plus Seed Offset {} should be positive, things may not seed correctly",options.seedOptions.numRun, options.seedOptions.seedOffset );
 			}
+			
 			return options;
 		} catch(IOException e)
 		{

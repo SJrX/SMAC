@@ -169,6 +169,7 @@ Value & Error Name & Description \\
 					 \item Manual now has a basic options section, before listing all the options.
 					 \item Significant API changes to the Target Algorithm Evaluators so previous plugins will need to be refactored (and another change will come either in v2.06 or v2.08).
 					 \item SMAC will now match capitalization of words in the Result String of wrappers.
+					 \item New \textbf{-$~\!$-validation-seed} option should cause the validation at the end of SMAC to behave the same as the stand-alone utility.
                   \end{enumerate}
 
 
@@ -181,6 +182,9 @@ Value & Error Name & Description \\
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
 \end{enumerate}
+
+\clearpage
+
 
 \subsection{Basic Options Reference}
 The following sections outline only the basic options

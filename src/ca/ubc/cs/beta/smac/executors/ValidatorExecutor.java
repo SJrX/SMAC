@@ -134,8 +134,6 @@ public class ValidatorExecutor {
 			SeedableRandomPool pool = options.seedOptions.getSeedableRandomPool();
 			InstanceListWithSeeds ilws = options.getTrainingAndTestProblemInstances(pool);
 			
-			
-			
 			List<ProblemInstance> testInstances = ilws.getInstances();
 			InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 			
