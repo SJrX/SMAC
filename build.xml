@@ -175,6 +175,15 @@
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+					<arg value="--class"/>
+					<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioOptions"/>
+					<arg value="--commandName"/>
+					<arg value="verify-scenario"/>
+					<arg value="--outputFile"/>
+					<arg value="dist/util/bash_autocomplete.sh"/>
+				</java>
+				
 		
 
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
@@ -222,6 +231,18 @@
 		</java>
 		
 		
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+					<arg value="--class"/>
+					<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioExecutor"/>
+					<arg value="--name"/>
+					<arg value="verify-scenario"/>
+					<arg value="--file-to-write"/>
+					<arg value="dist/"/>	
+		</java>
+				
+				
+		
+		
 		
 						
 		<chmod perm="750">
@@ -252,6 +273,7 @@
 						<exclude name="smac-validate"/>
 						<exclude name="algo-test"/>
 						<exclude name="state-merge"/>
+						<exclude name="verify-scenario"/>
 						<exclude name="example_scenarios/saps/ubcsat*"/>
 						<exclude name="example_scenarios/spear/Spear-32_1.2.1"/>
 					</tarfileset>
@@ -263,6 +285,7 @@
 						<include name="smac-validate"/>
 						<include name="algo-test"/>
 						<include name="state-merge"/>
+						<include name="verify-scenario"/>
 						<include name="example_scenarios/saps/ubcsat*"/>
 						<include name="example_scenarios/spear/Spear-32_1.2.1*"/>
 					</tarfileset>

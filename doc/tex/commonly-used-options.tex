@@ -26,6 +26,21 @@ Some parameters deserve special mention:
 \item The \texttt{-P} parameters are optional and allow overriding specific values in the configuration (this is useful primarily for RANDOM and DEFAULT, to allow you to set certain values). To set the \texttt{sort\-algo} parameter to \texttt{merge} you would specify \texttt{\-Psort\-algo=merge}.
 \end{enumerate}
 
+\subsection{Verifying the Scenario} \label{sec:verify}
+SMAC includes a utility that allows you to test the scenario. It is currently \texttt{BETA} but does a bit more sanity checks than SMAC will normally do.
+
+For example:
+\begin{verbatim}
+./verify-scenario --scenarios ./scenarios/*.txt --verify-instances true
+\end{verbatim}
+
+The utility has some limitations however:
+\begin{enumerate}
+\item 	It currently does not check test instances
+\item	Scenario files can specify non-scenario options in SMAC (and some of the example scenarios in fact do), this utility is not aware of them, and will report an error.
+\end{enumerate}
+
+
 
 \subsection{ROAR Mode}
 
