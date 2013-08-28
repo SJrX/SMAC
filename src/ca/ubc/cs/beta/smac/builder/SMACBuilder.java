@@ -25,6 +25,8 @@ import ca.ubc.cs.beta.aclib.eventsystem.handlers.LogRuntimeStatistics;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.initialization.classic.ClassicInitializationProcedure;
+import ca.ubc.cs.beta.aclib.initialization.doublingcapping.DoublingCappingInitializationProcedure;
+import ca.ubc.cs.beta.aclib.objectives.ObjectiveHelper;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
@@ -179,11 +181,13 @@ public class SMACBuilder {
 		switch(options.initializationMode)
 		{
 			case CLASSIC:
-				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, options.scenarioConfig.algoExecOptions.cutoffTime, pool, options.deterministicInstanceOrdering);
+				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering);
 				break;
 			case ITERATIVE_CAPPING:
 			default:
-				throw new IllegalStateException("Not Implemented currently");
+				ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
+				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
+				break;
 		}
 		
 		

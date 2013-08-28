@@ -17,3 +17,5 @@ wallclock-limit = 30
 paramfile = branins-params.pcs
 instance_file = instances.txt
 test_instance_file = instances.txt
+
+invalid-scenario-reason = Scenario includes SMAC specific options but does work 
