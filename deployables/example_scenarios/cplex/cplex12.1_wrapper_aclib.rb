@@ -7,22 +7,8 @@ def float_regexp()
 end
 
 def get_instance_specifics(input_file)
-        input_file =~ /MIP_data(.*)/
-        name = $1
-        name = "MIP_data" + name
-        File.open("instance_list_obj.txt"){|file|
-                while line = file.gets
-                        filename, opt = line.split
-                        if filename =~ /MIP_data(.*)/
-                                filename = $1
-                                filename = "MIP_data" + filename
-                                if filename == name
-                                        return opt
-                                end
-                        end
-                end
-        }
-        raise "need to include objective for input file #{input_file} in file instance_list_obj.txt"
+    #Not checking instance specifics in this version
+        return 0
 end
 
 ################################################# 
@@ -44,7 +30,7 @@ $instance_specifics = get_instance_specifics($instance)
 gap = 1e100
 obj = 1e100
 solved = "CRASHED"
-runtime = nil
+runtime =  ARGV[8].to_f
 walltime = nil
     
 Signal.trap("TERM") {

@@ -20,6 +20,15 @@ cutoff_time = ARGV[1]
 memoryLimit = ARGV[2]
 
 #=== I'm calling ruby on the command line to start an interactive CPLEX session and write the parameter settings into it. The output is written to the specified output file.
+
+
+if(!File.executable?(cplex_executable_absolute_filename))
+   $stderr.puts "No CPLEX Executable Found";
+   puts "No problem exists."
+   exit 1
+end
+  
+  
 cmd = "ruby -e 'File.popen(\"#{cplex_executable_absolute_filename}\",\"w\"){|file| "
 
 ##  Use a temporary directory as workdir

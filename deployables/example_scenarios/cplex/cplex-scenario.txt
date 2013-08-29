@@ -1,4 +1,4 @@
-algo = ruby cplex12.1_wrapper_aclib.rb --memoryLimit 1000 --runsolverLocation ./ --allowedMIPgap 0 
+algo = ruby cplex12.1_wrapper_aclib.rb --memoryLimit 1000 --runsolverLocation ./runsolver --allowedMIPgap 0 
 execdir = example_scenarios/cplex/
 deterministic = 1
 run_obj = runtime
