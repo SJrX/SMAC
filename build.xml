@@ -200,11 +200,11 @@
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.smac.executors.SMACExecutor"/>
 			<arg value="--name"/>
-			<arg value="--default-mem"/>
-			<arg value="1024"/>
 			<arg value="smac"/>
 			<arg value="--file-to-write"/>
-			<arg value="dist/"/>	
+			<arg value="dist/"/>
+			<arg value="--default-mem"/>
+			<arg value="1024"/>
 		</java>
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
@@ -220,9 +220,9 @@
 			<arg value="--name"/>
 			<arg value="smac-validate"/>
 			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
-			<arg value="dist/"/>	
 		</java>
 		
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
@@ -231,9 +231,9 @@
 			<arg value="--name"/>
 			<arg value="state-merge"/>
 			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
-			<arg value="dist/"/>	
 		</java>
 		
 		
