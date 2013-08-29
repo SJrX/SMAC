@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 import org.junit.*;
 import static org.junit.Assert.*;
 
-import ca.ubc.cs.beta.aclib.options.ScenarioOptions;
+import ca.ubc.cs.beta.aclib.options.scenario.ScenarioOptions;
 
 import com.beust.jcommander.JCommander;
 
@@ -50,6 +50,7 @@ public class SMACTester {
 				BufferedReader r = new BufferedReader(new FileReader(f));
 				smacDeployment = r.readLine();
 				System.out.println("SMAC DEPLOYMENT: " + smacDeployment);
+				r.close();
 			} catch (FileNotFoundException e) {
 				throw new AssertionError("Could open the deployment file lastbuild-deploy.txt");
 			} catch (IOException e) {

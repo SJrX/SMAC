@@ -1,0 +1,55 @@
+\documentclass[11pt,letterpaper,oneside]{article}
+\include{fh_commands}
+\usepackage{fullpage}
+\usepackage{setspace}
+\usepackage{subfiles}
+\usepackage{graphicx}
+%%\usepackage{hyperref}
+
+\newcommand{\note}[1]{}
+% comment the next line to turn off notes
+\renewcommand{\note}[1]{~\\\frame{\begin{minipage}[c]{\textwidth}\vspace{2pt}\center{#1}\vspace{2pt}\end{minipage}}\vspace{3pt}\\}
+
+
+\begin{document}
+
+\title{The PCS parameter configuration space format}
+
+\author{
+Frank~Hutter\\ 
+Department of Computer Science\\
+Freiburg University\\
+\texttt{fh@informatik.uni-freiburg.de}
+\and
+Steve Ramage\\
+Department of Computer Science\\
+University of British Columbia\\
+\texttt{seramage@cs.ubc.ca}
+}
+
+\maketitle
+
+\section{Introduction}
+
+\noindent{}This document specifies the PCS parameter configuration space format, a simple, 
+human-readable file format for the description of an algorithm's configurable parameters, 
+their possible values, as well as any parameter dependencies.
+%This format is emerging as a standard in algorithm configuration, with the prominent configuration methods ParamILS, SMAC, and GGA supporting it.
+%
+\section{PCS Format}
+
+\subfile{pcs-subfile}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Interplay With Algorithm Wrapper}\label{sec:tips}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+This file specifies the parameters of an algorithm, but it does not specify how to pass these parameters to your algorithm.
+The specifics of that are defined by the algorithm wrapper, which receives an instantiation of parameters,
+calls your algorithm with that instantiation (typically through a command line call) and returns the performance result. 
+
+In typical cases, there is a direct 1-to-1 mapping between the parameters in the PCS file and the parameters the corresponding algorithm accepts.
+In those cases, the wrapper simply hands the parameters over to the algorithm.
+However, the wrapper can also implement transformations of parameters, scale parameters by instance size, etc.
+
+\end{document}
+

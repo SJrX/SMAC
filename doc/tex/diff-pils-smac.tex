@@ -15,7 +15,7 @@ In contrast to ParamILS, the order of instances in the instance file does not ma
 \item \textbf{Configuration time budget and runtime overheads:} 
 Both ParamILS and SMAC accept a time budget as an input parameter. ParamILS only keeps track of the CPU time the target algorithm reports and terminates once the sum of these runtimes exceeds the time budget; it does \emph{not} take into account overheads due to e.g.\ command line calls of the target algorithm. In cases where the reported CPU time of each target algorithm run was very small (e.g.\ milliseconds), these unaccounted overheads could actually dominate ParamILS's wall-clock time.
 SMAC offers a more flexible management of its runtime overheads through the options 
-\textbf{-~$\!$-countSMACTimeAsTunerTime} and \textbf{-~$\!$-wallClockLimit}. See Section \ref{sec:wall-clock} for details on the wall clock time limit.
+\textbf{-~$\!$-use-cpu-time-in-tunertime} and \textbf{-~$\!$-wallclock-limit}. See Section \ref{sec:wall-clock} for details on the wall clock time limit.
 
 \item \textbf{Resuming previous runs:} 
 While this was not possible in ParamILS, in SMAC you can resume previous runs from a saved state.
@@ -26,7 +26,7 @@ SMAC accepts as an optional input a feature file providing additional informatio
 
 
 \item \textbf{Algorithm wrappers:} 
-The wrapper syntax has been extended in SMAC to support additional results in the ``solved'' field. Specifically, there is a new result \textbf{ABORT} signalling that the configuration process should be aborted (e.g. because the wrapper is in an inconsistent state that should never be reached). A similar behaviour is triggered if option \textbf{-~$\!$-abortOnFirstRunCrash} is set and the first run returns \textbf{CRASHED}. Additionally, the wrapper can also return additional data to SMAC that is associated with the run \footnote{This data will be saved in the run and results file (Section \ref{subsec:state-files}) that is used in state saving}. For more information see Section \ref{sec:wrapper_output}.
+The wrapper syntax has been extended in SMAC to support additional results in the ``solved'' field. Specifically, there is a new result \textbf{ABORT} signalling that the configuration process should be aborted (e.g. because the wrapper is in an inconsistent state that should never be reached). A similar behaviour is triggered if option \textbf{-~$\!$-abort-on-first-run-crash} is set and the first run returns \textbf{CRASHED}. Additionally, the wrapper can also return additional data to SMAC that is associated with the run \footnote{This data will be saved in the run and results file (Section \ref{subsec:state-files}) that is used in state saving}. For more information see Section \ref{sec:wrapper_output}.
 
 \item \textbf{Instance files vs. instance/seed files:} 
 The \textbf{instance\_file} parameter now auto-detects whether the file conforms to ParamILS's \textbf{instance\_file} or \textbf{instance\_seed\_file} format. SMAC treats the latter option as an alias for the former. See Section \ref{sec:instance_file_format} for details.

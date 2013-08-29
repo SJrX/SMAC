@@ -1,6 +1,0 @@
-Final best parameter configuration: alpha=1.189, ps=0.166, rho=0.83, wp=0.04
-==================================================================
-Active parameters: alpha=1.189, ps=0.166, rho=0.83, wp=0.04
-==================================================================
-Training quality of this final best found parameter configuration: 1.68750166666667, based on 12 runs with cutoff 5.0
-Test quality of this final best found parameter configuration: 1.8815032, based on 100 independent runs with cutoff 5.0

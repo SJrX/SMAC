@@ -1,6 +1,0 @@
-		 ,Some Feature, Feature 2
-Instance1,1,6
-Instance2,2,7
-Instance3,3,8,
-Instance4,4,9
-Instance5,5,10

@@ -1,17 +1,51 @@
-To get started with an existing configuration scenerio you simply
+\documentclass[manual.tex]{subfiles}\begin{document}
+\subsection{Running SMAC}
+To get started with an existing configuration scenario you simply
 need to execute smac as follows:
 
 \begin{verbatim}
-./smac --scenarioFile <file> --numRun 0
+./smac --scenario-file <file> --seed 1
 \end{verbatim}
 
 This will execute SMAC with the default options on the scenario specified in the file. 
-Some commonly-used non-default options of SMAC are described in this section. The \textbf{-~$\!$-numRun} argument controls the seed and names of output files (to support parallel independent runs)
+Some commonly-used non-default options of SMAC are described in this section. The \textbf{-~$\!$-seed} argument controls the seed and names of output files (to support parallel independent runs). The \textbf{-~$\!$-seed-offset} argument lets you keep the output folders names simple while varying the actual seed of SMAC.
+
+\subsection{Testing the Wrapper} \label{sec:test}
+SMAC includes a method of Testing Algorithm Execution, via the \texttt{algotest} utility. It takes the required scenario options \footnote{Unfortunately it cannot read scenario files currently}
+
+For example:
+\begin{verbatim} 
+./algotest --scenario-file <scenario> --instance <instance>  
+--config <config string> -P[name]=[value] -P[name]=[value]...
+\end{verbatim}
+
+Some parameters deserve special mention:
+\begin{enumerate}
+\item The config string syntax is a single string with ``-name=`value' '' ... you can also specify \texttt{RANDOM} which will generate a random configuration or \texttt{DEFAULT} which will generate  the default configuration.
+
+\item The \texttt{-P} parameters are optional and allow overriding specific values in the configuration (this is useful primarily for RANDOM and DEFAULT, to allow you to set certain values). To set the \texttt{sort\-algo} parameter to \texttt{merge} you would specify \texttt{\-Psort\-algo=merge}.
+\end{enumerate}
+
+\subsection{Verifying the Scenario} \label{sec:verify}
+SMAC includes a utility that allows you to test the scenario. It is currently \texttt{BETA} but does a bit more sanity checks than SMAC will normally do.
+
+For example:
+\begin{verbatim}
+./verify-scenario --scenarios ./scenarios/*.txt --verify-instances true
+\end{verbatim}
+
+The utility has some limitations however:
+\begin{enumerate}
+\item 	It currently does not check test instances
+\item	Scenario files can specify non-scenario options in SMAC (and some of the example scenarios in fact do), this utility is not aware of them, and will report an error.
+\end{enumerate}
+
+
 
 \subsection{ROAR Mode}
 
 \begin{verbatim}
-./smac --scenarioFile <file> --executionMode ROAR --numRun 0
+./smac --scenarioFile <file> --exec-mode ROAR --seed 1
 \end{verbatim}
 
 This will execute the ROAR algorithm, a special case of SMAC that uses an empty model and random selection of 
@@ -19,26 +53,33 @@ configurations. See \cite{HutHooLey11-SMAC} for details on ROAR.
 
 \subsection{Adaptive Capping}
 \begin{verbatim}
-./smac --scenarioFile <file> --adaptiveCapping true --numRun 0
+./smac --scenarioFile <file> --adaptive-capping true --seed 1
 \end{verbatim}
-Adaptive Capping (originally introduced for ParamILS~\cite{ParamILS-JAIR}, but also applicable in SMAC~\cite{HutHooLey11-censoring}) will cause SMAC to only schedule algorithm runs for as long as is needed to determine whether they are better than the current incumbent. Without this option, each target algorithm runs up to the runtime specified in the configuration scenario file \textbf{-~$\!$-cutoffTime}.
+Adaptive Capping (originally introduced for ParamILS~\cite{ParamILS-JAIR}, but also applicable in SMAC~\cite{HutHooLey11-censoring}) will cause SMAC to only schedule algorithm runs for as long as is needed to determine whether they are better than the current incumbent. Without this option, each target algorithm runs up to the runtime specified in the configuration scenario file \textbf{-~$\!$-algo-cutoff-time}.
 
-\noindent{}\textsc{Note:} Adaptive Capping should only be used when the \textbf{-~$\!$-runObj} is RUNTIME.
+\noindent{}\textsc{Note:} Adaptive Capping should only be used when the \textbf{-~$\!$-run-obj} is RUNTIME.
 Adaptive capping can drastically improve SMAC's performance for scenarios with a large difference between 
-\textbf{-~$\!$-cutoffTime} and the runtime of the best-performing configurations.
-Related configuration options are \textbf{-~$\!$-capSlack}, \textbf{-~$\!$-capAddSlack}, and \textbf{-~$\!$-imputationIterations}.
+\textbf{-~$\!$-algo-cutoff-time} and the runtime of the best-performing configurations.
+
 
 \subsection{Wall-Clock Limit}\label{sec:wall-clock}
 \begin{verbatim}
-./smac --scenarioFile <file> --runtimeLimit <seconds> --numRun 0
+./smac --scenario-file <file> --wallclock-limit <seconds> --seed 1
 \end{verbatim}
 SMAC offers the option to terminate after using up a given amount of wall-clock time. This option is useful to limit the overheads of starting target algorithm runs, which are otherwise unaccounted for.
-This option does not override \textbf{-~$\!$-tunerTimeout} or other options that limit the duration of the configuration run; whichever termination criterion is reached first triggers termination. 
+This option does not override \textbf{-~$\!$-tunertime-limit} or other options that limit the duration of the configuration run; whichever termination criterion is reached first triggers termination. 
+
+\subsection{Change Initial Incumbent}\label{sec:initial-incumbent}
+\begin{verbatim}
+./smac --scenario-file <file> --seed 1 --initial-incumbent <config string>
+\end{verbatim}
+
+SMAC offers the option to specify the initial incumbent, and by default uses the default configuration specified in the parameter file. The argument to \textbf{-~$\!$-initial-incumbent} follows the same conventions as in Section \ref{sec:test}.
 
 \subsection{State Restoration}\label{sec:state-restoration}
 \begin{verbatim}
-./smac --scenarioFile <file> --restoreStateFrom <dir> 
-       --restoreIteration <iteration> --numRun 0
+./smac --scenario-file <file> --restore-scenario <dir> 
+ --seed 0
 \end{verbatim}
 SMAC will read the files in the specified directory and restore 
 its state to that of the saved SMAC run at the specified iteration.
@@ -47,7 +88,7 @@ Provided the remaining options (e.g. \textbf{-~$\!$-seed}, \textbf{-~$\!$-overal
 This option can also be used to restore runs from SMAC v1.xx (although due to the lossy nature of Matlab files and differences in random calls you will not get the same resulting trajectory). By default the state can be restored to iterations that are powers of 2, as well as the 2 iterations prior to the original SMAC run stopping. 
 If the original run crashed, additional information is saved, often allowing you to replay the crash.
 
-\textsc{Note:} When you restore a SMAC state, you are in essence preloading a set of runs and then running the scenario. In certain cases, if the scenario has been changed in the meantime, this may result in undefined behaivor. Changing something like \textbf{-~$\!$-tunerTimeout} is usually a safe bet, however changing something central (such as \textbf{-~$\!$-runObj}) would not be.
+\textsc{Note:} When you restore a SMAC state, you are in essence preloading a set of runs and then running the scenario. In certain cases, if the scenario has been changed in the meantime, this may result in undefined behaivor. Changing something like \textbf{-~$\!$-tunertime-limit} is usually a safe bet, however changing something central (such as \textbf{-~$\!$-run-obj}) would not be.
 
 To check the available iterations that can be restored from a saved
 directory, use:
@@ -55,27 +96,31 @@ directory, use:
 ./smac-possible-restores <dir>
 \end{verbatim}
 
-To disable saving any state information to disk, use 
+
+\subsection{Warm-Starting the Model}
 \begin{verbatim}
-./smac --scenarioFile <file> --stateSerializer NULL --numRun 0
+./smac --scenario-file <file> --seed 0 --warmstart <foldername>
 \end{verbatim}
+Using the same state data as in Section \ref{sec:state-restoration}, you can also just choose to warm-up the model with previous runs. Instead of the \textbf{-~$\!$-restore-scenario} option use \textbf{-~$\!$-warmstart} instead. SMAC will operate normally, but when building the model the above data will also be used. Please keep in mind the following.\\
 
+\textsc{Note}: If the execution mode is ROAR, this option has no effect.\\
 
-\subsection{Concurrent Algorithm Execution Requests}
-\begin{verbatim}
-./smac --scenarioFile <file> --maxConcurrentAlgoExecs <num> --numRun 0
-\end{verbatim}
+\textsc{Warning}: Due to design limitations of the state restoration format in this version of SMAC you cannot / should not have any differences between the instance distribution used to warmstart the model, and the instance distribution we are configuring against. In the best case you will simply get a random exception at some point (perhaps a \texttt{NullPointerException}), and in the worst case it will just load the model with junk. \\
 
-In certain circumstances, it may be much faster to allow more than one target algorithm execution at once,
-(e.g., when multiple cores are available or when actual algorithm execution is I/O bound). 
-To exploit this, you can have SMAC schedule multiple runs at a time. If \textbf{-~$\!$-adaptiveCapping} is not set, this will result in the same trajectory as a sequential version (when \textbf{-~$\!$-maxConcurrentAlgoExecs} is set to 1). When adaptive capping is enabled, concurrent runs are scheduled with cutoff times as if each were the first of the runs to be scheduled.
-
+\textsc{Tip}: The included state-merge utility allows you to easily merge a bunch of different runs of SMAC into one state that you can use for a warm start.
 
 \subsection{Named Rungroups}
 \begin{verbatim}
-./smac --scenarioFile <file> --runGroupName <foldername> --numRun 0
+./smac --scenario-file <file> --rungroup <foldername> --seed 1
 \end{verbatim}
-All output is written to the folder \texttt{$<$foldername$>$}; runs differing in \textbf{-~$\!$-numRun} will yield different output files in that folder.
+All output is written to the folder \texttt{$<$foldername$>$}; runs differing in \textbf{-~$\!$-seed} will yield different output files in that folder.
+
+\subsection{More Options}
+By default SMAC only displays BASIC usage options, other options are INTERMEDIATE, ADVANCED, and DEVELOPER. Be warned that there are a bunch of options and some of the more advanced and developer options may cause SMAC to perform very poorly.
+
+\begin{verbatim}
+./smac --help-level INTERMEDIATE
+\end{verbatim}
 
 
 \subsection{Offline Validation}
@@ -85,23 +130,23 @@ By default, given a test instance file with $N$ instances, SMAC performs $\appro
 
 By default, SMAC limits the number of seeds used in validation runs to 1\,000 seeds per instance. This number can be changed as in the following example:
 \begin{verbatim}
-./smac --scenarioFile <file> --numSeedsPerTestInstance 50
+./smac --scenario-file <file> --num-seeds-per-test-instance 50
 \end{verbatim}
 (This parameter does not have any effect in the case of instance/seed files.)
 
 
 \subsubsection{Limiting the Number of Instances Used in a Validation Run}
 
-To use only some of the instances or instance seeds specified you can limit them with the \textbf{-~$\!$-numTestInstances} parameter. When this parameter is specified, SMAC will only use the specified number of lines from the top of the file, and will keep repeating them until enough seeds are used: 
+To use only some of the instances or instance seeds specified you can limit them with the \textbf{-~$\!$-num-test-instances} parameter. When this parameter is specified, SMAC will only use the specified number of lines from the top of the file, and will keep repeating them until enough seeds are used: 
 \begin{verbatim}
-./smac --scenarioFile <file> --numTestInstances 10
+./smac --scenario-file <file> --num-test-instances 10
 \end{verbatim}
 For instance files containing seeds, this option will only use the specified number of instance seeds in the file.
 
 \subsubsection{Disabling Validation}
 Validation can be skipped alltogether as follows:
 \begin{verbatim}
-./smac --scenarioFile <file> --skipValidation
+./smac --scenario-file <file> --seed 1 --validation false
 \end{verbatim}
 
 \subsubsection{Standalone Validation}
@@ -110,14 +155,20 @@ You can supply a configuration using the \textbf{-~$\!$-configuration} option. A
 
 Here is an example call:
 \begin{verbatim}
-./smac-validate --scenarioFile <file> --numValidationRuns 10000 
-     --configuration <config string> --maxConcurrentAlgoExecs 8 --numRun 0
+./smac-validate --scenario-file <file> --num-validation-runs 100
+     --configuration <config string> --cli-cores 8 --seed 1
 \end{verbatim}
 %
 Usage notes for the offline validation tool:
 \begin{enumerate}
 \item This validates against the test set only; the training instance set is not used.
-\item By default this outputs into the current directory; you can change the output directory with the option \textbf{-~$\!$-runGroupName}.
-\item You can also validate against a trajectory file issued by \textbf{-$~\!$-trajectoryFile} option. 
+\item By default this outputs into the current directory; you can change the output directory with the option \textbf{-~$\!$-rungroup}.
+\item You can also validate against a trajectory file issued by \textbf{-$~\!$-trajectory-file} option. 
+
+
 \end{enumerate}
 
+
+
+
+\end{document}

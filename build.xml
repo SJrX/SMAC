@@ -63,7 +63,7 @@
 		<mkdir dir="build/classes/"/>
 		<mkdir dir="dist"/>
 		<mkdir dir="dist/doc"/>
-				
+		<mkdir dir="zip/"/>		
 		<mkdir dir="${doc.buildpath}"/>
 		
 
@@ -84,14 +84,17 @@
 	<target name="clean">
 		<delete dir="build"/>
 		<delete dir="dist"/>
+		<delete dir="zip/"/>
 		<delete dir="${doc.buildpath}"/>
 	</target>
 	<target name="compile" depends="init">
 		<javac srcdir="src" destdir="build/classes" debug="true">
 		<classpath refid="compile.classpath"/>
 		</javac>
-		
-		
+		<path id="build.classpath">
+			<path refid="compile.classpath"/>
+			<path location="build/classes"/>
+		</path>
 	</target>
 	
 	
@@ -130,9 +133,9 @@
 			<fileset refid="lib"/>
 			<!--<fileset refid="fastrf"/>-->
 			<fileset refid="aclib"/>
-			<fileset dir="scripts">
+			<!--<fileset dir="scripts">
 				<include name="*"/>
-			</fileset>
+			</fileset>-->
 		</copy>
 		 
 		<echo file="dist/git-hashes.txt" append="true">${ant.project.name} ${git.commit} ${git.dirty}${line.separator}</echo>
@@ -141,34 +144,115 @@
 		<echo>I am probably copying the lastdeployfile as well, this should be fixed one day :)</echo>
 		
 		<mkdir dir="dist/util"/>
-		
-		<java classname="ca.ubc.cs.beta.aclib.misc.options.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<mkdir dir="dist/patches"/>
+		<mkdir dir="dist/plugins"/>
+				
+				
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.options.ValidationExecutorOptions"/>
+			<arg value="ca.ubc.cs.beta.aclib.smac.ValidationExecutorOptions"/>
 			<arg value="--commandName"/>
 			<arg value="smac-validate"/>
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
-		<java classname="ca.ubc.cs.beta.aclib.misc.options.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+			<arg value="--commandName"/>
+			<arg value="smac"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
+		
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunnerOptions"/>
+			<arg value="--commandName"/>
+			<arg value="algo-test"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
+		
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 					<arg value="--class"/>
-					<arg value="ca.ubc.cs.beta.aclib.options.SMACOptions"/>
+					<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioOptions"/>
 					<arg value="--commandName"/>
-					<arg value="smac"/>
+					<arg value="verify-scenario"/>
 					<arg value="--outputFile"/>
 					<arg value="dist/util/bash_autocomplete.sh"/>
-		</java>
-					
+				</java>
+				
 		
-			
+
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.statemerge.StateMergeOptions"/>
+			<arg value="--commandName"/>
+			<arg value="state-merge"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
+				
+		
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.smac.executors.SMACExecutor"/>
+			<arg value="--name"/>
+			<arg value="smac"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+		</java>
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunner"/>
+			<arg value="--name"/>
+			<arg value="algo-test"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+		</java>
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.smac.executors.ValidatorExecutor"/>
+			<arg value="--name"/>
+			<arg value="smac-validate"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+		</java>
+		
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.statemerge.StateMergeExecutor"/>
+			<arg value="--name"/>
+			<arg value="state-merge"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+		</java>
+		
+		
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+					<arg value="--class"/>
+					<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioExecutor"/>
+					<arg value="--name"/>
+					<arg value="verify-scenario"/>
+					<arg value="--file-to-write"/>
+					<arg value="dist/"/>	
+		</java>
+				
+				
+		
+		
+		
+						
 		<chmod perm="750">
 			<fileset dir="dist/">
 				<include name="smac"/>
 				<include name="smac-possible-restores"/>
 				<include name="smac-validate"/>
-				<include name="example_saps/ubcsat"/>
-				<include name="example_spear/Spear-32_1.2.1"/>
+				<include name="algo-test"/>
+				<include name="example_scenarios/saps/ubcsat"/>
+				<include name="example_scenarios/spear/Spear-32_1.2.1"/>
 				<include name="util/bash_autocomplete.sh"/>
 			</fileset>
 		</chmod>
@@ -176,26 +260,39 @@
 	
 	<target name="zip" depends="archive, manual" description="Makes tarball for this release">
 
-		<tar destFile="${software.dir}/${outputfilename}.tar.gz" longfile="gnu" compression="gzip">
+		<tar destFile="zip/${outputfilename}.tar.gz" longfile="gnu" compression="gzip">
+					
 					<tarfileset dir="dist/" filemode="640" dirmode="750" prefix="${outputfilename}/">
 						<include name="**/*"/>
-					
+						
+						<!-- All the excludes should match with files below -->
 						<exclude name="${lastdeployfile}"/> <!--The previous exclude didn't work so maybe try here-->
 						<exclude name="smac"/>
+						<exclude name="util/bash_autocomplete.sh"/>
 						<exclude name="smac-possible-restores"/>
 						<exclude name="smac-validate"/>
-						<exclude name="example_saps/ubcsat"/>
-						<exclude name="example_spear/Spear-32_1.2.1"/>
+						<exclude name="algo-test"/>
+						<exclude name="state-merge"/>
+						<exclude name="verify-scenario"/>
+						<exclude name="example_scenarios/cplex/runsolver*"/>
+						<exclude name="example_scenarios/saps/ubcsat*"/>
+						<exclude name="example_scenarios/spear/Spear-32_1.2.1"/>
 					</tarfileset>
 					<tarfileset dir="dist/" filemode="750" prefix="${outputfilename}/">
+						<!-- Exclude any file you include here from above, these are all executable files -->
 						<include name="smac"/>
 						<include name="util/bash_autocomplete.sh"/>
 						<include name="smac-possible-restores"/>
 						<include name="smac-validate"/>
-						<include name="example_saps/ubcsat*"/>
-						<include name="example_spear/Spear-32_1.2.1*"/>
+						<include name="algo-test"/>
+						<include name="state-merge"/>
+						<include name="verify-scenario"/>
+						<include name="example_scenarios/cplex/runsolver*"/>
+						<include name="example_scenarios/saps/ubcsat*"/>
+						<include name="example_scenarios/spear/Spear-32_1.2.1*"/>
 					</tarfileset>
 		</tar>
+		<copy file="zip/${outputfilename}.tar.gz" tofile="${software.dir}/${outputfilename}.tar.gz"/>
 	</target>
 	
 	<target name="deploy-release" depends="archive" description="untars tarball in software.dir and creates symlink">
@@ -215,6 +312,8 @@
 			<arg value="${software.dir}/${outputfilename}.tar.gz"/>
 		</exec>
 		
+	
+		
 		<echo file="${lastdeployfile}" append="false">${software.dir}/${outputfilename}</echo>
 			
 		<symlink link="${deploy.dir}-${git.branch}" overwrite="true" resource="${software.dir}/smac-${version.string}" failonerror="false"/>
@@ -232,6 +331,7 @@
 		<copy file="dist/git-hashes.tex" todir="${doc.buildpath}" overwrite="true"/>
 		
 		<property file="${buildnumberfile}" prefix="manualfile" />
+		<property name="build.number" value="Unknown"/>
 		<property name="manual.build.number" value="${build.number}"/>
 		<property name="manual.build.number" value="${manualfile.build.number}"/>
 			
@@ -240,11 +340,57 @@
 		<property name="doc.version.full.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${git.branch}-${manual.build.number}"/>
 		<echo message="${doc.version.full.string}" file="${doc.buildpath}/versionfull.tex"/>
 		
+		<delete>
+			<!-- Delete any stray PDFs we may have created -->
+			<fileset dir="${doc.buildpath}" includes="*.pdf"/>
+		</delete>
 		
-		<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" output="${doc.buildpath}/options-ref.tex">
+		
+		<!-- Something with the warning we generate has caused this to require forking, no idea why -->
+		<!--<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" fork="true" output="${doc.buildpath}/options-ref.tex">
+		</java>-->
+		
+		<java classname="ca.ubc.cs.beta.aclib.options.docgen.OptionsToLaTeX" failonerror="true" classpathref="build.classpath" fork="true">
+					<arg value="--class"/>
+					<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+					<arg value="--file-to-write"/>
+					<arg value="${doc.buildpath}/options-basic-ref.tex"/>
+					<arg value="--level"/>
+					<arg value="BASIC"/>
+					<arg value="--aliases"/>
+					<arg value="false"/>
 		</java>
+				
+		
+		<java classname="ca.ubc.cs.beta.aclib.options.docgen.OptionsToLaTeX" failonerror="true" classpathref="build.classpath" fork="true">
+					<arg value="--class"/>
+					<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+					<arg value="--file-to-write"/>
+					<arg value="${doc.buildpath}/options-ref.tex"/>	
+		</java>
+						
+		
+		
+		
 		<!-- We do everything twice to generate some the toc and stuff I'm sure someone else knows how to do this properly -->
-					
+		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
+			<arg value="manual.tex"/>
+		</exec>
+				
+		<echo></echo>
+		<echo>Manual Phase 1 Complete</echo>
+		<echo></echo>
+		
+		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
+					<arg value="manual.tex"/>
+		</exec>
+			
+		<echo></echo>
+		<echo>Manual Phase 2 Complete</echo>
+		<echo></echo>
+		
+		
+		
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 			<arg value="faq.tex"/>
 		</exec>
@@ -275,21 +421,6 @@
 		<echo>Quickstart Phase 2 Complete</echo>
 		<echo></echo>
 		
-		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
-					<arg value="manual.tex"/>
-		</exec>
-		
-		<echo></echo>
-		<echo>Manual Phase 1 Complete</echo>
-		<echo></echo>
-		
-		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
-					<arg value="manual.tex"/>
-		</exec>
-			
-		<echo></echo>
-		<echo>Manual Phase 2 Complete</echo>
-		<echo></echo>
 		
 		<!-- For some reason a file-formats.pdf gets built we will nuke it -->
 		<delete file="${doc.buildpath}/file-formats.pdf" failonerror="true"/>

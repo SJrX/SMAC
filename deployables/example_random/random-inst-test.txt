@@ -1,5 +1,0 @@
-TestInstance1
-TestInstance2
-TestInstance3
-TestInstance4
-TestInstance5

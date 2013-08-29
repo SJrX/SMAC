@@ -1,3 +1,5 @@
+\documentclass[manual.tex]{subfiles} 
+\begin{document}
 \section{Introduction}\label{sec:intro}
 
 This document is the manual for SMAC~\cite{HutHooLey11-SMAC} (an acronym for \emph{Sequential Model-based Algorithm Configuration}). SMAC aims to solve the following \emph{algorithm configuration} problem: Given a binary of a parameterized algorithm $\mathcal{A}$, a set of instances $\mathcal{S}$ of the problem $\mathcal{A}$ solves, and a performance metric $m$, find parameter settings of $\mathcal{A}$ optimizing $m$ across $\mathcal{S}$.
@@ -24,7 +26,12 @@ Academic \& non-commercial usage is permitted free of charge. Please contact us 
 
 \subsection{System Requirements}
 
-SMAC itself requires only Java 6 \footnote{Sun Java version 1.6.0\_23 or later recommended} or newer to run. The included scripts are currently only available for Unix-compatible operating systems. The included example scenarios require Ruby. 
+SMAC itself requires only Java 6 \footnote{Sun Java version 1.6.0\_23 or later recommended} or newer to run. 
+
+SMAC is primarily intended to run on Unix like platforms, but now includes start up scripts so that it can run on Windows. In all the examples below you should add \texttt{.bat} to the end of every executable, for instance \texttt{./smac --scenario-file scen.txt --seed 1} becomes \texttt{smac.bat --scenario-file scen.txt --seed 1}.
+
+Most of the included scenarios (in \texttt{./example\_scenarios/} require ruby and Linux 32-bit libraries to run. The scenarios in \texttt{./example\_scenarios/analytic/} use optimize functions internal to smac and are completely cross platform. There is one scenario for windows available currently in\texttt{example\_scenarios\textbackslash saps\textbackslash\saps-scenario-windows.txt}.
+
 
 \subsection{Version}
 This version of the manual is for SMAC \input{versionfull}$\!\!$.
@@ -35,3 +42,4 @@ This version of the manual is for SMAC \input{versionfull}$\!\!$.
 
 %\subsection{Included Example Scenarios}
 %\note{FH: TODO after we decide what to include}
+\end{document}
