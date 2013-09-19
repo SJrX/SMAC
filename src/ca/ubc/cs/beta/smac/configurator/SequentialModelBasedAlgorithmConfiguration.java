@@ -1,7 +1,6 @@
 package ca.ubc.cs.beta.smac.configurator;
 
 import java.util.ArrayList;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -10,15 +9,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.ubc.cs.beta.aclib.acquisitionfunctions.AcquisitionFunction;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
-
-import ca.ubc.cs.beta.aclib.expectedimprovement.ExpectedImprovementFunction;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
@@ -67,14 +66,14 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	 */
 	private SanitizedModelData sanitizedData;
 	
-	private final ExpectedImprovementFunction ei;
+	private final AcquisitionFunction ei;
 	
 	
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
 	
 	private final RunHistory modelRunHistory;
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, ExpectedImprovementFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH) {
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH) {
 		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
@@ -342,7 +341,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//=== Compute EI of these configurations (as given by predmean,predvar)
 		
 		StopWatch watch = new AutoStartStopWatch();
-		double[] negativeExpectedImprovementOfTheta = ei.computeNegativeExpectedImprovement(fmin, predmean, predvar);
+		double[] negativeExpectedImprovementOfTheta = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar);
 		
 
 		watch.stop();
@@ -441,7 +440,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		log.debug("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
-		double[] expectedImprovementOfRandoms = ei.computeNegativeExpectedImprovement(fmin, predmean, predvar);
+		double[] expectedImprovementOfRandoms = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar);
 		log.debug("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
 		for(int i=0; i <  randomConfigs.size(); i++)
@@ -569,7 +568,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];
 			double[] vars = prediction[1];
-			double[] eiVal = ei.computeNegativeExpectedImprovement(fmin_sample, means, vars); 
+			double[] eiVal = ei.computeAcquisitionFunctionValue(fmin_sample, means, vars); 
 			
 			//=== Determine EI of best neighbour.
 			double min = eiVal[0];
@@ -611,7 +610,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				double[] mean = predictions[0];
 				double[] var = predictions[1];
 				
-				eiVal = ei.computeNegativeExpectedImprovement(fmin_sample, mean, var);
+				eiVal = ei.computeAcquisitionFunctionValue(fmin_sample, mean, var);
 				Object[] args = {eiVal[0], mean[0], var[0]};
 				log.trace("Expected improvement for next step is {} mean={}, var={}",args);
 				
