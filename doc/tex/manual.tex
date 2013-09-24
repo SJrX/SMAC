@@ -179,8 +179,13 @@ Value & Error Name & Description \\
 					 \item New \textbf{-$~\!$-validation-seed} option should cause the validation at the end of SMAC to behave the same as the stand-alone utility.
                   \end{enumerate}
 
-
-		
+			\item[Version 2.06.01 (Sep-2013)] Minor Bug Fix of Java SMAC
+	              \begin{enumerate}
+                     \item Default acquisition function for solution quality optimization is now Expected Improvement (instead of Exponential Expected Improvement).
+                     \item Fixed exception if Scenario file doesn't have extension.
+                     \item New option \textbf{-$~\!$-terminate-on-delete} will cause SMAC to abort the procedure before the next set of runs (as if it had hit it's CPU time limit) if the file specified is deleted.
+                     \item New option \textbf{-$~\!$-kill-runs-on-file-delete} will cause SMAC to kill any runs in progress . This option should be used with care, as it may cause SMAC to select the wrong incumbent, and it should always be used with \textbf{-$~\!$-terminate-on-delete}.
+                  \end{enumerate}
 	\end{description}
 \subsection{Known Issues}
 
@@ -188,6 +193,8 @@ Value & Error Name & Description \\
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
+\item Auto detecting of iterations break if some runs and results files are missing
+\item ArrayOutOfBoundsException occurs if not all instances have features
 \end{enumerate}
 
 \clearpage
