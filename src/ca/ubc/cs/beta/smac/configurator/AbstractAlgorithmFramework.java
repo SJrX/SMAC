@@ -186,6 +186,11 @@ public class AbstractAlgorithmFramework {
 		}*/
 		this.configTracker = originTracker;
 		this.initProc = initProc;
+		
+		if(options.saveRunsEveryIteration && options.scenarioConfig.algoExecOptions.cutoffTime <= 600)
+		{
+			log.warn("Saving runs every iteration is discouraged for small cap times and may cause a significant amount of overhead due to file I/O.");
+		}
 	}
 
 	
@@ -305,7 +310,8 @@ public class AbstractAlgorithmFramework {
 	
 	private void saveState()
 	{
-		saveState("it",(((iteration - 1) & iteration) == 0));
+		//The math is only true on perfect powers of 2. 
+		saveState("it",(((iteration - 1) & iteration) == 0) || options.saveRunsEveryIteration);
 	}
 
 	private void saveState(String id, boolean saveFullState) {
