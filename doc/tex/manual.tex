@@ -179,12 +179,16 @@ Value & Error Name & Description \\
 					 \item New \textbf{-$~\!$-validation-seed} option should cause the validation at the end of SMAC to behave the same as the stand-alone utility.
                   \end{enumerate}
 
-			\item[Version 2.06.01 (Sep-2013)] Minor Bug Fix of Java SMAC
+			\item[Version 2.06.01 (Oct-2013)] Minor Bug Fix of Java SMAC
 	              \begin{enumerate}
                      \item Default acquisition function for solution quality optimization is now Expected Improvement (instead of Exponential Expected Improvement).
                      \item Fixed exception if Scenario file doesn't have extension.
                      \item New option \textbf{-$~\!$-terminate-on-delete} will cause SMAC to abort the procedure before the next set of runs (as if it had hit it's CPU time limit) if the file specified is deleted.
                      \item New option \textbf{-$~\!$-kill-runs-on-file-delete} will cause SMAC to kill any runs in progress . This option should be used with care, as it may cause SMAC to select the wrong incumbent, and it should always be used with \textbf{-$~\!$-terminate-on-delete}.
+                     \item New option \textbf{-$~\!$-save-runs-every-iteration} will cause SMAC to output the runs and results file necessary to restore state every run. This is useful if your cluster or environment is particularly unreliable. It should \textsc{NOT} be used when runtimes in the scenario can grow very small as the amount of time SMAC will spend writing to disk loosely \footnote{Assuming the number of iterations scales linearly with the number of runs.} changes from $O(n)$ to $O(n^2)$, where $n$ is the number of runs it performs.
+                     \item If SMAC is shutting down for an unexpected reason (e.g. \texttt{OutOfMemoryError} ,or itreceived a \texttt{SIGTERM}), SMAC will now try its best to write a final batch of state data with the "SHUTDOWN" prefix. \\
+                      \textsc{Note:} This state may be corrupted for a variety of reasons, and even if it is written correctly you may not be able to restore it properly as the snap shot may be from the middle of an iteration.
+                     \item Fixed typo in error message that mistakenly reported that instances where missing, when in fact it was the test instances that were missing.                     
                   \end{enumerate}
 	\end{description}
 \subsection{Known Issues}
@@ -193,7 +197,7 @@ Value & Error Name & Description \\
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
-\item Auto detecting of iterations break if some runs and results files are missing
+\item Auto detecting of iterations break if some runs and results files are missing, the work around is to remove some of the .obj files that don't have a runs and results file that is greater than or equal to them. (The quick object files internally store there iteration, and you'd have to check the logs to see what they correspond to).
 \item ArrayOutOfBoundsException occurs if not all instances have features
 \end{enumerate}
 
