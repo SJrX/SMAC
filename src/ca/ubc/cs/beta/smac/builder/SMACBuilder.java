@@ -4,11 +4,12 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import com.beust.jcommander.ParameterException;
 
+import ca.ubc.cs.beta.aclib.acquisitionfunctions.AcquisitionFunctions;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
@@ -31,7 +32,6 @@ import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.options.scenario.ScenarioOptions;
-
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
@@ -112,6 +112,9 @@ public class SMACBuilder {
 				break;
 			case QUALITY:
 				options.randomForestOptions.logModel = false;
+			default:
+				//You need to add something new here
+				throw new IllegalStateException("Not sure what to default too");
 			}
 		}
 		
@@ -188,6 +191,55 @@ public class SMACBuilder {
 				ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
 				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
 				break;
+		}
+		
+		
+		
+		
+		
+		
+		
+		if(options.expFunc == null)
+		{
+			switch(options.scenarioConfig.runObj)
+			{
+			case RUNTIME:
+				options.expFunc = AcquisitionFunctions.EXPONENTIAL;
+				break;
+			case QUALITY:
+				options.expFunc = AcquisitionFunctions.EI;
+				break;
+			default:
+				//You need to add something new here
+				throw new IllegalStateException("Not sure what to default too");
+				
+			}
+		}
+		
+		
+		
+		
+		switch(options.expFunc)
+		{
+			case EXPONENTIAL:
+				if(!options.randomForestOptions.logModel)
+				{
+					log.warn("With log model turned off the exponential expected improvement function is not recommended, use: " + AcquisitionFunctions.EI);
+				}
+			break;
+			case EI:
+				if(options.randomForestOptions.logModel)
+				{
+					log.warn("With log model turned on the expected improvement function is not recommended, use: " + AcquisitionFunctions.EXPONENTIAL);
+				} 
+			break;
+			case SIMPLE:
+				log.warn("The simple acquisition function is never recommended");
+				break;
+			case LCB:
+				break;
+			default:
+				throw new IllegalStateException("Not sure what to default too");
 		}
 		
 		

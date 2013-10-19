@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,6 +122,20 @@ public class AbstractAlgorithmFramework {
 	
 	private final InitializationProcedure initProc; 
 	
+	
+	/**
+	 * Controls whether the shutdown hook should attempt to write the state to disk
+	 * 
+	 * By default it is false, and then after the initialization phase we set it to true.
+	 * Once we write the final state to disk (either because we are done or CRASHED), we set it back to false
+	 * 
+	 * The shutdown hook then checks this value and writes to disk if true.
+	 * 
+	 * 
+	 */
+	private final AtomicBoolean shouldWriteStateOnCrash = new AtomicBoolean(false);
+	
+	
 	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc )
 	{
 		this.instances = instances;
@@ -186,6 +201,28 @@ public class AbstractAlgorithmFramework {
 		}*/
 		this.configTracker = originTracker;
 		this.initProc = initProc;
+		
+		if(options.saveRunsEveryIteration && options.scenarioConfig.algoExecOptions.cutoffTime <= 600)
+		{
+			log.warn("Saving runs every iteration is discouraged for small cap times and may cause a significant amount of overhead due to file I/O.");
+		}
+		
+		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+		{
+
+			@Override
+			public void run() {
+				if(shouldWriteStateOnCrash.get())
+				{
+					log.info("Making best attempt to save state. This state may be dirty, in that it was taken in the middle of an iteration and consequently may not be restorable. It may also be corrupt depending on the exact reason we are shutting down.");
+					saveState("SHUTDOWN",true);
+				} else
+				{
+					log.debug("State Saved Already, Skipping Shutdown Version");
+				}
+			}
+			
+		}));
 	}
 
 	
@@ -305,10 +342,11 @@ public class AbstractAlgorithmFramework {
 	
 	private void saveState()
 	{
-		saveState("it",(((iteration - 1) & iteration) == 0));
+		//The math is only true on perfect powers of 2. 
+		saveState("it",(((iteration - 1) & iteration) == 0) || options.saveRunsEveryIteration);
 	}
 
-	private void saveState(String id, boolean saveFullState) {
+	private synchronized void saveState(String id, boolean saveFullState) {
 		StateSerializer state = stateFactory.getStateSerializer(id, iteration);
 		
 		//state.setPRNG(RandomPoolType.SEEDABLE_RANDOM_SINGLETON, SeedableRandomSingleton.getRandom());
@@ -389,6 +427,8 @@ public class AbstractAlgorithmFramework {
 		this.evtManager.flush();
 		
 	}
+	
+	
 	/**
 	 * Actually performs the Automatic Configuration
 	 */
@@ -424,7 +464,9 @@ public class AbstractAlgorithmFramework {
 				try{
 					while(!have_to_stop(iteration+1))
 					{
+						shouldWriteStateOnCrash.set(true);
 						if(shouldSave()) saveState();
+						
 						
 						runHistory.incrementIteration();
 						iteration++;
@@ -457,6 +499,7 @@ public class AbstractAlgorithmFramework {
 				
 				
 				saveState("it", true);
+				shouldWriteStateOnCrash.set(false);
 				
 				log.info("SMAC Completed");
 				
@@ -470,6 +513,7 @@ public class AbstractAlgorithmFramework {
 			{
 				try{
 					saveState("CRASH",true);
+					shouldWriteStateOnCrash.set(false);
 				} catch(RuntimeException e2)
 				{
 					log.error("SMAC has encountered an exception, and encountered another exception while trying to save the local state. NOTE: THIS PARTICULAR ERROR DID NOT CAUSE SMAC TO FAIL, the original culprit follows further below. (This second error is potentially another / seperate issue, or a disk failure of some kind.) When submitting bug/error reports, please include enough context for *BOTH* exceptions \n  ", e2);
