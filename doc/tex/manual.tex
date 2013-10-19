@@ -195,6 +195,7 @@ Value & Error Name & Description \\
 \subsection{Known Issues}
 
 \begin{enumerate}
+\item The state merge utility may crash if merging runs that don't have a run for every instance.
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
