@@ -62,29 +62,22 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 
 \section{Usage Questions}
 
-\subsection{Can I run SMAC on Windows?}
+\subsection{System Compatibility}
+\subsubsection{Can I run SMAC on Windows?}
 
 	We have done our best to ensure that SMAC works on windows. SMAC includes \texttt{.bat} files for execution that behave similarly to the unix shell scripts. Most wrappers require that you have ruby (which is available from: ruby http://rubyinstaller.org/). 
 	
 	Most of the included scenarios will not work but those in the \texttt{analytic} folder and the \\texttt{saps/saps-scenario-windows.txt} should work out of the box.
 
-\subsection{Can I run SMAC on Mac OS X or other Unix environments?}
+\subsubsection{Can I run SMAC on Mac OS X or other Unix environments?}
 
 	SMAC should work on any Unix environment that supports Java 6. Unfortunately the only scenarios that are completely portable are those in the analytic folder.
+ 
+ 
  
 \subsection{I don't have any instance features, is there any benefit I can get from running SMAC?}
 
 	Yes, SMAC can also run without features, and sometimes continues to show state-of-the-art performance. Additionally, we have noticed that the performance of the default configuration on all instances is a good instance feature in many situations.
-
-\subsection{How do I use the preliminary bash auto-completion with SMAC?}
-
-	You can load the auto completion information by running "\texttt{. ./util/bash\_autocomplete.sh}" at a bash prompt. For instance:
-\begin{verbatim}
-$. ./util/bash_autocomplete.sh
-\end{verbatim}
-
-	
-	
 
 
 \subsection{Validation}
@@ -107,8 +100,9 @@ $. ./util/bash_autocomplete.sh
 
 If you are using the supplied shell scripts, you can set the SMAC\_MEMORY environment variable to a positive integer corresponding to amount of memory in MB SMAC will use. If you are using some other mechanism of execution, the \texttt{-Xmx} java option is the only other way.
 
+\subsection{Parameter Configuration Space Questions}
 
-\subsection{Should I make a parameter categorical or numeric integral?}
+\subsubsection{Should I make a parameter categorical or numeric integral?}
 
 	Numeric integral parameters are internally treated as numeric continuous parameters, and only when a call to the target algorithm is made, is the value rounded to an integer. 
 	
@@ -122,7 +116,13 @@ If you are using the supplied shell scripts, you can set the SMAC\_MEMORY enviro
 	To help inform the decision, from a SMAC internal point of view there are two places in the code where this distinction will matter. The first is during neighbourhood searches. All numeric parameters will only have 4 neighbours selected, and those neighbours will be sampled from a distribution $N(\mu, 0.2)$ where $\mu$ is the existing (\emph{standardized} to [0, 1]) value. Any samples that fall outside of this range will be rejected.
 	
 	The next distinction is within the random forest itself. Categorical values can be split arbitrarily but numeric values are always split at some constant $c$, with values $>$ than $c$ going to the right, and values $\leq$ going to the left.
-		
+
+\subsubsection{How should I encode a parameter interdependency in a PCS file (for example $0 < a < b < 10$)?}
+
+	In the above case the best way to handle it, is probably to encode the parameters differently. For instance in the above, encoding the parameter $b$ as normal (that is $b$ [0,10] [5]i) for instance. Then for the $a$ parameter instead encode $aScaleOfb$ [0,1.0] [0.5]i.  The idea is that you simply scale the value of $b$ between 0 and 100\% to get the value of $a$. For example, it would take the value of $b$ say 8, and the value of $aScaleOfb$ say 0.25 and then pass to the algorithm the decoded value of $a$ as $8\times0.25=2$.
+
+	Using forbidden parameters in the PCS file is discouraged, as SMAC must loop over each of the settings for each configuration it generates, and it may slow SMAC down immensely. If the relation is particularly complicated, or the above doesn't work for some other reason then modifying the code to encode the relation in a more compact form is certainly feasible..
+
 \subsection{Saving and Restoring State}
 
 \subsubsection{Can I continue a finished run of SMAC (\eg{, after a crash or running out of time})?}
@@ -144,6 +144,15 @@ If you are using the supplied shell scripts, you can set the SMAC\_MEMORY enviro
 \subsubsection{Can I change the settings of SMAC when restoring state (\eg{,add more instances, change objectives})?}
 
 	Yes, the only thing that is restored with the state is the runs, and the state of the random objects. Everything else comes from the configuration supplied. You may want to look at the source code of \texttt{LegacyStateDeserializer} to see exactly what can be changed and what can't. \textsc{Note:} some invariants of SMAC may no longer be in force, and care must be taken. The incumbent may no longer be the best found under the new objectives, and/or the incumbent may no longer have the most number of runs \footnote{If you don't include the \texttt{java\_obj\_dump} file the incumbent should be recalculated for you. The calculated incumbent will be the one that has the most runs, and performs the best on the objective. Additionally you also lose the random object state.}. 
+	
+
+\subsection{How do I use the preliminary bash auto-completion with SMAC?}
+
+	You can load the auto completion information by running "\texttt{. ./util/bash\_autocomplete.sh}" at a bash prompt. For instance:
+\begin{verbatim}
+$. ./util/bash_autocomplete.sh
+\end{verbatim}
+
 
 \section{Target Algorithm \& Wrapper Questions}
 
