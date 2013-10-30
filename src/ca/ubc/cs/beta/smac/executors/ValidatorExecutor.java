@@ -294,7 +294,7 @@ public class ValidatorExecutor {
 					options.scenarioConfig.interInstanceObj,
 					tfes,
 					options.seedOptions.numRun,
-					options.waitForPersistedRunCompletion);
+					options.waitForPersistedRunCompletion, execConfig);
 			
 			} finally
 			{

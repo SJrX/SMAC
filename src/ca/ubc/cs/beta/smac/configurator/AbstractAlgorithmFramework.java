@@ -41,6 +41,7 @@ import ca.ubc.cs.beta.aclib.eventsystem.events.state.StateRestoredEvent;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.exceptions.OutOfTimeException;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.misc.MapList;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
@@ -135,13 +136,16 @@ public class AbstractAlgorithmFramework {
 	 */
 	private final AtomicBoolean shouldWriteStateOnCrash = new AtomicBoolean(false);
 	
+	private final AlgorithmExecutionConfig execConfig;
 	
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc )
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfig execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc )
 	{
 		this.instances = instances;
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
 		this.options = smacOptions;
 				
+		this.execConfig = execConfig;
+		
 		this.tae = algoEval;
 		this.stateFactory = stateFactory;
 		this.configSpace = configSpace;
@@ -615,7 +619,7 @@ public class AbstractAlgorithmFramework {
 		
 		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
 	
-		RunConfig runConfig = new RunConfig(pisp, cutoffTime, incumbent);
+		RunConfig runConfig = new RunConfig(pisp, cutoffTime, incumbent, execConfig);
 	
 		String cmd = tae.getManualCallString(runConfig);
 		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
@@ -904,7 +908,7 @@ public class AbstractAlgorithmFramework {
 		
 		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
 		
-		RunConfig config = new RunConfig(pisp, cutoffTime, challenger);
+		RunConfig config = new RunConfig(pisp, cutoffTime, challenger, execConfig);
 		
 		String cmd = tae.getManualCallString(config);
 		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
@@ -1010,7 +1014,7 @@ public class AbstractAlgorithmFramework {
 	protected RunConfig getRunConfig(ProblemInstanceSeedPair pisp, double cutofftime, ParamConfiguration configuration)
 	{
 		
-		RunConfig rc =  new RunConfig(pisp, cutofftime, configuration );
+		RunConfig rc =  new RunConfig(pisp, cutofftime, configuration, execConfig);
 		log.trace("RunConfig generated {}", rc);
 		return rc;
 	}
@@ -1020,7 +1024,7 @@ public class AbstractAlgorithmFramework {
 			ProblemInstanceSeedPair pisp, double capTime,
 			ParamConfiguration challenger) {
 		
-		RunConfig rc =  new RunConfig(pisp, capTime, challenger, true );
+		RunConfig rc =  new RunConfig(pisp, capTime, challenger, execConfig );
 		log.trace("RunConfig generated {}", rc);
 		return rc;
 	}

@@ -184,12 +184,12 @@ public class SMACBuilder {
 		switch(options.initializationMode)
 		{
 			case CLASSIC:
-				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering);
+				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, execConfig);
 				break;
 			case ITERATIVE_CAPPING:
 			default:
 				ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
-				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
+				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper, execConfig);
 				break;
 		}
 		
@@ -246,11 +246,11 @@ public class SMACBuilder {
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc);
+				smac = new AbstractAlgorithmFramework(options,execConfig, instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc);
 				break;
 			case SMAC:
 				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, execConfig, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel);
 				break;
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");

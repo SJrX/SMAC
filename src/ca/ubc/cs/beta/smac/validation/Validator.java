@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.SortedMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,7 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -67,7 +69,7 @@ public class Validator {
 public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
 		final String outputDir,
 		final RunObjective runObj,
-		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns) 
+		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, AlgorithmExecutionConfig execConfig) 
 		{
 
 		int testInstancesCount = Math.min(options.numberOfTestInstances, testInstances.size());
@@ -218,7 +220,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		tfesToRun.addAll(tfesToUse);
 		
 		
-		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime);
+		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime,execConfig);
 		
 		
 		log.info("Validation needs {} algorithm runs  to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
@@ -362,7 +364,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 
 
 
-private List<RunConfig> getRunConfigs(List<TrajectoryFileEntry> tfes, List<ProblemInstanceSeedPair> pisps, double cutoffTime) 
+private List<RunConfig> getRunConfigs(List<TrajectoryFileEntry> tfes, List<ProblemInstanceSeedPair> pisps, double cutoffTime, AlgorithmExecutionConfig execConfig) 
 {
 	
 	Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
@@ -378,7 +380,7 @@ private List<RunConfig> getRunConfigs(List<TrajectoryFileEntry> tfes, List<Probl
 	{
 		for(ProblemInstanceSeedPair pisp : pisps)
 		{
-			runConfigs.add(new RunConfig(pisp, cutoffTime,config));
+			runConfigs.add(new RunConfig(pisp, cutoffTime,config,execConfig));
 		}
 	}
 	
