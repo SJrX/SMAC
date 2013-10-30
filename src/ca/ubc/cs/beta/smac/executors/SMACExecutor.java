@@ -147,7 +147,7 @@ public class SMACExecutor {
 				
 				options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
 				
-				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
+				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts,  false, taeOptions);
 				try {
 					
 					List<ProblemInstance> testInstances = testingILWS.getInstances();

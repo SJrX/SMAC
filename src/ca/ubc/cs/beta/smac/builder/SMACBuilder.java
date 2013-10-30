@@ -144,7 +144,7 @@ public class SMACBuilder {
 		
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 		
-		TargetAlgorithmEvaluator tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator(execConfig, taeOptions, outputDir, options.seedOptions.numRun);
+		TargetAlgorithmEvaluator tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator( taeOptions, outputDir, options.seedOptions.numRun);
 		
 		AbstractAlgorithmFramework smac;
 
