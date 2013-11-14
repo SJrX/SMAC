@@ -46,7 +46,25 @@ each parameter is:\\
 
 \end{description}
 
-All of the arguments above will always be passed, even if they are inapplicable, in which case a dummy value will be passed.
+All of the arguments above will always be passed, even if they are inapplicable, in which case a dummy value will be passed. \\
+\subsubsection*{Environment Variables}
+Recent versions of SMAC also set the following environment variables, which shouldn't be considered input to the solver but  relate to the execution in some way. When implementing your wrapper you can entirely disregard this section unless you need some advanced features.
+
+\begin{center}
+\begin{tabular}{| c | p{10cm} |}
+\hline
+\textbf{Environment Variable} & \textbf{Purpose} \\
+\hline
+\textbf{ ACLIB\_CONCURRENT\_TASK\_ID } &  A zero indexed value of which concurrent run SMAC is executing. No two concurrent runs will see the same value, but subsequent runs will see the same value. This is mainly intended to allow the wrapper to manage CPU affinities. \\
+\hline 
+\textbf{ ACLIB\_PORT} & The wrapper can send in progress up dates to SMAC to the localhost via UDP on this port. The message format is a single double value. While SMAC doesn't directly use this presently, other utilities such as \texttt{algo-test} do, and future versions may, and some advanced options may preform better with this set. \\
+\hline 
+\textbf{ ACLIB\_CPU\_TIME\_FREQUENCY } & Signifies how often updates to the runtime should be sent. This is only a hint, and roughly should be treated as: there is no point in sending updates more frequently than this value in seconds. \\
+\hline
+\end{tabular}
+\end{center}
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Output}\label{sec:wrapper_output}

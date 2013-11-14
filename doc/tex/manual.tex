@@ -191,6 +191,11 @@ Value & Error Name & Description \\
                       \textsc{Note:} This state may be corrupted for a variety of reasons, and even if it is written correctly you may not be able to restore it properly as the snap shot may be from the middle of an iteration.
                      \item Fixed typo in error message that mistakenly reported that instances where missing, when in fact it was the test instances that were missing.                     
                   \end{enumerate}
+                  
+          \item[Version 2.06.02 (TBD)] Minor Bug Fix Release of Java SMAC
+          	\begin{enumerate}
+          		\item Environment variable \textbf{ACLIB\_CONCURRENT\_TASK\_ID} is now set when executing the wrapper, containing an index into the number of concurrent jobs. This is primarily used to allow the wrapper to determine CPU affinities correctly. See the wrapper section for more information.
+          	\end{enumerate}
 	\end{description}
 \subsection{Known Issues}
 
