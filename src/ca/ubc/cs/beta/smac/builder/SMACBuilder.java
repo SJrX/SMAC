@@ -165,7 +165,7 @@ public class SMACBuilder {
 		
 
 		
-		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime());
+		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime(),tae);
 		termCond.registerWithEventManager(eventManager);	
 		eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
@@ -252,6 +252,8 @@ public class SMACBuilder {
 				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
 				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel);
 				break;
+			case PSEL:
+				throw new ParameterException("This version of SMAC does not support " + options.execMode + " at this time");
 			default:
 				throw new IllegalArgumentException("Execution Mode Specified is not supported");
 		}
