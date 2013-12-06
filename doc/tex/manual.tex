@@ -195,6 +195,10 @@ Value & Error Name & Description \\
           \item[Version 2.06.02 (TBD)] Minor Bug Fix Release of Java SMAC
           	\begin{enumerate}
           		\item Environment variable \textbf{ACLIB\_CONCURRENT\_TASK\_ID} is now set when executing the wrapper, containing an index into the number of concurrent jobs. This is primarily used to allow the wrapper to determine CPU affinities correctly. See the wrapper section for more information.
+          		\item Runtime Statistics are now printed less often
+          		\item New Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come).
+
+
           	\end{enumerate}
 	\end{description}
 \subsection{Known Issues}

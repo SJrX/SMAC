@@ -199,7 +199,19 @@ projects.
 \item [{Native~Libraries~Augmentation}] Libraries exist (See: \textbf{TBD}) for C and Java currently that facilitate adding the required functionality directly to the code. While
 parsing the arguments into the necessary data structures is still required, they do manage the timing and output requirements in most cases. Unlike the previous approach however, certain crashes may not allow the the values to be outputted (\eg{ a segmentation fault occurs}).
 
+\item [Inter~Process~Communication] Introduced in SMAC v2.06.02, the \textbf{IPC} TAE can be selected via the \textbf{-$~\!$-tae} option. It will essentially use various forms of interprocess communication to notify some other process about the run to do, and will wait for it to respond. Presently the only existing mechanism is over UDP, but other methods are possible. For example:
+
+\begin{verbatim}
+./smac --scenario-file <file> --seed 1 --tae IPC 
+--ipc-mechanism UDP --ipc-remote-port 5050 
+--ipc-remote-host localhost
+\end{verbatim}
+
+Will use sent the required information to localhost on port 5050. It will then wait for a response, and parse that response as a string. For more details see the section "Inter-Process Communication Target Algorithm Evaluator Options", in the appendix.
+
+
 \item [{Target~Algorithm~Evaluators}]	This is probably the most powerful, but also the most complicated approach. SMAC is architected in a way that makes it fairly simple to replace the mechanism for execution with something completely custom. This can be done without even recompiling SMAC by creating a new implementation of the \texttt{TargetAlgorithmEvalutor} interface, which is responsible for converting run requests (\texttt{RunConfig} objects) into run results (\texttt{AlgorithmRun} objects). Both the input and output objects are simple \emph{Value Objects} so the coupling between SMAC and the rest of your code is almost zero with this approach.  For more information see \ref{sec:target-algorithm-evaluators}
+
 
 \end{description}
 \end{document}

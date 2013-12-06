@@ -27,6 +27,7 @@ import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.initialization.classic.ClassicInitializationProcedure;
 import ca.ubc.cs.beta.aclib.initialization.doublingcapping.DoublingCappingInitializationProcedure;
+import ca.ubc.cs.beta.aclib.initialization.table.UnbiasChallengerInitializationProcedure;
 import ca.ubc.cs.beta.aclib.objectives.ObjectiveHelper;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
@@ -181,16 +182,25 @@ public class SMACBuilder {
 		
 		InitializationProcedure initProc;
 		
+		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
+		
 		switch(options.initializationMode)
 		{
 			case CLASSIC:
+				
 				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering);
 				break;
+			
 			case ITERATIVE_CAPPING:
-			default:
-				ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
 				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
 				break;
+				
+			case UNBIASED_TABLE:
+				initProc = new UnbiasChallengerInitializationProcedure(rh, initialIncumbent, acTae, options.ucip, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
+				break;
+				
+			default:
+				throw new IllegalStateException("Not sure what this initialization mode is");
 		}
 		
 		
