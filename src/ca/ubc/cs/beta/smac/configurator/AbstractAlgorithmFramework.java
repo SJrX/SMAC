@@ -33,6 +33,7 @@ import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
@@ -687,6 +688,9 @@ public class AbstractAlgorithmFramework {
 	{
 		fireEvent(new ChallengeStartEvent(termCond, challenger));
 		this.challengeIncumbent(challenger, true);
+		
+		fireEvent(new ChallengeEndEvent(termCond, challenger, this.getIncumbent().equals(challenger), this.runHistory.getAlgorithmRunData(challenger).size()));
+		
 	}
 	
 	/**
