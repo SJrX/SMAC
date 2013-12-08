@@ -306,9 +306,9 @@ public class AbstractAlgorithmFramework {
 			this.instanceSeedGen.take(pisp.getInstance(), pisp.getSeed());
 		}
 		
-		if(runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).size() != allPisps.size())
+		if(runHistory.getProblemInstanceSeedPairsRan(incumbent).size() != allPisps.size())
 		{
-			throw new ParameterException("Incumbent has been run on "+ runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).size()+ " problem instance seed pair(s), but there have been a total of "+  allPisps.size() +" run. This generally means the state data used to restore SMAC needs to be repaired to preserve this invariant. Please run the state data through the state-merge utility to repair this invariant");
+			throw new ParameterException("Incumbent has been run on "+ runHistory.getProblemInstanceSeedPairsRan(incumbent).size()+ " problem instance seed pair(s), but there have been a total of "+  allPisps.size() +" run. This generally means the state data used to restore SMAC needs to be repaired to preserve this invariant. Please run the state data through the state-merge utility to repair this invariant");
 		}
 		
 		log.info("Incumbent Set To {}",incumbent);
@@ -613,7 +613,7 @@ public class AbstractAlgorithmFramework {
 		}
 		
 		
-		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
+		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();
 	
 		RunConfig runConfig = new RunConfig(pisp, cutoffTime, incumbent);
 	
@@ -746,8 +746,8 @@ public class AbstractAlgorithmFramework {
 			 * Get all the <instance,seed> pairs the incumbent has run (get them in a set).
 			 * Then remove all the <instance,seed> pairs the challenger has run on from that set.
 			 */
-			Set<ProblemInstanceSeedPair> sMissing = new HashSet<ProblemInstanceSeedPair>( runHistory.getAlgorithmInstanceSeedPairsRan(incumbent) );
-			sMissing.removeAll( runHistory.getAlgorithmInstanceSeedPairsRan(challenger) );
+			Set<ProblemInstanceSeedPair> sMissing = new HashSet<ProblemInstanceSeedPair>( runHistory.getProblemInstanceSeedPairsRan(incumbent) );
+			sMissing.removeAll( runHistory.getProblemInstanceSeedPairsRan(challenger) );
 
 			List<ProblemInstanceSeedPair> aMissing = new ArrayList<ProblemInstanceSeedPair>();
 			aMissing.addAll(sMissing);
@@ -794,8 +794,8 @@ public class AbstractAlgorithmFramework {
 				}
 				missingPlusCommon = new HashSet<ProblemInstance>();
 				missingPlusCommon.addAll(missingInstances);
-				Set<ProblemInstance> piCommon = runHistory.getInstancesRan(incumbent);
-				piCommon.retainAll( runHistory.getInstancesRan( challenger ));
+				Set<ProblemInstance> piCommon = runHistory.getProblemInstancesRan(incumbent);
+				piCommon.retainAll( runHistory.getProblemInstancesRan( challenger ));
 				missingPlusCommon.addAll(piCommon);
 				
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
@@ -856,53 +856,73 @@ public class AbstractAlgorithmFramework {
 				evaluateRun(runsToEval);
 				runsToEval.clear();
 			}
-						
-			//=== Get performance of incumbent and challenger on their common instances.
-			Set<ProblemInstance> piCommon = runHistory.getInstancesRan(incumbent);
-			piCommon.retainAll( runHistory.getInstancesRan( challenger ));
-			
-			double incCost = runHistory.getEmpiricalCost(incumbent, piCommon,cutoffTime);
-			double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
-			
-			Object args[] = {piCommon.size(), runHistory.getUniqueInstancesRan().size(), runHistory.getThetaIdx(challenger), challenger.getFriendlyIDHex(), chalCost,runHistory.getThetaIdx(incumbent),  incumbent, incCost  };
-			log.info("Based on {} common runs on (up to) {} instances, challenger {} ({})  has a lower bound {} and incumbent {} ({}) has obj {}",args);
-			
-			//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.		
-			if (incCost + Math.pow(10, -6)  < chalCost){
-				log.info("Challenger {} ({}) is worse; aborting its evaluation",  runHistory.getThetaIdx(challenger), challenger );
-				configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(challenger), "Continue=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
 				
-				break;
-			} else if (sMissing.isEmpty())
-			{	
-				if(chalCost < incCost - Math.pow(10,-6))
-				{
-					configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
-					changeIncumbentTo(challenger);
-				} else
-				{
-					configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
-					log.info("Challenger {} ({}) has all the runs of the incumbent, but did not outperform it", runHistory.getThetaIdx(challenger), challenger );
-					
-				}
-				
-				break;
+			
+			if(shouldContinueChallenge(challenger, sMissing))
+			{
+				N *= 2;
 			} else
 			{
-				configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getTotalNumRunsOfConfig(challenger), "Continue=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost,"RunsNeededLeft="+(runHistory.getTotalNumRunsOfConfig(incumbent)-runHistory.getTotalNumRunsOfConfig(challenger)));
-				N *= 2;
-				Object[] args3 = { runHistory.getThetaIdx(challenger), challenger, N};
-				log.trace("Increasing additional number of runs for challenger {} ({}) to : {} ", args3);
+				break;
 			}
+			
 		}
 	}
 	
+	/**
+	 * Checks whether we should continue the challenge or not.
+	 * 
+	 * @param challenger
+	 * @param outstandingPispSet
+	 * @return
+	 */
+	private boolean shouldContinueChallenge(ParamConfiguration challenger, Set<ProblemInstanceSeedPair> outstandingPispSet) {
+		
+		//=== Get performance of incumbent and challenger on their common instances.
+		Set<ProblemInstance> piCommon = runHistory.getProblemInstancesRan(incumbent);
+		piCommon.retainAll( runHistory.getProblemInstancesRan( challenger ));
+		
+		double incCost = runHistory.getEmpiricalCost(incumbent, piCommon,cutoffTime);
+		double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
+		
+		
+		log.info("Based on {} common runs on (up to) {} instances, challenger {}  has a lower bound {} and incumbent {} has obj {}",piCommon.size(), runHistory.getUniqueInstancesRan().size(), getConfigurationString(challenger), chalCost,getConfigurationString(incumbent), incCost );
+		
+		
+		//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.
+		if (incCost + Math.pow(10, -6)  < chalCost){
+			log.info("Challenger {} is worse; aborting its evaluation", getConfigurationString(challenger) );
+			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(challenger), "Continue=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
+			
+			return false;
+		} else if (outstandingPispSet.isEmpty())
+		{	
+			if(chalCost < incCost - Math.pow(10,-6))
+			{
+				configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
+				changeIncumbentTo(challenger);
+			} else
+			{
+				configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
+				log.info("Challenger {} has all the runs of the incumbent, but did not outperform it", getConfigurationString(challenger) );
+				
+			}
+			
+			return false;
+		} else
+		{
+			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getTotalNumRunsOfConfig(challenger), "Continue=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost,"RunsNeededLeft="+(runHistory.getTotalNumRunsOfConfig(incumbent)-runHistory.getTotalNumRunsOfConfig(challenger)));
+			
+			
+			return true;
+		}
+	}
 	
 
 	private void logConfiguration(String type, ParamConfiguration challenger) {
 		
 		
-		ProblemInstanceSeedPair pisp =  runHistory.getAlgorithmInstanceSeedPairsRan(incumbent).iterator().next();
+		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();
 		
 		RunConfig config = new RunConfig(pisp, cutoffTime, challenger);
 		
@@ -917,6 +937,72 @@ public class AbstractAlgorithmFramework {
 	private static double currentIncumbentCost;
 
 	private void changeIncumbentTo(ParamConfiguration challenger) {
+	
+		Set<ProblemInstanceSeedPair> earlyCensoredPISPs = this.runHistory.getEarlyCensoredProblemInstanceSeedPairs(challenger);
+		
+		Set<ProblemInstance> piCommon = runHistory.getProblemInstancesRan(incumbent);
+		piCommon.retainAll( runHistory.getProblemInstancesRan( challenger ));
+		
+		
+		if(earlyCensoredPISPs.size() > 0)
+		{
+			log.warn("Configuration {} which has been selected to replace the current incumbent {} has {} early censored runs. Future versions of SMAC will handle this case properly. For now we will simply repair the invariant manually by running all capped runs up to kappaMax. This warning can be safely ignored, it exists only so that this condition has some visibility (as SMAC could be improved by fixing this)", getConfigurationString(challenger), getConfigurationString(incumbent), earlyCensoredPISPs.size());
+			
+			
+			List<RunConfig> rcs = new ArrayList<RunConfig>();
+			
+			for(ProblemInstanceSeedPair pisp : earlyCensoredPISPs)
+			{
+				rcs.add(getRunConfig(pisp, cutoffTime, challenger));
+			}
+			
+			evaluateRun(rcs);
+			
+			
+			
+			double incCost = runHistory.getEmpiricalCost(incumbent, piCommon,cutoffTime);
+			double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
+			
+			if(chalCost < incCost - Math.pow(10,-6))
+			{
+				configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
+				log.info("Challenger {} has all the runs of the incumbent now, and did outperform it", getConfigurationString(challenger) );
+			} else
+			{
+				configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
+				log.info("Challenger {} has all the runs of the incumbent, but did not outperform it", getConfigurationString(challenger) );
+				return;
+			}
+			
+			
+		}
+		
+		earlyCensoredPISPs = this.runHistory.getEarlyCensoredProblemInstanceSeedPairs(challenger);
+
+		if(!earlyCensoredPISPs.isEmpty())
+		{
+			throw new IllegalStateException("Incumbent seemingly has capped runs:" + earlyCensoredPISPs );
+		}
+		
+		
+		double incCost = runHistory.getEmpiricalCost(incumbent, piCommon,cutoffTime);
+		double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
+		
+		
+		if(!runHistory.getProblemInstanceSeedPairsRan(incumbent).equals(runHistory.getProblemInstanceSeedPairsRan(challenger)))
+		{
+			log.debug("Incumbent Runs: {}", runHistory.getProblemInstanceSeedPairsRan(incumbent));
+			log.debug("Challenger Runs: {}", runHistory.getProblemInstanceSeedPairsRan(challenger));
+			
+			throw new IllegalStateException("The Incumbent "+ getConfigurationString(incumbent) + " has " + runHistory.getProblemInstanceSeedPairsRan(incumbent).size() +" problem instance seed pairs run, where as the challenger " + getConfigurationString(challenger) + " has " + runHistory.getProblemInstanceSeedPairsRan(challenger).size() + " problem instance seed pairs run. The corresponding sets are not equal");
+		}
+		
+		if(chalCost > (incCost - Math.pow(10,-6)))
+		{
+			throw new IllegalStateException("The Incumbent "+ getConfigurationString(incumbent) + " has performance " +incCost +" on currently available problem instance seed pairs, where as the challenger " + getConfigurationString(challenger) + " has " + chalCost + " performance currently. We expect that the chal cost + 10^-6 is less than the incumbent cost");
+		}
+		
+	
 		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
@@ -1106,5 +1192,11 @@ public class AbstractAlgorithmFramework {
 	{
 		return termCond.getTerminationReason();
 	}
+	
+	private String getConfigurationString(ParamConfiguration config)
+	{
+		return ((runHistory.getThetaIdx(config)!=-1) ? runHistory.getThetaIdx(config) + " (" + config.getFriendlyIDHex() + ")" :"(" +  config.getFriendlyIDHex() + ")");	
+	}
+	
 	
 }

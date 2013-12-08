@@ -184,7 +184,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		double[] runResponseValues = runHistory.getRunResponseValues();
-		boolean[] censored = runHistory.getCensoredFlagForRuns();
+		boolean[] censored = runHistory.getCensoredEarlyFlagForRuns();
 		if(smacConfig.mbOptions.maskCensoredDataAsKappaMax)
 		{
 			for(int j=0; j < runResponseValues.length; j++)
@@ -207,7 +207,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 	
 		//=== Sanitize the data.
-		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), runHistory.getCensoredFlagForRuns(), configSpace);
+		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), runHistory.getCensoredEarlyFlagForRuns(), configSpace);
 		
 		
 		if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
@@ -290,7 +290,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	public List<ParamConfiguration> selectChallengersWithEI(int numChallengers)
 	{
 		Set<ProblemInstance> instanceSet = new HashSet<ProblemInstance>();
-		instanceSet.addAll(runHistory.getInstancesRan(incumbent));
+		instanceSet.addAll(runHistory.getProblemInstancesRan(incumbent));
 		
 		//=== Get predictions for all configurations we have run thus far.
 		List<ParamConfiguration> paramConfigs = runHistory.getAllParameterConfigurationsRan();
