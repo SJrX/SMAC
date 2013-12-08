@@ -197,13 +197,13 @@ Value & Error Name & Description \\
           		\item Environment variable \textbf{ACLIB\_CONCURRENT\_TASK\_ID} is now set when executing the wrapper, containing an index into the number of concurrent jobs. This is primarily used to allow the wrapper to determine CPU affinities correctly. See the wrapper section for more information.
           		\item Runtime Statistics are now printed less often
           		\item New Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come).
-
-
+          		\item Implemented a work around to a bug where configurations with censored early runs could become the incumbent erroneously. It's still suboptimal, but in fact it probably would never happen. See Known Issue \#1 in section \ref{known-issues}.
           	\end{enumerate}
 	\end{description}
 \subsection{Known Issues}
-
+\label{known-issues}
 \begin{enumerate}
+\item In a rare case, configurations that are reinspected by SMAC after initially being rejected may continue their challenge when they otherwise shouldn't. If the configuration continues it's challenges successfully, prior to being the incumbent we will presently check all the runs, which is strictly more expensive than necessary.
 \item The state merge utility may crash if merging runs that don't have a run for every instance.
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
