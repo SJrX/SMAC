@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ca.ubc.cs.beta.aclib.acquisitionfunctions.AcquisitionFunction;
+import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
@@ -32,6 +33,7 @@ import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistoryHelper;
 import ca.ubc.cs.beta.aclib.runhistory.TeeRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
@@ -112,7 +114,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		runHistory = modelRunHistory;
 		
 		
-		if(runHistory.getAlgorithmRuns().size() == 0)
+		if(runHistory.getAlgorithmRunsExcludingRedundant().size() == 0)
 		{
 			throw new IllegalStateException("Expected one run to be done before building model");
 		}
@@ -183,8 +185,11 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			usedInstanceIdxs[j] = runInstancesIdx.get(j);
 		}
 		
-		double[] runResponseValues = runHistory.getRunResponseValues();
-		boolean[] censored = runHistory.getCensoredEarlyFlagForRuns();
+		
+		List<AlgorithmRun> runs = runHistory.getAlgorithmRunsExcludingRedundant();
+		double[] runResponseValues = RunHistoryHelper.getRunResponseValues(runs, runHistory.getRunObjective());
+		boolean[] censored = RunHistoryHelper.getCensoredEarlyFlagForRuns(runs);
+		
 		if(smacConfig.mbOptions.maskCensoredDataAsKappaMax)
 		{
 			for(int j=0; j < runResponseValues.length; j++)
@@ -207,7 +212,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 	
 		//=== Sanitize the data.
-		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), runHistory.getCensoredEarlyFlagForRuns(), configSpace);
+		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), censored, configSpace);
 		
 		
 		if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
@@ -506,7 +511,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		for(int i = 0; i < Math.min(25, bestResults.size()); i++)
 		{
 			ParamWithEI eic = bestResults.get(i);
-			configTracker.addConfiguration(eic.getValue(), "Model-Builder-" +this.getIteration(),"EIMethod="+options.expFunc, "EI=" + eic.getAssociatedValue() , "firstArg(k)=" + fmin, "ModelVersion=" + this.getIteration() , "ModelPoints=" + this.runHistory.getAlgorithmRuns().size());
+			configTracker.addConfiguration(eic.getValue(), "Model-Builder-" +this.getIteration(),"EIMethod="+options.expFunc, "EI=" + eic.getAssociatedValue() , "firstArg(k)=" + fmin, "ModelVersion=" + this.getIteration() , "ModelPoints=" + this.runHistory.getAlgorithmRunsExcludingRedundant().size());
 		}
 		
 		

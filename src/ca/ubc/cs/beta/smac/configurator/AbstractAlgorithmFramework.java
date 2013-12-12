@@ -299,7 +299,7 @@ public class AbstractAlgorithmFramework {
 		}
 		
 		Set<ProblemInstanceSeedPair> allPisps = new HashSet<ProblemInstanceSeedPair>();
-		for(AlgorithmRun run : runHistory.getAlgorithmRuns())
+		for(AlgorithmRun run : runHistory.getAlgorithmRunsExcludingRedundant())
 		{
 			ProblemInstanceSeedPair pisp = run.getRunConfig().getProblemInstanceSeedPair();
 			allPisps.add(run.getRunConfig().getProblemInstanceSeedPair());
@@ -314,9 +314,9 @@ public class AbstractAlgorithmFramework {
 		
 		log.info("Incumbent Set To {}",incumbent);
 		
-		tae.seek(runHistory.getAlgorithmRuns());
+		tae.seek(runHistory.getAlgorithmRunsIncludingRedundant());
 		
-		for(AlgorithmRun run: runHistory.getAlgorithmRuns())
+		for(AlgorithmRun run: runHistory.getAlgorithmRunsIncludingRedundant())
 		{
 			termCond.notifyRun(run);
 		}
@@ -457,7 +457,7 @@ public class AbstractAlgorithmFramework {
 				{
 					//We are restoring state
 				}
-				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfig(incumbent), this.initialIncumbent));
+				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent), this.initialIncumbent));
 				/**
 				 * Main Loop
 				 */
@@ -689,7 +689,7 @@ public class AbstractAlgorithmFramework {
 		fireEvent(new ChallengeStartEvent(termCond, challenger));
 		this.challengeIncumbent(challenger, true);
 		
-		fireEvent(new ChallengeEndEvent(termCond, challenger, this.getIncumbent().equals(challenger), this.runHistory.getAlgorithmRunData(challenger).size()));
+		fireEvent(new ChallengeEndEvent(termCond, challenger, this.getIncumbent().equals(challenger), this.runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger)));
 		
 	}
 	
@@ -705,14 +705,14 @@ public class AbstractAlgorithmFramework {
 		
 		if(runIncumbent)
 		{
-			if (runHistory.getTotalNumRunsOfConfig(incumbent) < MAX_RUNS_FOR_INCUMBENT){
+			if (runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 				log.debug("Performing additional run with the incumbent ");
 				ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory,instanceSeedGen, incumbent, instances, pool.getRandom("CHALLENGE_INCUMBENT_INSTANCE_SELECTION"),options.deterministicInstanceOrdering);
 				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 				evaluateRun(incumbentRunConfig);
 				updateIncumbentCost();
 				//fireEvent(new IncumbentChangeEvent(termCond,  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
-				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfig(incumbent),incumbent));
+				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),incumbent));
 				
 				
 				
@@ -759,7 +759,7 @@ public class AbstractAlgorithmFramework {
 			//DO NOT SHUFFLE AS MATLAB DOESN'T
 			int runsToMake = Math.min(N, aMissing.size());
 			if (runsToMake == 0){
-		        log.info("Aborting challenge of incumbent. Incumbent has " + runHistory.getTotalNumRunsOfConfig(incumbent) + " runs, challenger has " + runHistory.getTotalNumRunsOfConfig(challenger) + " runs, and the maximum runs for any config is set to " + MAX_RUNS_FOR_INCUMBENT + ".");
+		        log.info("Aborting challenge of incumbent. Incumbent has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent) + " runs, challenger has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger) + " runs, and the maximum runs for any config is set to " + MAX_RUNS_FOR_INCUMBENT + ".");
 		        return;
 			} else
 			{
@@ -915,7 +915,7 @@ public class AbstractAlgorithmFramework {
 			return false;
 		} else
 		{
-			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getTotalNumRunsOfConfig(challenger), "Continue=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost,"RunsNeededLeft="+(runHistory.getTotalNumRunsOfConfig(incumbent)-runHistory.getTotalNumRunsOfConfig(challenger)));
+			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger), "Continue=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost,"RunsNeededLeft="+(runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent)-runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger)));
 			
 			
 			return true;
@@ -1012,7 +1012,7 @@ public class AbstractAlgorithmFramework {
 		updateIncumbentCost();
 		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
 		logConfiguration("New Incumbent", challenger);		
-		fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfig(incumbent),oldIncumbent));
+		fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),oldIncumbent));
 
 	}
 
