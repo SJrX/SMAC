@@ -44,6 +44,7 @@ import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aclib.exceptions.OutOfTimeException;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.misc.MapList;
+import ca.ubc.cs.beta.aclib.misc.cputime.CPUTime;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
@@ -136,9 +137,11 @@ public class AbstractAlgorithmFramework {
 	 */
 	private final AtomicBoolean shouldWriteStateOnCrash = new AtomicBoolean(false);
 	
+	private final CPUTime cpuTime;
 	
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc )
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
 	{
+		this.cpuTime = cpuTime;
 		this.instances = instances;
 		this.cutoffTime = smacOptions.scenarioConfig.algoExecOptions.cutoffTime;
 		this.options = smacOptions;
@@ -457,7 +460,7 @@ public class AbstractAlgorithmFramework {
 				{
 					//We are restoring state
 				}
-				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent), this.initialIncumbent));
+				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent), this.initialIncumbent, cpuTime));
 				/**
 				 * Main Loop
 				 */
@@ -712,7 +715,7 @@ public class AbstractAlgorithmFramework {
 				evaluateRun(incumbentRunConfig);
 				updateIncumbentCost();
 				//fireEvent(new IncumbentChangeEvent(termCond,  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
-				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),incumbent));
+				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),incumbent, cpuTime));
 				
 				
 				
@@ -1012,7 +1015,7 @@ public class AbstractAlgorithmFramework {
 		updateIncumbentCost();
 		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
 		logConfiguration("New Incumbent", challenger);		
-		fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),oldIncumbent));
+		fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),oldIncumbent, cpuTime));
 
 	}
 

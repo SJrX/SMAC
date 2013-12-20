@@ -29,6 +29,7 @@ import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.initialization.classic.ClassicInitializationProcedure;
 import ca.ubc.cs.beta.aclib.initialization.doublingcapping.DoublingCappingInitializationProcedure;
 import ca.ubc.cs.beta.aclib.initialization.table.UnbiasChallengerInitializationProcedure;
+import ca.ubc.cs.beta.aclib.misc.cputime.CPUTime;
 import ca.ubc.cs.beta.aclib.objectives.ObjectiveHelper;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
@@ -83,6 +84,8 @@ public class SMACBuilder {
 	
 	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfig execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool)
 	{	
+		CPUTime cpuTime = new CPUTime();
+		
 		StateFactory restoreSF = options.getRestoreStateFactory(outputDir);
 		
 		
@@ -156,18 +159,19 @@ public class SMACBuilder {
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
 		
-		CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions();
+		
+		CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions(cpuTime);
 		
 		
 
 		
-		tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent);
+		tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent, cpuTime);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
 		eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
 		
 
 		
-		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime(),tae,false);
+		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime(),tae,false, cpuTime);
 		termCond.registerWithEventManager(eventManager);	
 		eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
@@ -260,11 +264,11 @@ public class SMACBuilder {
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc);
+				smac = new AbstractAlgorithmFramework(options,instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc, cpuTime);
 				break;
 			case SMAC:
 				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
 				break;
 			case PSEL:
 				throw new ParameterException("This version of SMAC does not support " + options.execMode + " at this time");

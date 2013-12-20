@@ -21,6 +21,7 @@ import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker
 import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
 import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
+import ca.ubc.cs.beta.aclib.misc.cputime.CPUTime;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
@@ -75,8 +76,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	private final RunHistory modelRunHistory;
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc);
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
+		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc, cpuTime);
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
