@@ -126,7 +126,15 @@ public class SMACBuilder {
 		
 		ParamConfigurationSpace configSpace = execConfig.getParamFile();
 		
-		log.info("Configuration Space Size is less than or equal to {} ", configSpace.getUpperBoundOnSize());
+		double configSpaceSize = configSpace.getUpperBoundOnSize();
+	
+		if(Double.isInfinite(configSpaceSize))
+		{
+			log.info("Configuration Space has at least one continuous parameter or is very large (only bound experssible in IEEE 754 format is Infinity)");
+		} else
+		{
+			log.info("Configuration Space size is at most {}", configSpace.getUpperBoundOnSize());
+		}
 		
 		StateFactory sf = options.getSaveStateFactory(outputDir);
 		
