@@ -198,7 +198,10 @@ Value & Error Name & Description \\
           		\item Runtime Statistics are now printed less often
           		\item New Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come).
           		\item Implemented a work around to a bug where configurations with censored early runs could become the incumbent erroneously. It's still suboptimal, but in fact it probably would never happen. See Known Issue \#1 in section \ref{known-issues}.
+          		\item Validation rounding mode now changes runs with set instance seed pairs.
           	\end{enumerate}
+          	
+
 	\end{description}
 \subsection{Known Issues}
 \label{known-issues}
@@ -210,6 +213,8 @@ Value & Error Name & Description \\
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
 \item Auto detecting of iterations break if some runs and results files are missing, the work around is to remove some of the .obj files that don't have a runs and results file that is greater than or equal to them. (The quick object files internally store there iteration, and you'd have to check the logs to see what they correspond to).
 \item ArrayOutOfBoundsException occurs if not all instances have features
+\item \textbf{-$~\!$-num-seeds-per-test-instnance} and \textbf{-$~\!$-num-test-instances} are both broken currently and will probably be removed in the future.
+
 \end{enumerate}
 
 \clearpage

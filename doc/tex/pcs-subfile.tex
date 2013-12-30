@@ -10,13 +10,13 @@ Comments are allowed throughout the file; they begin with a \#, and run to the e
 %When a PCS file is parsed the first step in parsing a line should be to strip away everything from the first \# onwards.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Parameter Declaration Clauses}\label{sec:param_decl_clauses}
+\subsubsection{Parameter Declaration Clauses}\label{sec:param_decl_clauses}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The PCS format supports two types of parameters: categorical and numeric. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Categorical parameters}
+\subsubsection*{Categorical parameters} \label{sec:categorical-params}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Categorical parameters take one of a finite set of values. Each line specifying a categorical parameter should be of the form:
 
@@ -52,7 +52,7 @@ random-variable-frequency {0, 0.05, 0.1, 0.2} [0.05]
 Finally, as this example shows, numerical parameters can trivially be treated as categorical ones by simply discretizing their domain (selecting a subset of reasonable values).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Numerical parameters} \label{sec:numerical-params}
+\subsubsection*{Numerical parameters} \label{sec:numerical-params}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Numerical parameters (both real and integer) are specified as follows:
 
@@ -102,7 +102,7 @@ It also varies naturally on a logarithmic scale. For example, due to this logari
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Conditional Parameter Clause}
+\subsubsection{Conditional Parameter Clauses}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Depending on the instantiation of some `higher-level' parameters, certain `lower-level' parameters may not be active.
@@ -131,7 +131,7 @@ In this example, \texttt{quick-revert-to-insertion} is conditional on the \textt
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Forbidden Parameter Clauses}
+\subsubsection{Forbidden Parameter Clauses}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Forbidden Parameters are combinations of parameter values which are invalid (e.g., a certain data structure may be incompatible with a lazy heuristic that does not update the data structure, resulting in incorrect algorithm behaviour).

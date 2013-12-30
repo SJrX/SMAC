@@ -115,7 +115,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 				log.info("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
 				validationRunsCount = testInstGen.getInitialInstanceSeedCount();
 			}
-			pisps = getValidationRuns(testInstances, (SetInstanceSeedGenerator) testInstGen, validationRunsCount);
+			pisps = getValidationRuns(testInstances, (SetInstanceSeedGenerator) testInstGen, mode, validationRunsCount);
 		} else if(testInstGen instanceof RandomInstanceSeedGenerator)
 		{
 			pisps = getValidationRuns(testInstances, (RandomInstanceSeedGenerator) testInstGen,mode, validationRunsCount, testSeedsPerInstance, testInstancesCount);
@@ -219,7 +219,6 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		
 		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime);
-		
 		
 		log.info("Validation needs {} algorithm runs  to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
 		//List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
@@ -390,17 +389,14 @@ private List<RunConfig> getRunConfigs(List<TrajectoryFileEntry> tfes, List<Probl
 
 
 
-	private static List<ProblemInstanceSeedPair> getValidationRuns(List<ProblemInstance> pis,
-			RandomInstanceSeedGenerator testInstGen, ValidationRoundingMode mode,
-			int validationRunsCount, int testSeedsPerInstance,
-			int testInstancesCount) {
+	private static List<ProblemInstanceSeedPair> getValidationRuns(List<ProblemInstance> pis,RandomInstanceSeedGenerator testInstGen, ValidationRoundingMode mode,int validationRunsCount, int testSeedsPerInstance, int testInstancesCount) {
 		
 		int numRuns = 0;
 		
 		switch(mode)
 		{
 		case UP:			
-			numRuns = Math.round( (float) (Math.ceil(validationRunsCount / (float) testInstancesCount) * testInstancesCount));
+			numRuns = Math.round( (float) (Math.ceil( validationRunsCount / (float) testInstancesCount ) * testInstancesCount));
 			break;
 		case NONE:
 			numRuns = Math.min(validationRunsCount, testSeedsPerInstance*testInstancesCount);
@@ -414,7 +410,7 @@ private List<RunConfig> getRunConfigs(List<TrajectoryFileEntry> tfes, List<Probl
 		int runsScheduled = 0;
 		List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>(numRuns);
 		
-		log.info("Creating Runs ");
+		
 endloop:
 		while(true)
 		{
@@ -433,23 +429,31 @@ endloop:
 
 		return pisps;
 	}
-
-
-
-
-	private static List<ProblemInstanceSeedPair> getValidationRuns( List<ProblemInstance> pis,
-			SetInstanceSeedGenerator testInstGen, int validationRunsCount) {
+	
+	private static List<ProblemInstanceSeedPair> getValidationRuns( List<ProblemInstance> pis,	SetInstanceSeedGenerator testInstGen, ValidationRoundingMode mode,  int validationRunsCount)
+	{
 
 		List<ProblemInstance> instances = testInstGen.getProblemInstanceOrder(pis);
-		int numRuns = Math.min(instances.size(), validationRunsCount);
+		
+		int numRuns = 0;
+		switch(mode)
+		{
+			case UP:
+				numRuns = Math.round( (float) (Math.ceil( validationRunsCount / (float) instances.size() ) * instances.size()));
+				break;
+			case NONE:
+				numRuns = Math.min(instances.size(), validationRunsCount);
+				break;
+			default:
+				throw new IllegalStateException("Unknown mode: " + mode);
+		}
+		
 		List<ProblemInstanceSeedPair> runs = new ArrayList<ProblemInstanceSeedPair>(numRuns);
 		for( int i=0; i < numRuns; i++)
 		{
 			ProblemInstance pi = instances.get(i);
 			runs.add(new ProblemInstanceSeedPair(pi,testInstGen.getNextSeed(pi)));
 		}
-		
-		
 		
 		return runs;
 	}
@@ -472,11 +476,8 @@ endloop:
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		try {
 			List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
-			
-			
-			
+
 			Set<ParamConfiguration> doneConfigs = new HashSet<ParamConfiguration>();
-			
 			
 			for(ParamConfiguration config : inOrderConfigs)
 			{
@@ -484,9 +485,7 @@ endloop:
 				if(doneConfigs.contains(config)) continue;
 				doneConfigs.add(config);
 				Map<ProblemInstanceSeedPair, AlgorithmRun> runs = matrixRuns.get(config);
-				
-				
-			
+	
 				if(runs == null) continue;
 				if(pisps.isEmpty())
 				{
