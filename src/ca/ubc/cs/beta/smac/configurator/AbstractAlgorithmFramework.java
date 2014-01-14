@@ -36,6 +36,7 @@ import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IterationStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.state.StateRestoredEvent;
@@ -476,6 +477,7 @@ public class AbstractAlgorithmFramework {
 						iteration++;
 						log.info("Starting Iteration {}", iteration);
 						
+						fireEvent(new IterationStartEvent(termCond, iteration));
 						fireEvent(new ModelBuildStartEvent(termCond));
 						
 						StopWatch t = new AutoStartStopWatch();

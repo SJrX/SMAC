@@ -1,6 +1,7 @@
 package ca.ubc.cs.beta.smac.builder;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -19,6 +20,7 @@ import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
+import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IterationStartEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
@@ -179,7 +181,7 @@ public class SMACBuilder {
 		
 
 		
-		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime(),tae,false, cpuTime);
+		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime(),tae,false, cpuTime, Collections.singleton(IterationStartEvent.class));
 		termCond.registerWithEventManager(eventManager);	
 		eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
@@ -189,6 +191,7 @@ public class SMACBuilder {
 		
 		eventManager.registerHandler(ChallengeStartEvent.class, logRT);
 		eventManager.registerHandler(ChallengeEndEvent.class, logRT);
+		eventManager.registerHandler(IterationStartEvent.class, logRT);
 		
 		ParamConfigurationOriginTracker configTracker = options.trackingOptions.getTracker(eventManager, initialIncumbent, outputDir, rh, execConfig, options.seedOptions.numRun);
 		
