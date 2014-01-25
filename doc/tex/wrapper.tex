@@ -48,6 +48,7 @@ each parameter is:\\
 
 All of the arguments above will always be passed, even if they are inapplicable, in which case a dummy value will be passed. \\
 \subsubsection*{Environment Variables}
+\label{sec:exec-env}
 Recent versions of SMAC also set the following environment variables, which shouldn't be considered input to the solver but  relate to the execution in some way. When implementing your wrapper you can entirely disregard this section unless you need some advanced features.
 
 \begin{center}
@@ -60,6 +61,8 @@ Recent versions of SMAC also set the following environment variables, which shou
 \textbf{ ACLIB\_PORT} & The wrapper can send in progress up dates to SMAC to the localhost via UDP on this port. The message format is a single double value. While SMAC doesn't directly use this presently, other utilities such as \texttt{algo-test} do, and future versions may, and some advanced options may preform better with this set. \\
 \hline 
 \textbf{ ACLIB\_CPU\_TIME\_FREQUENCY } & Signifies how often updates to the runtime should be sent. This is only a hint, and roughly should be treated as: there is no point in sending updates more frequently than this value in seconds. \\
+\hline
+\textbf{ ACLIB\_EXECUTION\_UUID } & A UUID associated with the particular invocation of the wrapper. The primary purpose of this is facilitate identify every process associated with a specific invocation of a wrapper on a particular computer. This is primarily used in conjunction with the \textbf{-$~\!\!$-cli-kill-by-environment-cmd} option. If this environment variable already exists, then another one will be chosen, so do not rely on this particular variable being set. You should ensure that environment variables are passed to all sub processes however, so that they can be killed accordingly.\\
 \hline
 \end{tabular}
 \end{center}
