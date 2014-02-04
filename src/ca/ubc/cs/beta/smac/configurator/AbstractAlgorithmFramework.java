@@ -1230,9 +1230,14 @@ public class AbstractAlgorithmFramework {
 		return Collections.unmodifiableList(tfes);
 	}
 	
-	public String getTerminationReason()
+	private String terminationReason = null;
+	public synchronized String getTerminationReason()
 	{
-		return termCond.getTerminationReason();
+		if(terminationReason == null)
+		{
+			terminationReason = termCond.getTerminationReason();
+		} 
+		return terminationReason;
 	}
 	
 	private String getConfigurationString(ParamConfiguration config)
