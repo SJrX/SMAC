@@ -197,7 +197,7 @@ Value & Error Name & Description \\
           	\item New \texttt{sat-check} utility allows determination of the satisfiability for each instance of a instance file.
           		\item Environment variable \textbf{ACLIB\_CONCURRENT\_TASK\_ID} is now set when executing the wrapper, containing an index into the number of concurrent jobs. This is primarily used to allow the wrapper to determine CPU affinities correctly. See the wrapper section for more information.
           		\item Runtime Statistics are now printed less often.
-          		\item New Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come).
+          		\item \textbf{[BETA]} Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come) .
           		\item Implemented a work around to a bug where configurations with censored early runs could become the incumbent erroneously. It's still suboptimal, but in fact it probably would never happen. See Known Issue \#1 in section \ref{known-issues}.
           		\item Validation rounding mode now changes the number of runs on deterministic runs, or runs with set problem instance seed pairs.
           		\item New option \textbf{-$~\!$-cli-kill-by-environment-cmd} allows terminating all processes by an environment variable. See section \ref{sec:exec-env} for more information.
@@ -205,7 +205,11 @@ Value & Error Name & Description \\
           		\item New option \textbf{-$~\!$-quick-saves} controls whether to make any quick save states or not.
           		\item New option \textbf{-$~\!$-intermediary-saves} controls whether to many any save states at all while SMAC is running (if false SMAC will still save information at the end)
           		\item After validation SMAC prints correct termination reason message.
+          		\item SMAC will now terminate all outstanding runs when exiting prematurely (for instance due to \textbf{CTRL+C})
           		\item Standardized scenario options (no new ones), but scenario options can be used in ParamILS versions 2.3.7 and later.
+          		
+          		\item Mitigated bug that caused deterministic instances to take forever to load from file. This may still happen in some cases, if feature file names and instance file names do not perfectly match up.
+          		\item Auto detect restore scenario option now made more robust in case files are missing
           	\end{enumerate}
           	
 
@@ -218,10 +222,12 @@ Value & Error Name & Description \\
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
-\item Auto detecting of iterations break if some runs and results files are missing, the work around is to remove some of the .obj files that don't have a runs and results file that is greater than or equal to them. (The quick object files internally store there iteration, and you'd have to check the logs to see what they correspond to).
+
 \item ArrayOutOfBoundsException occurs if not all instances have features
 \item \textbf{-$~\!$-num-seeds-per-test-instance} and \textbf{-$~\!$-num-test-instances} are both broken currently and will probably be removed in the future.
-\item SMAC will now terminate all outstanding runs when exiting prematurely (for instance due to \textbf{CTRL+C})
+\item When using deterministic instances, and the feature file and instance files don't match perfectly up it can be incredibly slow for SMAC to start. Roughly the time it takes SMAC to start grows $O(n^{2})$ where n is the number of instances.
+
+
 \end{enumerate}
 
 \clearpage
