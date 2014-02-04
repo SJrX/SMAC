@@ -222,6 +222,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime,execConfig);
 		
 
+		
 		log.info("Validation needs {} algorithm runs  to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
 		//List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
 		

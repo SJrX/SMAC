@@ -139,11 +139,11 @@ public class AbstractAlgorithmFramework {
 	 */
 	private final AtomicBoolean shouldWriteStateOnCrash = new AtomicBoolean(false);
 	
-
 	private final AlgorithmExecutionConfig execConfig;
 
 	private final CPUTime cpuTime;
 	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfig execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
+
 
 	{
 		this.cpuTime = cpuTime;

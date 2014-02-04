@@ -214,10 +214,11 @@ public class SMACBuilder {
 		switch(options.initializationMode)
 		{
 			case CLASSIC:
+
 				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, execConfig);
 
 				
-				
+
 				break;
 			
 			case ITERATIVE_CAPPING:
@@ -291,6 +292,7 @@ public class SMACBuilder {
 			case ROAR:
 
 				smac = new AbstractAlgorithmFramework(options,execConfig, instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc,cpuTime);
+
 				break;
 			case SMAC:
 				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
