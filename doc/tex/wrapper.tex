@@ -42,7 +42,7 @@ as specified in the Algorithm Parameter File. SMAC will only pass
 parameters that are active. Additionally SMAC is not guaranteed
 to pass the parameters in any particular order. The exact format for
 each parameter is:\\
-\texttt{-name~'value'}
+\texttt{-name~value}\footnote{The target algorithm will see the value as a single argument, even if it contains spaces or should otherwise be treated as more than one argument, i.e. to execute this in a shell you would see -name 'value', to ensure that the value is passed as a single argument. Older versions also passed the single quote}
 
 \end{description}
 

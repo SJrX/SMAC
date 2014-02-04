@@ -194,12 +194,14 @@ Value & Error Name & Description \\
                   
           \item[Version 2.06.02 (TBD)] Minor Bug Fix Release of Java SMAC
           	\begin{enumerate}
+          	\item New \texttt{sat-check} utility allows determination of the satisfiability for each instance of a instance file.
           		\item Environment variable \textbf{ACLIB\_CONCURRENT\_TASK\_ID} is now set when executing the wrapper, containing an index into the number of concurrent jobs. This is primarily used to allow the wrapper to determine CPU affinities correctly. See the wrapper section for more information.
-          		\item Runtime Statistics are now printed less often
+          		\item Runtime Statistics are now printed less often.
           		\item New Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come).
           		\item Implemented a work around to a bug where configurations with censored early runs could become the incumbent erroneously. It's still suboptimal, but in fact it probably would never happen. See Known Issue \#1 in section \ref{known-issues}.
           		\item Validation rounding mode now changes the number of runs on deterministic runs, or runs with set problem instance seed pairs.
           		\item New option \textbf{-$~\!\!$-cli-kill-by-environment-cmd} allows terminating all processes by an environment variable. See section \ref{sec:exec-env} for more information.
+          		\item Target algorithms no longer see quoted arguments for parameter values. The option \textbf{-$~\!\!$-cli-call-params-with-quotes} can be used to get the old behaviour back, this option will likely be removed in future.
           	\end{enumerate}
           	
 

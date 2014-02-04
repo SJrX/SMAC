@@ -32,7 +32,7 @@ Vancouver, BC\ \ V6T~1Z4, Canada\\
 
 Consult the logs, and see what error messages are recorded. In some cases you may have to turn on additional options such as \textbf{-$~\!$-logAllProcessOutput}, and see what information is available.
 
-If it's not clear what the problem is consult the logs to determine the call string used (available from the logs), and try executing the target algorithm directly on the environment that it failed on. If direct execution fails, then the problem is specific to the target algorithm and/or your scenario options \ie{ The algorithm executable cannot be found }. Using the \texttt{smac-algotest} utility may make it easier to reproduce and diagnose the problem (see section \ref{sec:algotest}) .
+If it's not clear what the problem is consult the logs to determine the call string used and try executing the target algorithm directly on the environment that it failed on. If direct execution fails, then the problem is specific to the target algorithm and/or your scenario options \ie{ The algorithm executable cannot be found }. Using the \texttt{smac-algotest} utility may make it easier to reproduce and diagnose the problem (see section \ref{sec:algotest}) .
 
 If the call succeeds, the next step would be to replace the target algorithm that is being executed with a debug script/program that outputs all of the environment variables, and the call string it sees directly from SMAC. If nothing here seems to be relevant to your problem, then you will probably want to contact us for more advice.
 
