@@ -133,6 +133,12 @@ If you are using the supplied shell scripts, you can set the SMAC\_MEMORY enviro
 
 	Yes, set the \textbf{-$~\!$-stateSerializer} to \emph{NULL}. Beginning in version 2.02, the default was to only save the files needed to restore the final set of runs, and not necessarily every iteration before hand.
 	
+\subsubsection{Saving state takes a long time what are my options?}
+
+	SMAC's state saving mechanism should be fairly cheap to save states, but if you have many many instances (say 30,000) it can become very expensive to save state, even the quick states. You can of course turn state serialization off, or you could use the \textbf{-$~\!$-quick-saves}, \textbf{-$~\!$-intermediary-saves} to fine tune when SMAC makes actually makes saves.
+          			
+	
+	
 \subsubsection{Can I save more than just the final set of runs?}
 
 	Yes, set the \textbf{-$~\!$-cleanOldStateOnSuccess} option to false, and a complete state will be saved on every $2^n$  $n\in\mathbb{N}$ iteration.

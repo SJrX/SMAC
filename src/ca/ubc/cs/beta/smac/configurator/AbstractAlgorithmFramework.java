@@ -140,6 +140,8 @@ public class AbstractAlgorithmFramework {
 	
 	private final CPUTime cpuTime;
 	
+	
+	
 	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
 	{
 		this.cpuTime = cpuTime;
@@ -347,8 +349,39 @@ public class AbstractAlgorithmFramework {
 	
 	private void saveState()
 	{
+		
+		
+		if(options.intermediarySaves)
+		{
+			boolean perfectPowerOfTwo = ((iteration - 1 & iteration) == 0);
+			boolean saveRunsEveryIteration = options.saveRunsEveryIteration;
+			
+			
+			
+			boolean saveFull = perfectPowerOfTwo || saveRunsEveryIteration;
+			
+			
+			if(saveFull)
+			{
+				//We should save a full set
+				
+				
+				saveState("it",true);
+				
+			} else
+			{
+				//We should save
+				boolean quickSavesEnabled = options.stateQuickSaves;
+				if(quickSavesEnabled)
+				{
+					saveState("it",false);
+				}
+				
+			}
+		
+		}
 		//The math is only true on perfect powers of 2. 
-		saveState("it",(((iteration - 1) & iteration) == 0) || options.saveRunsEveryIteration);
+		//saveState("it",);
 	}
 
 	private synchronized void saveState(String id, boolean saveFullState) {
