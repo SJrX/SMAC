@@ -54,20 +54,21 @@ Name & Description\tabularnewline
 \hline 
 MEAN & The mean of the values\tabularnewline
 \hline
-MEAN1000 & Unsuccessful runs are counted as 1000 $\times$ \textbf{cutoff\_time}\tabularnewline
+MEAN1000 & Unsuccessful runs are counted as 1000 $\times$ \textbf{target\_run\_cputime\_limit}\tabularnewline
 \hline 
-MEAN10 & Unsuccessful runs are counted as 10 $\times$ \textbf{cutoff\_time}\tabularnewline
+MEAN10 & Unsuccessful runs are counted as 10 $\times$ \textbf{target\_run\_cputime\_limit}\tabularnewline
 \hline 
 \hline 
 \end{tabular}}]~
-\item [{cutoff\_time}] The CPU time after which a single algorithm execution
+\item [{target\_run\_cputime\_limit}] The CPU time after which a single algorithm execution
 will be terminated as unsuccess (and treated as a \textbf{TIMEOUT}). This is an important parameter: If chosen too high, lots of time will be wasted with unsuccessful
 runs. If chosen too low the optimization is biased to perform well
 on easy instances only. 
 %\item [{cutoff\_length}] The runlength after which a single algorithm execution
 %will be terminated unsuccesfully. The actual semantic meaning of this
 %value is up to the target algorithm. NOT SUPPORTED IN THIS VERSION)
-\item [{tunerTimeout}] The limit of the CPU time allowed for configuration (\ie{The sum of all algorithm runtimes, and by default the sum of the CPU time of SMAC itself}).
+\item [{cputime\_limit}] The limit of the CPU time allowed for configuration (\ie{The sum of all algorithm runtimes, and by default the sum of the CPU time of SMAC itself}).
+\item [{wallclock\_limit}] The limit of the amount of wallclock (or real) time allowed for configuration. 
 \item [{paramfile}] Specifies the file with the parameters of the algorithm.
 The format of this file is covered in Section \ref{sec:paramfile}.
 \item [{outdir}] Specifies the directory SMAC should write its results
