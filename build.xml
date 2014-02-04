@@ -176,16 +176,21 @@
 		</java>
 		
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
-					<arg value="--class"/>
-					<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioOptions"/>
-					<arg value="--commandName"/>
-					<arg value="verify-scenario"/>
-					<arg value="--outputFile"/>
-					<arg value="dist/util/bash_autocomplete.sh"/>
-				</java>
-				
-		
-
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.satisfiabilitychecker.SatisfiabilityChecker"/>
+			<arg value="--commandName"/>
+			<arg value="sat-check"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
+		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioOptions"/>
+			<arg value="--commandName"/>
+			<arg value="verify-scenario"/>
+			<arg value="--outputFile"/>
+			<arg value="dist/util/bash_autocomplete.sh"/>
+		</java>
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.aclib.example.statemerge.StateMergeOptions"/>
@@ -194,7 +199,6 @@
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
-				
 		
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
@@ -216,6 +220,16 @@
 		</java>
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.satisfiabilitychecker.SatisfiabilityChecker"/>
+			<arg value="--name"/>
+			<arg value="sat-check"/>
+			<arg value="--file-to-write"/>
+			<arg value="dist/"/>	
+			<arg value="--default-mem"/>
+			<arg value="1024"/>
+		</java>
+		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.smac.executors.ValidatorExecutor"/>
 			<arg value="--name"/>
 			<arg value="smac-validate"/>
@@ -224,7 +238,6 @@
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
 		</java>
-		
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.aclib.example.statemerge.StateMergeExecutor"/>
@@ -244,6 +257,8 @@
 					<arg value="verify-scenario"/>
 					<arg value="--file-to-write"/>
 					<arg value="dist/"/>	
+					<arg value="--default-mem"/>
+					<arg value="1024"/>
 		</java>
 				
 				
@@ -278,6 +293,7 @@
 						<exclude name="smac-possible-restores"/>
 						<exclude name="smac-validate"/>
 						<exclude name="algo-test"/>
+						<exclude name="sat-check"/>
 						<exclude name="state-merge"/>
 						<exclude name="verify-scenario"/>
 						<exclude name="example_scenarios/cplex/runsolver*"/>
@@ -291,6 +307,7 @@
 						<include name="smac-possible-restores"/>
 						<include name="smac-validate"/>
 						<include name="algo-test"/>
+						<include name="sat-check"/>
 						<include name="state-merge"/>
 						<include name="verify-scenario"/>
 						<include name="example_scenarios/cplex/runsolver*"/>

@@ -174,7 +174,7 @@ public class SMACExecutor {
 			smacBuilder.getEventManager().shutdown();
 			
 			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
-			log.info("SMAC Completed Successfully. Log: " + logLocation);
+			log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
 			
 			
 			return ACLibReturnValues.SUCCESS;

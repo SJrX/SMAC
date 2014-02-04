@@ -33,11 +33,11 @@ University of British Columbia\\
 
 \noindent{}This document specifies the PCS parameter configuration space format, a simple, 
 human-readable file format for the description of an algorithm's configurable parameters, 
-their possible values, as well as any parameter dependencies.
+their possible values, as well as any parameter dependencies. Additionally Section \ref{sec:tips} contains advice on encoding parameters for use by the algorithm wrapper.
 %This format is emerging as a standard in algorithm configuration, with the prominent configuration methods ParamILS, SMAC, and GGA supporting it.
 %
 \section{PCS Format}
-
+\subsection{Overview}
 \subfile{pcs-subfile}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -49,7 +49,7 @@ calls your algorithm with that instantiation (typically through a command line c
 
 In typical cases, there is a direct 1-to-1 mapping between the parameters in the PCS file and the parameters the corresponding algorithm accepts.
 In those cases, the wrapper simply hands the parameters over to the algorithm.
-However, the wrapper can also implement transformations of parameters, scale parameters by instance size, etc.
+However, the wrapper can also implement transformations of parameters, scale parameters by instance size, etc. 
 
 \end{document}
 
