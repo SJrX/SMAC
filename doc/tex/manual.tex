@@ -192,7 +192,7 @@ Value & Error Name & Description \\
                      \item Fixed typo in error message that mistakenly reported that instances where missing, when in fact it was the test instances that were missing.                     
                   \end{enumerate}
                   
-          \item[Version 2.06.02 (TBD)] Minor Bug Fix Release of Java SMAC
+          \item[Version 2.06.02 (Feb-2014)] Minor Bug Fix Release of Java SMAC
           	\begin{enumerate}
           	\item New \texttt{sat-check} utility allows determination of the satisfiability for each instance of a instance file.
           		\item Environment variable \textbf{ACLIB\_CONCURRENT\_TASK\_ID} is now set when executing the wrapper, containing an index into the number of concurrent jobs. This is primarily used to allow the wrapper to determine CPU affinities correctly. See the wrapper section for more information.
@@ -210,6 +210,7 @@ Value & Error Name & Description \\
           		
           		\item Mitigated bug that caused deterministic instances to take forever to load from file. This may still happen in some cases, if feature file names and instance file names do not perfectly match up.
           		\item Auto detect restore scenario option now made more robust in case files are missing
+          		\item The state merge utility no longer crashes if merging runs that don't have a run for every instance
           	\end{enumerate}
           	
 
@@ -217,8 +218,7 @@ Value & Error Name & Description \\
 \subsection{Known Issues}
 \label{known-issues}
 \begin{enumerate}
-\item In a rare case, configurations that are reinspected by SMAC after initially being rejected may continue their challenge when they otherwise shouldn't. If the configuration continues it's challenges successfully, prior to being the incumbent we will presently check all the runs, which is strictly more expensive than necessary.
-\item The state merge utility may crash if merging runs that don't have a run for every instance.
+\item In a rare case, configurations that are reinspected by SMAC after initially being rejected may continue their challenge when they otherwise shouldn't. If the configuration continues it's challenges successfully, prior to being the incumbent we will presently check all the runs, which is strictly more expensive than necessary..
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
 \item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
