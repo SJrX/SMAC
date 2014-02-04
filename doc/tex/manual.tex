@@ -217,7 +217,7 @@ Value & Error Name & Description \\
 \item Auto detecting of iterations break if some runs and results files are missing, the work around is to remove some of the .obj files that don't have a runs and results file that is greater than or equal to them. (The quick object files internally store there iteration, and you'd have to check the logs to see what they correspond to).
 \item ArrayOutOfBoundsException occurs if not all instances have features
 \item \textbf{-$~\!$-num-seeds-per-test-instance} and \textbf{-$~\!$-num-test-instances} are both broken currently and will probably be removed in the future.
-
+\item SMAC will now terminate all outstanding runs when exiting prematurely (for instance due to \textbf{CTRL+C})
 \end{enumerate}
 
 \clearpage
