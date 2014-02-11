@@ -87,13 +87,25 @@ public class SMACBuilder {
 		return eventManager;
 	}	
 	
+	public volatile TAEWrapper taeWrapper = new TAEWrapper()
+	{
+
+		@Override
+		public TargetAlgorithmEvaluator wrap(TargetAlgorithmEvaluator tae) {
+			return tae;
+		}
+		
+	};
 	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfig execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool)
+	{
+		return this.getAutomaticConfigurator(execConfig, trainingILWS, options, taeOptions, outputDir, pool, null, null);
+	}
+	
+	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfig execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool, TargetAlgorithmEvaluator oTAE, RunHistory oRHModel)
 	{	
 		CPUTime cpuTime = new CPUTime();
 		
 		StateFactory restoreSF = options.getRestoreStateFactory(outputDir);
-		
-		
 
 		if(options.adaptiveCapping == null)
 		{
@@ -162,12 +174,30 @@ public class SMACBuilder {
 		
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 		
-		TargetAlgorithmEvaluator tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator( taeOptions, outputDir, options.seedOptions.numRun);
+		TargetAlgorithmEvaluator tae;
+		if(oTAE == null)
+		{
+			tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator( taeOptions, outputDir, options.seedOptions.numRun);
+		} else
+		{
+			tae = oTAE;
+		}
 		
+		tae = taeWrapper.wrap(tae);
 		AbstractAlgorithmFramework smac;
 
 		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
-		RunHistory rhModel = new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
+		
+		
+		RunHistory rhModel;
+		
+		if(oRHModel == null)
+		{
+			rhModel= new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
+		} else
+		{
+			rhModel = oRHModel;
+		}
 		
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
@@ -175,14 +205,9 @@ public class SMACBuilder {
 		
 		CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions(cpuTime);
 		
-		
-
-		
 		tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent, cpuTime);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
 		eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
-		
-
 		
 		Set onEvents = new HashSet();
 		
@@ -214,19 +239,11 @@ public class SMACBuilder {
 		switch(options.initializationMode)
 		{
 			case CLASSIC:
-
 				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, execConfig);
-
-				
-
 				break;
 			
 			case ITERATIVE_CAPPING:
-
 				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper, execConfig);
-
-	
-
 				break;
 				
 			case UNBIASED_TABLE:
@@ -236,12 +253,6 @@ public class SMACBuilder {
 			default:
 				throw new IllegalStateException("Not sure what this initialization mode is");
 		}
-		
-		
-		
-		
-		
-		
 		
 		if(options.expFunc == null)
 		{
@@ -295,6 +306,7 @@ public class SMACBuilder {
 
 				break;
 			case SMAC:
+				
 				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
 				smac = new SequentialModelBasedAlgorithmConfiguration(options, execConfig, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
 

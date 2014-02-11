@@ -567,7 +567,11 @@ public class AbstractAlgorithmFramework {
 		} finally
 		{
 			fireEvent(new AutomaticConfigurationEnd(termCond, incumbent, currentIncumbentCost));
-			tae.notifyShutdown();
+			
+			if(options.shutdownTAEWhenDone)
+			{
+				tae.notifyShutdown();
+			}
 		}
 	}
 	
@@ -1247,6 +1251,12 @@ public class AbstractAlgorithmFramework {
 	private String getConfigurationString(ParamConfiguration config)
 	{
 		return ((runHistory.getThetaIdx(config)!=-1) ? runHistory.getThetaIdx(config) + " (" + config.getFriendlyIDHex() + ")" :"(" +  config.getFriendlyIDHex() + ")");	
+	}
+
+
+
+	public RunHistory getRunHistory() {
+		return this.runHistory;
 	}
 	
 	
