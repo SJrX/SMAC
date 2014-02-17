@@ -1,7 +1,7 @@
 package ca.ubc.cs.beta.smac.builder;
 
 import java.io.File;
-import java.util.Collections;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.collections.Lists;
+
 
 import com.beust.jcommander.ParameterException;
 
