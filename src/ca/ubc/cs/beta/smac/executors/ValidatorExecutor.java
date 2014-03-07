@@ -199,7 +199,7 @@ public class ValidatorExecutor {
 					{
 						if(options.includeRandomAsFirstDefault && i==0)
 						{
-							log.debug("Using the default as the first configuration");
+							log.trace("Using the default as the first configuration");
 							configToValidate.add(configSpace.getDefaultConfiguration());
 						} else
 						{

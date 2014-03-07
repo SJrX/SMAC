@@ -225,7 +225,7 @@ public class AbstractAlgorithmFramework {
 					saveState("SHUTDOWN",true);
 				} else
 				{
-					log.debug("State Saved Already, Skipping Shutdown Version");
+					log.trace("State Saved Already, Skipping Shutdown Version");
 				}
 			}
 			
@@ -309,7 +309,7 @@ public class AbstractAlgorithmFramework {
 		{
 			ProblemInstanceSeedPair pisp = run.getRunConfig().getProblemInstanceSeedPair();
 			allPisps.add(run.getRunConfig().getProblemInstanceSeedPair());
-			log.debug("Blacklisting problem instance seed pair: {} ", pisp);
+			log.trace("Blacklisting problem instance seed pair: {} ", pisp);
 			this.instanceSeedGen.take(pisp.getInstance(), pisp.getSeed());
 		}
 		
@@ -482,9 +482,9 @@ public class AbstractAlgorithmFramework {
 					log.info("Initial Incumbent set as Incumbent: {}", incumbent);
 					iteration = 0;
 					
-					log.debug("Initialization Procedure Started");
+					log.trace("Initialization Procedure Started");
 					initProc.run();
-					log.debug("Initialization Procedure Completed");
+					log.trace("Initialization Procedure Completed");
 					
 					incumbent =initProc.getIncumbent(); 
 					logConfiguration("New Incumbent", incumbent);
@@ -688,7 +688,7 @@ public class AbstractAlgorithmFramework {
 	protected List<ParamConfiguration> selectConfigurations()
 	{
 		ParamConfiguration config = configSpace.getRandomConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
-		log.debug("Selecting a random configuration {}", config);
+		log.trace("Selecting a random configuration {}", config);
 		configTracker.addConfiguration(config, "RANDOM", "SelectionCount="+selectionCount);
 		return Collections.singletonList(config);
 	}
@@ -766,7 +766,7 @@ public class AbstractAlgorithmFramework {
 				
 			} else
 			{
-				log.debug("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
+				log.trace("Already have performed max runs ({}) for incumbent" , MAX_RUNS_FOR_INCUMBENT);
 			}
 			
 		}
@@ -810,16 +810,7 @@ public class AbstractAlgorithmFramework {
 			RandomUtil.permuteList(aMissing, permutations);
 			aMissing = aMissing.subList(0, runsToMake);
 			
-			//=== Only bother with this loop if tracing is enabled (facilitates stepping through the code).
-			if(log.isTraceEnabled())
-			{
-				for(ProblemInstanceSeedPair pisp : aMissing)
-				{
-					log.trace("Missing Problem Instance Seed Pair {}", pisp);
-				}
-			}
-		
-			log.trace("Permuting elements according to {}", Arrays.toString(permutations));
+
 			
 			//TODO: refactor adaptive capping.
 			double bound_inc = Double.POSITIVE_INFINITY;
@@ -1033,8 +1024,8 @@ public class AbstractAlgorithmFramework {
 		
 		if(!runHistory.getProblemInstanceSeedPairsRan(incumbent).equals(runHistory.getProblemInstanceSeedPairsRan(challenger)))
 		{
-			log.debug("Incumbent Runs: {}", runHistory.getProblemInstanceSeedPairsRan(incumbent));
-			log.debug("Challenger Runs: {}", runHistory.getProblemInstanceSeedPairsRan(challenger));
+			log.warn("Incumbent Runs: {}", runHistory.getProblemInstanceSeedPairsRan(incumbent));
+			log.warn("Challenger Runs: {}", runHistory.getProblemInstanceSeedPairsRan(challenger));
 			
 			throw new IllegalStateException("The Incumbent "+ getConfigurationString(incumbent) + " has " + runHistory.getProblemInstanceSeedPairsRan(incumbent).size() +" problem instance seed pairs run, where as the challenger " + getConfigurationString(challenger) + " has " + runHistory.getProblemInstanceSeedPairsRan(challenger).size() + " problem instance seed pairs run. The corresponding sets are not equal");
 		}
@@ -1123,7 +1114,7 @@ public class AbstractAlgorithmFramework {
 	private  void updateIncumbentCost() {
 		
 		currentIncumbentCost = runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances), cutoffTime);
-		log.debug("Incumbent Cost now: {}", currentIncumbentCost);
+		log.trace("Incumbent Cost now: {}", currentIncumbentCost);
 	}
 
 
@@ -1139,7 +1130,6 @@ public class AbstractAlgorithmFramework {
 	{
 		
 		RunConfig rc =  new RunConfig(pisp, cutofftime, configuration );
-		log.trace("RunConfig generated {}", rc);
 		return rc;
 	}
 	
@@ -1149,7 +1139,6 @@ public class AbstractAlgorithmFramework {
 			ParamConfiguration challenger) {
 		
 		RunConfig rc =  new RunConfig(pisp, capTime, challenger, true );
-		log.trace("RunConfig generated {}", rc);
 		return rc;
 	}
 	

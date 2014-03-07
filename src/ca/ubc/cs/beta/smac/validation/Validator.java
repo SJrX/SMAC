@@ -135,7 +135,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		} else if(options.validateOnlyLastIncumbent)
 		{
 			
-			log.debug("Validating only the last incumbent");
+			log.trace("Validating only the last incumbent");
 			if(options.useWallClockTime)
 			{
 				TrajectoryFileEntry tfe = tfes.get(tfes.size() - 1);

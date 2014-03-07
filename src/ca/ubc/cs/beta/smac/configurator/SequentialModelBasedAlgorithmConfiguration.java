@@ -94,11 +94,11 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	protected double freeMemoryAfterGC()
 	{
-		log.debug("Running System Garbage Collector");
+		log.trace("Running System Garbage Collector");
 		System.gc();
 		
 		double freeMemory = ((double) Runtime.getRuntime().freeMemory() / (double) Runtime.getRuntime().totalMemory());
-		log.debug("Free memory {} %", freeMemory);
+		log.trace("Free memory {} %", freeMemory);
 		return freeMemory;
 	}
 	
@@ -266,7 +266,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			randomChallengers.add(configSpace.getRandomConfiguration(configSpaceRandomInterleave));
 		}
-		log.debug("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
+		log.trace("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
 		
 		//=== Interleave the EI and random challengers.
 		List<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>(eichallengers.size()*2);
@@ -286,7 +286,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		if(SELECT_CONFIGURATION_SYNC_DEBUGGING)
 		{
-			log.debug("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
+			log.trace("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
 		}
 		
 		return challengers;
@@ -398,7 +398,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			configPredMeanVarEIMap.put(lsResult.getValue(), val);
 			watch.stop();
 			Object[] args = {i+1,((double) watch.time()/1000.0),min_neg};
-			log.debug("LS {} took {} seconds and yielded neg log EI {}",args);
+			log.trace("LS {} took {} seconds and yielded neg log EI {}",args);
 		}
 		
 		log.info("{} Local Searches took {} seconds in total ", numberOfSearches, stpWatch.stop()  / 1000.0 );
@@ -427,7 +427,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			randomConfigs.add(configSpace.getRandomConfiguration(configSpaceEIRandom));
 		} 
 		
-		log.debug("Generating {} Random Configurations for EI took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
+		log.trace("Generating {} Random Configurations for EI took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
 		
 		t = new AutoStartStopWatch();
 		double[][] randomConfigToDebug = new double[randomConfigs.size()][];
@@ -437,17 +437,17 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		if(SELECT_CONFIGURATION_SYNC_DEBUGGING &&  log.isDebugEnabled())
 		{
-			log.debug("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
+			log.trace("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
 		}
 		//=== Compute EI for the random configs.		
 		predictions = transpose(applyMarginalModel(randomConfigs));
 		predmean = predictions[0];
 		predvar = predictions[1];
 		
-		log.debug("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
+		log.trace("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
 		double[] expectedImprovementOfRandoms = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar);
-		log.debug("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
+		log.trace("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
 		for(int i=0; i <  randomConfigs.size(); i++)
 		{
@@ -455,7 +455,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			configPredMeanVarEIMap.put(randomConfigs.get(i), val);
 		}
 		
-		log.debug("Map Insertion for Random Configurations took {} (s)", t.stop() / 1000.0);
+		log.trace("Map Insertion for Random Configurations took {} (s)", t.stop() / 1000.0);
 		
 		
 		//=== Add random configs to LS configs.
@@ -467,9 +467,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		for(ParamWithEI eic : bestResults)
 		{
 			configArrayToDebug[j++] = eic.getValue().toValueArray();
-		}
-		//log.debug("Local Search Selected Configurations & Random Configs Hash Code: {}", matlabHashCode(configArrayToDebug));
-		
+		}		
 		
 		/*
 		if(RoundingMode.ROUND_NUMBERS_FOR_MATLAB_SYNC)
@@ -567,7 +565,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			double[][] cArray = {c.toValueArray()};
 			int LSHashCode = matlabHashCode(cArray);
 			
-			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.debug("Local Search HashCode: {}", LSHashCode);
+			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.trace("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current options and compute EI for all of it.
 			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configRandLS, options.scenarioConfig.algoExecOptions.paramFileDelegate.continuousNeighbours);
@@ -617,15 +615,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				double[] var = predictions[1];
 				
 				eiVal = ei.computeAcquisitionFunctionValue(fmin_sample, mean, var);
-				Object[] args = {eiVal[0], mean[0], var[0]};
-				log.trace("Expected improvement for next step is {} mean={}, var={}",args);
-				
-				
-				
 			}
 		}
 		
-		log.debug("Local Search took {} steps", localSearchSteps);
+		log.trace("Local Search took {} steps", localSearchSteps);
 		
 		return incumbentEIC;
 	}

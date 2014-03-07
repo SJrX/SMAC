@@ -372,9 +372,6 @@ public class SMACExecutor {
 				
 			}
 			
-			log.trace("Command Line Options Parsed");
-			
-	
 			
 			JCommanderHelper.logCallString(args, SMACExecutor.class);
 			
@@ -429,7 +426,7 @@ public class SMACExecutor {
 				//We don't handle this more gracefully because this seems like a super rare incident.
 				if(ManagementFactory.getThreadMXBean().isThreadCpuTimeEnabled())
 				{
-					log.debug("JVM Supports CPU Timing Measurements");
+					log.trace("JVM Supports CPU Timing Measurements");
 				} else
 				{
 					log.warn("This Java Virtual Machine has CPU Time Measurements disabled, tunerTimeout will not contain any SMAC Execution Time.");
