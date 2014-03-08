@@ -1040,7 +1040,7 @@ public class AbstractAlgorithmFramework {
 		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
-		log.info("Incumbent Changed to: {} ({}), Total Runs for Incumbent: {}, Performance on Training Set: {}", runHistory.getThetaIdx(challenger), challenger,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger), chalCost);
+		log.info("Incumbent Changed to: {} ({}), Total Runs for Incumbent: {}", runHistory.getThetaIdx(challenger), challenger,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
 		
 		
 		logConfiguration("New Incumbent", challenger);		
