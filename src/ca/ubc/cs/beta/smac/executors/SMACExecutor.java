@@ -92,7 +92,7 @@ public class SMACExecutor {
 		
 		if(log != null)
 		{
-			log.info("Returning with value: {}",returnValue);
+			log.debug("Returning with value: {}",returnValue);
 		}
 		
 		System.exit(returnValue);
@@ -115,7 +115,6 @@ public class SMACExecutor {
 			SMACOptions options = parseCLIOptions(args);
 			
 			SMACBuilder smacBuilder = new SMACBuilder();
-			
 			
 			//EventManager eventManager = smacBuilder.getEventManager();
 			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
@@ -165,11 +164,14 @@ public class SMACExecutor {
 				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
 				
 			}
+			
+			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
+			
+			
 			smac.logIncumbentPerformance(performance);
 
 			smac.logSMACResult(performance);
 			
-			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
 			
 			smacBuilder.getEventManager().shutdown();
 			
@@ -367,7 +369,7 @@ public class SMACExecutor {
 				
 				for(String name : jcom.getParameterFilesToRead())
 				{
-					log.info("Parsing (default) options from file: {} ", name);
+					log.debug("Parsing (default) options from file: {} ", name);
 				}
 				
 			}

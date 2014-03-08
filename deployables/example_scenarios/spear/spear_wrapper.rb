@@ -33,7 +33,7 @@ cmd = "./Spear-32_1.2.1 --nosplash --time #{paramstring} --dimacs #{input_file} 
 tmp_file = "spear_output#{rand}.txt"
 exec_cmd = "#{cmd} > #{tmp_file}"
 
-STDERR.puts "Calling: #{exec_cmd}"
+#STDERR.puts "Calling: #{exec_cmd}"
 system exec_cmd
 
 #=== Parse algorithm output to extract relevant information for ParamILS.

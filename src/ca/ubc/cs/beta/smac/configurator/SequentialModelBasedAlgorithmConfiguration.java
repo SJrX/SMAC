@@ -85,7 +85,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		if(modelRH.getAlgorithmRunData().size() > 0)
 		{
-			log.info("Model warmstart payload detected with {} runs ", modelRH.getAlgorithmRunData().size());
+			log.debug("Model warmstart payload detected with {} runs ", modelRH.getAlgorithmRunData().size());
 		}
 		this.modelRunHistory = modelRH;
 	 
@@ -128,7 +128,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			{
 				subsamplePercentage *= options.randomForestOptions.subsamplePercentage;
 				Object[] args = { getIteration(), freeMemory, subsamplePercentage};
-				log.info("Iteration {} : Free memory too low ({}) subsample percentage now {} ", args);
+				log.debug("Iteration {} : Free memory too low ({}) subsample percentage now {} ", args);
 			}
 
 		} else
@@ -246,7 +246,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		forest = mb.getRandomForest();
 		preparedForest = mb.getPreparedRandomForest();
 	
-		log.info("Random Forest Built");
+		log.debug("Random Forest Built");
 	}
 	
 	//private int selectionCount = 0;
@@ -256,7 +256,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		AutoStartStopWatch t = new AutoStartStopWatch();
 		List<ParamConfiguration> eichallengers = selectChallengersWithEI(smacConfig.numberOfChallengers);
 		
-		log.info("Selecting {} challengers based on EI took {} seconds", eichallengers.size(), t.stop() / 1000.0);
+		log.debug("Selecting {} challengers based on EI took {} seconds", eichallengers.size(), t.stop() / 1000.0);
 		
 		List<ParamConfiguration> randomChallengers = new ArrayList<ParamConfiguration>(eichallengers.size());
 		
@@ -305,7 +305,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		double[] predvar = predictions[1];
 
 		double[][] tmp_predictions = transpose(applyMarginalModel(Collections.singletonList(incumbent)));
-		log.info("Prediction for incumbent: {} +/- {} (in log space if logModel=true)", tmp_predictions[0][0], tmp_predictions[1][0]);
+		log.trace("Prediction for incumbent: {} +/- {} (in log space if logModel=true)", tmp_predictions[0][0], tmp_predictions[1][0]);
 		
 		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.algoExecOptions.cutoffTime);
 		//=== Get the empirical cost into log space if the model gives log predictions. 
@@ -320,7 +320,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			adjusted_fmin = Math.log10(adjusted_fmin);
 			Object[] args = { getIteration(), fmin, adjusted_fmin};
 			
-			log.info("Optimizing EI at valdata.iteration {}. fmin: {}, fmin (accounting for minimum response value): {}", args);
+			log.trace("Optimizing EI at valdata.iteration {}. fmin: {}, fmin (accounting for minimum response value): {}", args);
 			/*
 			if(tmp_predictions[1][0] > Math.pow(10, -13))
 			{
@@ -330,7 +330,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				{
 					if(run.getRunConfig().getParamConfiguration().equals(incumbent))
 					{
-						log.info("Instance {} Runtime {}:", run.getRunConfig().getProblemInstanceSeedPair().getInstance().getInstanceID(), run.getRuntime());
+						log.debug("Instance {} Runtime {}:", run.getRunConfig().getProblemInstanceSeedPair().getInstance().getInstanceID(), run.getRuntime());
 					}
 				}
 				
@@ -341,7 +341,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			*/
 		} else
 		{
-			log.info("Optimizing EI at valdata.iteration {}. fmin: {}", getIteration(), fmin);
+			log.debug("Optimizing EI at valdata.iteration {}. fmin: {}", getIteration(), fmin);
 		}
 		
 		//=== Compute EI of these configurations (as given by predmean,predvar)
@@ -351,7 +351,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 
 		watch.stop();
-		log.info("Compute negEI for all conf. seen at valdata.iteration {}: took {} s",getIteration(), ((double) watch.time()) / 1000.0 );
+		log.debug("Compute negEI for all conf. seen at valdata.iteration {}: took {} s",getIteration(), ((double) watch.time()) / 1000.0 );
 
 		//=== Put these EIs into a map for each configuration.
 		Map<ParamConfiguration, double[]> configPredMeanVarEIMap = new LinkedHashMap<ParamConfiguration, double[]>();
@@ -401,7 +401,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			log.trace("LS {} took {} seconds and yielded neg log EI {}",args);
 		}
 		
-		log.info("{} Local Searches took {} seconds in total ", numberOfSearches, stpWatch.stop()  / 1000.0 );
+		log.trace("{} Local Searches took {} seconds in total ", numberOfSearches, stpWatch.stop()  / 1000.0 );
 		//=== Get into array format for debugging.
 		double[][] configArrayToDebug = new double[bestResults.size()][];
 		int j=0; 
@@ -496,7 +496,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			double[] meanvar = configPredMeanVarEIMap.get(bestResults.get(i).getValue());
 			Object[] args = {i+1, meanvar[0], Math.sqrt(meanvar[1]), -meanvar[2]}; 
-			log.info("Challenger {} predicted {} +/- {}, expected improvement {}",args);
+			log.trace("Challenger {} predicted {} +/- {}, expected improvement {}",args);
 		}
 		
 		//=== Make result list of configurations. 

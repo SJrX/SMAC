@@ -135,10 +135,10 @@ public class SMACBuilder {
 	
 		if(Double.isInfinite(configSpaceSize))
 		{
-			log.info("Configuration Space has at least one continuous parameter or is very large (only bound experssible in IEEE 754 format is Infinity)");
+			log.debug("Configuration Space has at least one continuous parameter or is very large (only bound expressible in IEEE 754 format is Infinity)");
 		} else
 		{
-			log.info("Configuration Space size is at most {}", configSpace.getUpperBoundOnSize());
+			log.debug("Configuration Space size is at most {}", configSpace.getUpperBoundOnSize());
 		}
 		
 		StateFactory sf = options.getSaveStateFactory(outputDir);
@@ -154,10 +154,10 @@ public class SMACBuilder {
 		
 		if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
 		{
-			log.info("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			log.debug("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
 		} else
 		{
-			log.info("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			log.debug("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
 		}
 		
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);

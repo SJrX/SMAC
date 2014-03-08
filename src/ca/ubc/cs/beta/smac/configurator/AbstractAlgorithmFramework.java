@@ -176,12 +176,12 @@ public class AbstractAlgorithmFramework {
 		//=== Clamp # runs for incumbent to # of available seeds.
 		if(instanceSeedGen.getInitialInstanceSeedCount() < options.maxIncumbentRuns)
 		{
-			log.info("Clamping number of runs to {} due to lack of instance/seeds pairs", instanceSeedGen.getInitialInstanceSeedCount());
+			log.debug("Clamping number of runs to {} due to lack of instance/seeds pairs", instanceSeedGen.getInitialInstanceSeedCount());
 			MAX_RUNS_FOR_INCUMBENT = instanceSeedGen.getInitialInstanceSeedCount();
 		}  else
 		{
 			MAX_RUNS_FOR_INCUMBENT=smacOptions.maxIncumbentRuns;
-			log.info("Maximimum Number of Runs for the Incumbent Initialized to {}", MAX_RUNS_FOR_INCUMBENT);
+			log.debug("Maximimum Number of Runs for the Incumbent Initialized to {}", MAX_RUNS_FOR_INCUMBENT);
 		}
 		
 		TerminationCondition cond = new ConfigurationSpaceExhaustedCondition(configSpace,MAX_RUNS_FOR_INCUMBENT);
@@ -252,7 +252,7 @@ public class AbstractAlgorithmFramework {
 		
 		try 
 		{
-		log.info("Restoring State");
+		log.debug("Restoring State");
 		
 		
 		
@@ -262,7 +262,7 @@ public class AbstractAlgorithmFramework {
 			iteration = myIteration;
 		} else
 		{
-			log.info("No iteration info found it state file, staying at iteration 0");
+			log.debug("No iteration info found it state file, staying at iteration 0");
 		}
 		
 		
@@ -276,7 +276,7 @@ public class AbstractAlgorithmFramework {
 			this.pool = (SeedableRandomPool) map.get(OBJECT_MAP_POOL_KEY);
 		} else
 		{
-			log.info("Incomplete state detected using existing Random Pool object");
+			log.debug("Incomplete state detected using existing Random Pool object");
 		}
 		
 		
@@ -285,7 +285,7 @@ public class AbstractAlgorithmFramework {
 			this.instanceSeedGen = (InstanceSeedGenerator) map.get(OBJECT_MAP_INSTANCE_SEED_GEN_KEY);
 		} else
 		{
-			log.info("Incomplete state detected using existing instance seed generator");
+			log.debug("Incomplete state detected using existing instance seed generator");
 		}
 		
 		
@@ -318,7 +318,7 @@ public class AbstractAlgorithmFramework {
 			throw new ParameterException("Incumbent has been run on "+ runHistory.getProblemInstanceSeedPairsRan(incumbent).size()+ " problem instance seed pair(s), but there have been a total of "+  allPisps.size() +" run. This generally means the state data used to restore SMAC needs to be repaired to preserve this invariant. Please run the state data through the state-merge utility to repair this invariant");
 		}
 		
-		log.info("Incumbent Set To {}",incumbent);
+		log.debug("Incumbent Set To {}",incumbent);
 		
 		tae.seek(runHistory.getAlgorithmRunsIncludingRedundant());
 		
@@ -330,7 +330,7 @@ public class AbstractAlgorithmFramework {
 		
 		this.fireEvent(new StateRestoredEvent(termCond, this.iteration, this.runHistory, this.incumbent));
 
-		log.info("Restored to Iteration {}", iteration);
+		log.debug("Restored to Iteration {}", iteration);
 		
 		} catch(RuntimeException e)
 		{
@@ -444,10 +444,10 @@ public class AbstractAlgorithmFramework {
 		if (iteration > 0)
 		{
 			Object[] arr = {iteration, runHistory.getThetaIdx(incumbent), incumbent};		
-			log.info("At end of iteration {}, incumbent is {} ({}) ",arr);
+			log.debug("At end of iteration {}, incumbent is {} ({}) ",arr);
 		} else
 		{
-			log.info("Incumbent currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
+			log.debug("Incumbent currently is: {} ({}) ", runHistory.getThetaIdx(incumbent), incumbent);
 		}				
 		//writeIncumbent();
 		
@@ -508,14 +508,14 @@ public class AbstractAlgorithmFramework {
 						
 						runHistory.incrementIteration();
 						iteration++;
-						log.info("Starting Iteration {}", iteration);
+						log.debug("Starting Iteration {}", iteration);
 						
 						fireEvent(new IterationStartEvent(termCond, iteration));
 						fireEvent(new ModelBuildStartEvent(termCond));
 						
 						StopWatch t = new AutoStartStopWatch();
 						learnModel(runHistory, configSpace);
-						log.info("Model Learn Time: {} (s)", t.time() / 1000.0);
+						log.trace("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
 						fireEvent(new ModelBuildEndEvent(termCond, getModel()));
 						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
@@ -544,7 +544,7 @@ public class AbstractAlgorithmFramework {
 				
 				if(options.stateOpts.cleanOldStatesOnSuccess)
 				{
-					log.info("Cleaning old states");
+					log.trace("Cleaning old states");
 					stateFactory.purgePreviousStates();
 				}
 				
@@ -574,6 +574,7 @@ public class AbstractAlgorithmFramework {
 	
 
 	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) {
+		//ROAR mode
 	}
 
 	
@@ -700,18 +701,18 @@ public class AbstractAlgorithmFramework {
 	private void intensify(List<ParamConfiguration> challengers, double timeBound) 
 	{
 		double initialTime = runHistory.getTotalRunCost();
-		log.info("Calling intensify with {} challenger(s)", challengers.size());
+		log.debug("Calling intensify with {} challenger(s)", challengers.size());
 		for(int i=0; i < challengers.size(); i++)
 		{
 			double timeUsed = runHistory.getTotalRunCost() - initialTime;
 			if( timeUsed > timeBound && i > 1)
 			{
-				log.info("Out of time for intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed );
+				log.debug("Out of time for intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed );
 				break;
 			} else
 			{
 				
-				log.info("Intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed);
+				log.debug("Intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed);
 			}
 			challengeIncumbent(challengers.get(i));
 		}
@@ -758,9 +759,9 @@ public class AbstractAlgorithmFramework {
 				if(options.alwaysRunInitialConfiguration && !incumbent.equals(initialIncumbent))
 				{
 					Object[] args = { runHistory.getThetaIdx(initialIncumbent), initialIncumbent,  runHistory.getThetaIdx(incumbent), incumbent }; 
-					log.info("Trying challenge with initial configuration {} ({}) first (current incumbent {} ({})", args);
+					log.trace("Trying challenge with initial configuration {} ({}) first (current incumbent {} ({})", args);
 					challengeIncumbent(initialIncumbent, false);
-					log.info("Challenge with initial configuration done");
+					log.trace("Challenge with initial configuration done");
 				}
 				
 				
@@ -775,7 +776,7 @@ public class AbstractAlgorithmFramework {
 		if(challenger.equals(incumbent))
 		{
 			Object[] args = { runHistory.getThetaIdx(challenger), challenger,  runHistory.getThetaIdx(incumbent), incumbent };
-			log.info("Challenger {} ({}) is equal to the incumbent {} ({}); not evaluating it further ", args);
+			log.debug("Challenger {} ({}) is equal to the incumbent {} ({}); not evaluating it further ", args);
 			return;
 		}
 		
@@ -797,7 +798,7 @@ public class AbstractAlgorithmFramework {
 			//DO NOT SHUFFLE AS MATLAB DOESN'T
 			int runsToMake = Math.min(N, aMissing.size());
 			if (runsToMake == 0){
-		        log.info("Aborting challenge of incumbent. Incumbent has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent) + " runs, challenger has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger) + " runs, and the maximum runs for any config is set to " + MAX_RUNS_FOR_INCUMBENT + ".");
+		        log.debug("Aborting challenge of incumbent. Incumbent has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent) + " runs, challenger has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger) + " runs, and the maximum runs for any config is set to " + MAX_RUNS_FOR_INCUMBENT + ".");
 		        return;
 			} else
 			{
@@ -834,13 +835,13 @@ public class AbstractAlgorithmFramework {
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
 			}
 			Object[] args2 = { N,  runHistory.getThetaIdx(challenger)!=-1?" " + runHistory.getThetaIdx(challenger):"" , challenger, bound_inc } ;
-			log.info("Performing up to {} run(s) for challenger{} ({}) up to a total bound of {} ", args2);
+			log.debug("Performing up to {} run(s) for challenger{} ({}) up to a total bound of {} ", args2);
 			
 			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs); 
 			
 			if(options.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
-				log.info("Challenger cannot beat incumbent => scheduling empty run");
+				log.trace("Challenger cannot beat incumbent => scheduling empty run");
 				runsToEval.add(getBoundedRunConfig(aMissing.get(0), 0, challenger));
 				if (runsToMake != 1){
 					throw new IllegalStateException("Error in empty run scheduling: empty runs should only be scheduled in first iteration of intensify.");
@@ -919,12 +920,12 @@ public class AbstractAlgorithmFramework {
 		double chalCost = runHistory.getEmpiricalCost(challenger, piCommon, cutoffTime);
 		
 		
-		log.info("Based on {} common runs on (up to) {} instances, challenger {}  has a lower bound {} and incumbent {} has obj {}",piCommon.size(), runHistory.getUniqueInstancesRan().size(), getConfigurationString(challenger), chalCost,getConfigurationString(incumbent), incCost );
+		log.debug("Based on {} common runs on (up to) {} instances, challenger {}  has a lower bound {} and incumbent {} has obj {}",piCommon.size(), runHistory.getUniqueInstancesRan().size(), getConfigurationString(challenger), chalCost,getConfigurationString(incumbent), incCost );
 		
 		
 		//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.
 		if (incCost + Math.pow(10, -6)  < chalCost){
-			log.info("Challenger {} is worse; aborting its evaluation", getConfigurationString(challenger) );
+			log.debug("Challenger {} is worse; aborting its evaluation", getConfigurationString(challenger) );
 			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(challenger), "Continue=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
 			
 			return false;
@@ -937,7 +938,7 @@ public class AbstractAlgorithmFramework {
 			} else
 			{
 				configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
-				log.info("Challenger {} has all the runs of the incumbent, but did not outperform it", getConfigurationString(challenger) );
+				log.debug("Challenger {} has all the runs of the incumbent, but did not outperform it", getConfigurationString(challenger) );
 				
 			}
 			
@@ -961,7 +962,7 @@ public class AbstractAlgorithmFramework {
 		
 		String cmd = tae.getManualCallString(config);
 		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
-		log.info("Sample Call for {} {} ({}) \n{} ",args);
+		log.info("Sample Call for {} {} ({}): \n{} ",args);
 		
 	}
 
@@ -999,11 +1000,11 @@ public class AbstractAlgorithmFramework {
 			if(chalCost < incCost - Math.pow(10,-6))
 			{
 				configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=True","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
-				log.info("Challenger {} has all the runs of the incumbent now, and did outperform it", getConfigurationString(challenger) );
+				log.debug("Challenger {} has all the runs of the incumbent now, and did outperform it", getConfigurationString(challenger) );
 			} else
 			{
 				configTracker.addConfiguration(challenger, "Final-Challenge-Round", "NewIncumbent=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
-				log.info("Challenger {} has all the runs of the incumbent, but did not outperform it", getConfigurationString(challenger) );
+				log.debug("Challenger {} has all the runs of the incumbent, but did not outperform it", getConfigurationString(challenger) );
 				return;
 			}
 			
@@ -1039,7 +1040,9 @@ public class AbstractAlgorithmFramework {
 		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
-		log.info("Incumbent Changed to: {} ({})", runHistory.getThetaIdx(challenger), challenger );
+		log.info("Incumbent Changed to: {} ({}), Total Runs for Incumbent: {}, Performance on Training Set: {}", runHistory.getThetaIdx(challenger), challenger,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger), chalCost);
+		
+		
 		logConfiguration("New Incumbent", challenger);		
 		fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),oldIncumbent, cpuTime));
 
@@ -1180,15 +1183,15 @@ public class AbstractAlgorithmFramework {
 	protected List<AlgorithmRun> evaluateRun(List<RunConfig> runConfigs)
 	{
 		if (have_to_stop(iteration)){
-			log.info("Cannot schedule any more runs, out of time");
+			log.debug("Cannot schedule any more runs, out of time");
 			throw new OutOfTimeException();
 		} 
 	
-		log.info("Iteration {}: Scheduling {} run(s):", iteration,  runConfigs.size());
+		log.debug("Iteration {}: Scheduling {} run(s):", iteration,  runConfigs.size());
 		for(RunConfig rc : runConfigs)
 		{
 			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
-			log.info("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
+			log.debug("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
 		List<AlgorithmRun> completedRuns = tae.evaluateRun(runConfigs);
@@ -1198,7 +1201,7 @@ public class AbstractAlgorithmFramework {
 			RunConfig rc = run.getRunConfig();
 			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
 
-			log.info("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
+			log.debug("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 		}
 		
 		

@@ -112,7 +112,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		{
 			if(validationRunsCount > testInstGen.getInitialInstanceSeedCount())
 			{
-				log.info("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
+				log.debug("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
 				validationRunsCount = testInstGen.getInitialInstanceSeedCount();
 			}
 			pisps = getValidationRuns(testInstances, (SetInstanceSeedGenerator) testInstGen, mode, validationRunsCount);
@@ -220,7 +220,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime);
 		
-		log.info("Validation needs {} algorithm runs  to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
+		log.info("Validation needs {} algorithm runs to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
 		//List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
 		
 		final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
@@ -338,7 +338,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		if(!validatingTae.areRunsPersisted() || waitForRuns)
 		{
-			log.info("Waiting until validation completion");
+			log.debug("Waiting until validation completion");
 			callback.waitForCompletion();
 		}
 		
@@ -471,7 +471,7 @@ endloop:
 
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir +  File.separator + "configurationMatrix"+suffix+"-run" + numRun + ".csv");
-		log.info("Validation Configuration/PISP Matrix Results Written to: {}", f.getAbsolutePath());
+		log.debug("Validation Configuration/PISP Matrix Results Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		try {
@@ -577,7 +577,7 @@ endloop:
 		
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir +  File.separator + "validationResultsMatrix"+suffix+"-run" + numRun + ".csv");
-		log.info("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
+		log.debug("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -693,7 +693,7 @@ endloop:
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
 		
-		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
+		log.debug("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
@@ -721,7 +721,7 @@ endloop:
 	{
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir + File.separator +  "rawValidationExecutionResults"+suffix+"-run" + numRun + ".csv");
-		log.info("Raw Validation Results File Written to: {}", f.getAbsolutePath());
+		log.debug("Raw Validation Results File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
@@ -752,8 +752,8 @@ endloop:
 		
 		File validationFile = new File(outputDir +  File.separator + "validationResults"+suffix+"-run" + numRun + ".csv");
 		
-		log.info("Validation Results File Written to: {}", validationFile.getAbsolutePath());
-		log.info("Classic Validation Results File Written to: {}", classicValidationFile.getAbsolutePath());
+		log.debug("Validation Results File Written to: {}", validationFile.getAbsolutePath());
+		log.debug("Classic Validation Results File Written to: {}", classicValidationFile.getAbsolutePath());
 	
 		if(!classicValidationFile.exists())
 		{
