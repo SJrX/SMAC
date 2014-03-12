@@ -166,8 +166,8 @@ public class SMACBuilder {
 		
 		AbstractAlgorithmFramework smac;
 
-		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
-		RunHistory rhModel = new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
+		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
+		RunHistory rhModel = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
 		
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
@@ -209,7 +209,7 @@ public class SMACBuilder {
 		
 		InitializationProcedure initProc;
 		
-		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
+		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
 		
 		switch(options.initializationMode)
 		{
@@ -367,7 +367,7 @@ public class SMACBuilder {
 				break;
 			
 			case QUALITY:
-				if(!scenarioOptions.intraInstanceObj.equals(OverallObjective.MEAN))
+				if(!scenarioOptions.getIntraInstanceObjective().equals(OverallObjective.MEAN))
 				{
 					throw new ParameterException("To optimize quality you MUST use an intra-instance objective of " + OverallObjective.MEAN);
 				}

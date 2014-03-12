@@ -208,7 +208,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			// but matlab sure does
 			if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
 			{	
-				runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.intraInstanceObj.getPenaltyFactor();
+				runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
 			}
 		}
 	
@@ -235,7 +235,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		preparedForest = null;
 		if(options.adaptiveCapping)
 		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG"), smacConfig.mbOptions.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.intraInstanceObj.getPenaltyFactor(), subsamplePercentage);
+			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG"), smacConfig.mbOptions.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor(), subsamplePercentage);
 		} else
 		{
 			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);

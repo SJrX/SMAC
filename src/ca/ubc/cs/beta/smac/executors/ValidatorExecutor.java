@@ -290,7 +290,7 @@ public class ValidatorExecutor {
 					validatingTae,
 					outputDir,
 					options.scenarioConfig.runObj,
-					options.scenarioConfig.intraInstanceObj,
+					options.scenarioConfig.getIntraInstanceObjective(),
 					options.scenarioConfig.interInstanceObj,
 					tfes,
 					options.seedOptions.numRun,
