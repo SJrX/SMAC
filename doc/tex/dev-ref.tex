@@ -11,15 +11,13 @@ The SMAC Application is broken up into three distinct projects as follows:
 
 \item[SMAC] Contains all of the logic that is specific to SMAC, (\eg{Validation, the SMAC algorithm, construction of SMAC Objects}). In essence it stitches together components of the Automatic Configurator Library. The sources are included in \texttt{smac-src.jar}.
 
-\item[Automatic Configurator Library] Contains all of the primary abstractions/models used by SMAC (\eg{Object representations for Instances, Target Algorithm Configurations \& methods for executing algorithms,...}). 90\% of the code that SMAC uses lives in this library. It also contains code for converting the data from these abstractions into input needed to build the model. These are shipped with SMAC in the \texttt{aclib-src.jar} file.
+\item[Algorithm Execution \& Abstraction Toolkit] Contains all of the primary abstractions/models used by SMAC (\eg{Object representations for Instances, Target Algorithm Configurations \& methods for executing algorithms,...}). 90\% of the code that SMAC uses lives in this library. It also contains code for converting the data from these abstractions into input needed to build the model. These are shipped with SMAC in the \texttt{aclib-src.jar} file. \textbf{Note}: Historically this was called "aclib", and in this version of SMAC internally the code still referred to it as aclib. The next version of SMAC will likely rename it.
 
 \item[Random Forests] The Random Forest model code. The sources are included in \texttt{fastrf-src.jar}. 
 
 \end{description}
 
-The scope of this document governs only the first two projects. At the time of writing the \textbf{Automatic Configurator Library} code base is in good shape, while the \textbf{SMAC} code base suffers from two key problems:
-
-
+The scope of this document governs only the first two projects. At the time of writing the \textbf{Algorithm Execution \& Abstraction Toolkit} has no published documentation, but if you e-mail the above a draft version is available.
 
 \begin{itemize}
 
@@ -36,7 +34,7 @@ The most important classes to SMAC are as follows:
 \small
 \begin{tabular}{ | c | p{10 cm} | }
 \hline
-\multicolumn{2}{|c|}{\textbf{Automatic Configurator Library Classes}} \\
+\multicolumn{2}{|c|}{\textbf{Algorithm Execution \& Abstraction Toolkit}} \\
 \hline
 Name  & Description \\
 \hline

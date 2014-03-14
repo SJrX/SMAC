@@ -28,7 +28,7 @@ paramstring = tmpparams.join(" ")
 # Build algorithm command and execute it.
 #
 # Change --dimacs according to your input (--sf for modular arithmetic)
-cmd = "./Spear-32_1.2.1 --nosplash --time #{paramstring} --dimacs #{input_file} --tmout #{timeout} --seed #{seed}"
+cmd =  "#{File.dirname(__FILE__)}/Spear-32_1.2.1 --nosplash --time #{paramstring} --dimacs #{input_file} --tmout #{timeout} --seed #{seed}"
 
 tmp_file = "spear_output#{rand}.txt"
 exec_cmd = "#{cmd} > #{tmp_file}"

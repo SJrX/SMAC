@@ -196,7 +196,7 @@ public class SMACExecutor {
 					
 					if(t instanceof ParameterException)
 					{
-						log.info("Don't forget that some options are set by default from files in ~/.aclib/");
+						log.info("Don't forget that some options are set by default from files in ~/.aeatk/");
 						log.debug("Exception stack trace", t);
 						
 						

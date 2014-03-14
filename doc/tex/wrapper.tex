@@ -56,13 +56,15 @@ Recent versions of SMAC also set the following environment variables, which shou
 \hline
 \textbf{Environment Variable} & \textbf{Purpose} \\
 \hline
-\textbf{ ACLIB\_CONCURRENT\_TASK\_ID } &  A zero indexed value of which concurrent run SMAC is executing. No two concurrent runs will see the same value, but subsequent runs will see the same value. This is mainly intended to allow the wrapper to manage CPU affinities. \\
-\hline 
-\textbf{ ACLIB\_PORT} & The wrapper can send in progress up dates to SMAC to the localhost via UDP on this port. The message format is a single double value. While SMAC doesn't directly use this presently, other utilities such as \texttt{algo-test} do, and future versions may, and some advanced options may preform better with this set. \\
-\hline 
-\textbf{ ACLIB\_CPU\_TIME\_FREQUENCY } & Signifies how often updates to the runtime should be sent. This is only a hint, and roughly should be treated as: there is no point in sending updates more frequently than this value in seconds. \\
+\textbf{ AEATK\_CONCURRENT\_TASK\_ID } &  A zero indexed value of which concurrent run SMAC is executing. No two concurrent runs will see the same value, but subsequent runs will see the same value. This is mainly intended to allow the wrapper to manage CPU affinities. \\
 \hline
-\textbf{ ACLIB\_EXECUTION\_UUID } & A UUID associated with the particular invocation of the wrapper. The primary purpose of this is facilitate identify every process associated with a specific invocation of a wrapper on a particular computer. This is primarily used in conjunction with the \textbf{-$~\!\!$-cli-kill-by-environment-cmd} option. If this environment variable already exists, then another one will be chosen, so do not rely on this particular variable being set. You should ensure that environment variables are passed to all sub processes however, so that they can be killed accordingly.\\
+\textbf{ AEATK\_SET\_TASK\_AFFINITY } & This environment variable is NOT set by SMAC, or used by SMAC but is used internally by some wrappers to ensure that AEATK\_CONCURRENT\_TASK\_ID is read and the task is tied to a specific core. It is strongly recommended that you set this value to ``1'' which your wrapper then reads to know to set the affinity properly. This isn't enabled by default, because some clusters, notably SGE do not set job affinities properly and so parallel jobs will get tied to the same core.\\
+\hline 
+\textbf{ AEATK\_PORT} & The wrapper can send in progress up dates to SMAC to the localhost via UDP on this port. The message format is a single double value. While SMAC doesn't directly use this presently, other utilities such as \texttt{algo-test} do, and future versions may, and some advanced options may preform better with this set. \\
+\hline 
+\textbf{ AEATK\_CPU\_TIME\_FREQUENCY } & Signifies how often updates to the runtime should be sent. This is only a hint, and roughly should be treated as: there is no point in sending updates more frequently than this value in seconds. \\
+\hline
+\textbf{ AEATK\_EXECUTION\_UUID } & A UUID associated with the particular invocation of the wrapper. The primary purpose of this is facilitate identify every process associated with a specific invocation of a wrapper on a particular computer. This is primarily used in conjunction with the \textbf{-$~\!\!$-cli-kill-by-environment-cmd} option. If this environment variable already exists, then another one will be chosen, so do not rely on this particular variable being set. You should ensure that environment variables are passed to all sub processes however, so that they can be killed accordingly.\\
 \hline
 \end{tabular}
 \end{center}
