@@ -211,6 +211,7 @@ Value & Error Name & Description \\
           		\item Target algorithms no longer see quoted arguments for parameter values. The option \textbf{-$~\!$-cli-call-params-with-quotes} can be used to get the old behaviour back, this option will likely be removed in future.
           		\item New option \textbf{-$~\!$-quick-saves} controls whether to make any quick save states or not.
           		\item New option \textbf{-$~\!$-intermediary-saves} controls whether to many any save states at all while SMAC is running (if false SMAC will still save information at the end)
+          		\item Revamped Quickstart guide
           		\item After validation SMAC prints correct termination reason message.
           		\item SMAC will now terminate all outstanding runs when exiting prematurely (for instance due to \textbf{CTRL+C})
           		\item Standardized scenario options (no new ones), but scenario options can be used in ParamILS versions 2.3.7 and later.
@@ -220,7 +221,7 @@ Value & Error Name & Description \\
           		\item The state merge utility no longer crashes if merging runs that don't have a run for every instance
           		\item Renamed many references of ACLib to AEAToolkit to reflect change of name of the toolkit SMAC is built with.
           		\item Default options are now read from \texttt{\textasciitilde/.aeatk} instead of \texttt{\textasciitilde/.aclib}.
-
+				\item Fixed an issue with absolute paths on windows not being handled correctly.
           	\end{enumerate}
           	
 
