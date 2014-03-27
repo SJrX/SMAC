@@ -525,7 +525,7 @@ public class AbstractAlgorithmFramework {
 				{ 
 
 					incumbent = initialIncumbent;
-					log.info("Initial Incumbent set as Incumbent: {}", incumbent);
+					
 					iteration = 0;
 					
 					log.trace("Initialization Procedure Started");

@@ -73,8 +73,7 @@ public class SMACBuilder {
 	private final EventManager eventManager; 
 	
 	private volatile TrajectoryFileLogger tLog;
-	
-	
+
 	private volatile LogRuntimeStatistics logRT;
 	public SMACBuilder()
 	{

@@ -21,29 +21,29 @@ import org.slf4j.MarkerFactory;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.logging.CommonMarkers;
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
+import ca.ubc.cs.beta.aclib.misc.version.JavaVersionInfo;
+import ca.ubc.cs.beta.aclib.misc.version.OSVersionInfo;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
-
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateFactoryOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
-
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
-
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
-
 import ca.ubc.cs.beta.smac.builder.SMACBuilder;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
+import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
@@ -185,7 +185,7 @@ public class SMACExecutor {
 			System.out.flush();
 			System.err.flush();
 			
-			System.err.println("Error occurred running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
+			System.err.println("Error occurred while running SMAC\n>Error Message:"+  t.getMessage() +  "\n>Encountered Exception:" + t.getClass().getSimpleName() +"\n>Error Log Location: " + logLocation);
 			System.err.flush();
 			
 				if(log != null)
@@ -202,15 +202,16 @@ public class SMACExecutor {
 						
 					} else if(t instanceof TargetAlgorithmAbortException)
 					{
-						log.error("A serious problem occured during target algorithm execution and we are aborting execution ",t );
+						
+						log.error(CommonMarkers.SKIP_CONSOLE_PRINTING, "A serious problem occured during target algorithm execution and we are aborting execution ",t );
+						
 						
 						
 						log.error("We tried to call the target algorithm wrapper, but this call failed.");
-						log.error("The problem is (most likely) somewhere in the wrapper.");
-						log.error("There is also possibly additional error information above (in this log)");
+						log.error("The problem is (most likely) somewhere in the wrapper or with the arguments to SMAC.");
 						log.error("The easiest way to debug this problem is to manually execute the call we tried and see why it did not return the correct result");
-						log.error("The required syntax is something like \"Final Result for ParamILS: x,x,x,x,x\".);");
-						log.error("Specifically the regex we are matching is {}", CommandLineAlgorithmRun.AUTOMATIC_CONFIGURATOR_RESULT_REGEX);
+						log.error("The required output of the wrapper is something like \"Result for ParamILS: x,x,x,x,x\".);");
+						//log.error("Specifically the regex we are matching is {}", CommandLineAlgorithmRun.AUTOMATIC_CONFIGURATOR_RESULT_REGEX);
 					}	else
 					{
 						log.info("Maybe try running in DEBUG mode if you are missing information");
@@ -365,7 +366,13 @@ public class SMACExecutor {
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
 				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
+				
 				VersionTracker.logVersions();
+				SMACVersionInfo s = new SMACVersionInfo();
+				JavaVersionInfo j = new JavaVersionInfo();
+				OSVersionInfo o = new OSVersionInfo();
+				log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
+				
 				
 				for(String name : jcom.getParameterFilesToRead())
 				{
@@ -375,7 +382,7 @@ public class SMACExecutor {
 			}
 			
 			
-			JCommanderHelper.logCallString(args, SMACExecutor.class);
+			JCommanderHelper.logCallString(args, "smac");
 			
 
 			 if(log.isDebugEnabled())
