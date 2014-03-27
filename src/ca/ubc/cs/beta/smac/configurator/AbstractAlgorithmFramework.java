@@ -48,6 +48,7 @@ import ca.ubc.cs.beta.aclib.misc.MapList;
 import ca.ubc.cs.beta.aclib.misc.cputime.CPUTime;
 import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
+import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceSeedPair;
@@ -141,6 +142,8 @@ public class AbstractAlgorithmFramework {
 	private final CPUTime cpuTime;
 	
 	
+	private final String objectiveToReport;
+	
 	
 	public AbstractAlgorithmFramework(SMACOptions smacOptions, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
 	{
@@ -171,7 +174,46 @@ public class AbstractAlgorithmFramework {
 		long time = System.currentTimeMillis();
 		Date d = new Date(time);
 		DateFormat df = DateFormat.getDateTimeInstance();	
-		log.info("Automatic Configuration Start Time is {}", df.format(d));				
+		
+		
+		OverallObjective intraInstanceObj = smacOptions.scenarioConfig.getIntraInstanceObjective();
+		switch(smacOptions.scenarioConfig.runObj)
+		{
+			case RUNTIME:
+				switch(intraInstanceObj)
+				{
+					case MEAN:
+						objectiveToReport = "Mean Runtime";
+						break;
+					case MEAN10:
+						objectiveToReport = "Penalized Average Runtime 10 (PAR10)";
+						break;
+					case MEAN1000:
+						objectiveToReport = "Penalized Average Runtime 1000 (PAR1000)";
+						break;
+					default:
+						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+				}
+				break;
+			case QUALITY:
+				switch(intraInstanceObj)
+				{
+					case MEAN:
+						objectiveToReport = "Mean Quality";
+						break;
+					default:
+						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+						break;
+				}
+				break;
+			default:
+				objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+				break;
+		}
+		
+		log.info("SMAC Started at: {}. Minimizing {} ", df.format(d), objectiveToReport);				
+		
+		
 		
 		//=== Clamp # runs for incumbent to # of available seeds.
 		if(instanceSeedGen.getInitialInstanceSeedCount() < options.maxIncumbentRuns)
@@ -233,6 +275,10 @@ public class AbstractAlgorithmFramework {
 	}
 
 	
+	public String getObjectiveToReport()
+	{
+		return objectiveToReport;
+	}
 	
 	public ParamConfiguration getInitialIncumbent()
 	{
@@ -616,11 +662,11 @@ public class AbstractAlgorithmFramework {
 			if(Double.isInfinite(testSetPerformance))
 			{
 				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance }; 
-				log.info("Total Objective of Incumbent {} ({}) at time {} on training set: {}", args2 );
+				log.info("Minimized "+ objectiveToReport + " of Incumbent {} ({}) at time {} on training set: {}", args2 );
 			} else
 			{
 				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance, testSetPerformance };
-				log.info("Total Objective of Incumbent {} ({}) at time {} on training set: {}; on test set: {}", args2 );
+				log.info("Minimized "+objectiveToReport + " of Incumbent {} ({}) at time {} on training set: {}; on test set: {}", args2 );
 			}
 			
 			
@@ -666,11 +712,11 @@ public class AbstractAlgorithmFramework {
 		if(Double.isInfinite(testSetPerformance))
 		{
 			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime) }; 
-			log.info("Total Objective of Final Incumbent {} ({}) on training set: {}", args2 );
+			log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}", args2 );
 		} else
 		{
 			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent,runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime), testSetPerformance };
-			log.info("Total Objective of Final Incumbent {} ({}) on training set: {}; on test set: {}", args2 );
+			log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}; on test set: {}", args2 );
 		}
 		
 		log.info("Sample Call for Final Incumbent {} ({}) \n{} ",args);
@@ -1033,7 +1079,7 @@ public class AbstractAlgorithmFramework {
 		
 		if(chalCost > (incCost - Math.pow(10,-6)))
 		{
-			throw new IllegalStateException("The Incumbent "+ getConfigurationString(incumbent) + " has performance " +incCost +" on currently available problem instance seed pairs, where as the challenger " + getConfigurationString(challenger) + " has " + chalCost + " performance currently. We expect that the chal cost + 10^-6 is less than the incumbent cost");
+			throw new IllegalStateException("The Incumbent "+ getConfigurationString(incumbent) + " has " + objectiveToReport + " " +incCost +" on currently available problem instance seed pairs, where as the challenger " + getConfigurationString(challenger) + " has " + chalCost +  " " +  objectiveToReport + " currently. We expect that the chal cost + 10^-6 is less than the incumbent cost");
 		}
 		
 	
