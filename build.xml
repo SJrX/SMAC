@@ -216,6 +216,8 @@
 			<arg value="dist/"/>
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
+			<arg value="--print-mem"/>
+			<arg value="false"/>
 		</java>
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
@@ -244,6 +246,8 @@
 			<arg value="dist/"/>	
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
+			<arg value="--print-mem"/>
+			<arg value="false"/>
 		</java>
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>

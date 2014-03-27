@@ -185,7 +185,7 @@ public class SMACExecutor {
 			System.out.flush();
 			System.err.flush();
 			
-			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
+			System.err.println("Error occurred running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
 			System.err.flush();
 			
 				if(log != null)
