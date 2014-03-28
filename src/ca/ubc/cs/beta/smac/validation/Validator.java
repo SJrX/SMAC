@@ -5,9 +5,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -21,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.SortedMap;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -67,7 +70,7 @@ public class Validator {
 public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
 		final String outputDir,
 		final RunObjective runObj,
-		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns) 
+		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, int cores) 
 		{
 
 		int testInstancesCount = Math.min(options.numberOfTestInstances, testInstances.size());
@@ -124,7 +127,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			throw new IllegalStateException("Unknown Instance Seed Generator specified");
 		}
 		
-		log.info("Scheduling {} validation runs per incumbent", pisps.size());
+		
 		
 		
 		Set<TrajectoryFileEntry> tfesToUse = new TreeSet<TrajectoryFileEntry>();
@@ -214,13 +217,30 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			}
 		}
 		
+		
 		final List<TrajectoryFileEntry> tfesToRun = new ArrayList<TrajectoryFileEntry>(tfesToUse.size());
 		tfesToRun.addAll(tfesToUse);
 		
+		Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
+		for(TrajectoryFileEntry tfe : tfes)
+		{
+			configs.add(tfe.getConfiguration());
+		}
 		
-		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime);
 		
-		log.info("Validation needs {} algorithm runs to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
+		List<RunConfig> runConfigs = getRunConfigs(configs, pisps, cutoffTime);
+		
+		log.info("Validation needs {} algorithm runs to validate {} configurations found", runConfigs.size(), configs.size());
+		
+		Date d = new Date(System.currentTimeMillis());
+		DateFormat df = DateFormat.getDateTimeInstance();	
+		
+	
+		
+		Date endTime = new Date(System.currentTimeMillis() + (long) (1.1*(cutoffTime * runConfigs.size()  * 1000/ cores)));
+		log.info("Validation start time: {}. Approximate worst-case end time: {}",df.format(d), df.format(endTime));
+		
+		
 		//List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
 		
 		final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
@@ -361,18 +381,14 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 
 
 
-private List<RunConfig> getRunConfigs(List<TrajectoryFileEntry> tfes, List<ProblemInstanceSeedPair> pisps, double cutoffTime) 
+private List<RunConfig> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime) 
 {
 	
-	Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
-	for(TrajectoryFileEntry tfe : tfes)
-	{
-		configs.add(tfe.getConfiguration());
-	}
 	
 	
 	
-	List<RunConfig> runConfigs  = new ArrayList<RunConfig>(pisps.size()*tfes.size());
+	
+	List<RunConfig> runConfigs  = new ArrayList<RunConfig>(pisps.size()*configs.size());
 	for(ParamConfiguration config: configs)
 	{
 		for(ProblemInstanceSeedPair pisp : pisps)

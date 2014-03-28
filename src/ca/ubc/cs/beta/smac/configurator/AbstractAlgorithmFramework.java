@@ -586,7 +586,7 @@ public class AbstractAlgorithmFramework {
 				saveState("it", true);
 				shouldWriteStateOnCrash.set(false);
 				
-				log.info("SMAC Completed");
+				log.trace("SMAC Completed");
 				
 				if(options.stateOpts.cleanOldStatesOnSuccess)
 				{

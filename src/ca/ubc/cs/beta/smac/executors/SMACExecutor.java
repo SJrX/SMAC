@@ -28,6 +28,8 @@ import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
 import ca.ubc.cs.beta.aclib.misc.version.JavaVersionInfo;
 import ca.ubc.cs.beta.aclib.misc.version.OSVersionInfo;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
+import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -38,6 +40,8 @@ import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateFactoryOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
@@ -122,10 +126,13 @@ public class SMACExecutor {
 			AbstractAlgorithmFramework smac;
 			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
 			
+			StopWatch watch = new AutoStartStopWatch();
 			
 			smac.run();
 			
-			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
+			watch.stop();
+			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
+			
 			
 			pool.logUsage();
 			
@@ -135,16 +142,40 @@ public class SMACExecutor {
 			options.doValidation = (options.validationOptions.numberOfValidationRuns > 0) ? options.doValidation : false;
 			if(options.doValidation)
 			{
+				log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
 			
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other crap that is probably not applicable for validation
 				
 				if(options.validationOptions.maxTimestamp == -1)
 				{
-					options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
+					if(options.validationOptions.useWallClockTime)
+					{
+						if(options.scenarioConfig.limitOptions.runtimeLimit < Integer.MAX_VALUE)
+						{
+							options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.runtimeLimit;
+						} else
+						{
+							options.validationOptions.maxTimestamp = watch.time() / 1000.0;
+						}
+					} else
+					{
+						options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
+					}
+					
+					
 				}
 				
 				
 				options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
+				
+				int coreHint = 1;
+				if(options.validationCores != null && options.validationCores > 0)
+				{
+					log.info("Validation will use {} cores", options.validationCores);
+					options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs = options.validationCores;
+					((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores = options.validationCores;
+					coreHint = options.validationCores;
+				}
 				
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
 				try {
@@ -152,7 +183,7 @@ public class SMACExecutor {
 					List<ProblemInstance> testInstances = testingILWS.getInstances();
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
-					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true);
+					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true, coreHint);
 				} finally
 				{
 					validatingTae.notifyShutdown();
@@ -165,7 +196,7 @@ public class SMACExecutor {
 				
 			}
 			
-			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
+			
 			
 			
 			smac.logIncumbentPerformance(performance);
@@ -175,7 +206,7 @@ public class SMACExecutor {
 			
 			smacBuilder.getEventManager().shutdown();
 			
-			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
+			log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
 			log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
 			
 			
