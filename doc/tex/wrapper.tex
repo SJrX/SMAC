@@ -122,6 +122,8 @@ progressed. This value must be from the set: ${-1} \cup [0,+\infty]$.
 \item [{quality}] A domain specific measure of the quality of the solution. This value needs to be 
 from the set: $(-\infty, +\infty)$. 
 
+\textsc{Note:} Keep in mind that SMAC will attempt to \emph{minimize} this value. If you would like to maximize this value, your wrapper should subtract your quantity from some constant known to be larger than any value.
+
 \textsc{Note}: In certain cases, such as when using log transforms in the model, this value must be: $(0, +\infty)$.
 
 \item [{seed}] The seed value that was used in this target algorithm execution.

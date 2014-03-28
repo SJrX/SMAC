@@ -740,7 +740,7 @@ public class AbstractAlgorithmFramework {
 		}
 		StringBuilder sb = new StringBuilder();
 		
-		sb.append("Sample Call for the final incumbent:\n" +  cmd ).append("\n");
+		sb.append("Sample call for the final incumbent:\n" +  cmd ).append("\n");
 		return sb.toString();	
 		
 		//log.info("Complete Configuration (no inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX_NO_INACTIVE));
@@ -1031,7 +1031,7 @@ public class AbstractAlgorithmFramework {
 		
 		String cmd = tae.getManualCallString(config);
 		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
-		log.info("Sample Call for {} {} (internal ID: {}): \n{} ",args);
+		log.info("Sample call for {} {} (internal ID: {}): \n{} ",args);
 		
 	}
 

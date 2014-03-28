@@ -222,6 +222,11 @@ Value & Error Name & Description \\
           		\item Renamed many references of ACLib to AEAToolkit to reflect change of name of the toolkit SMAC is built with.
           		\item Default options are now read from \texttt{\textasciitilde/.aeatk} instead of \texttt{\textasciitilde/.aclib}.
 				\item Fixed an issue with absolute paths on windows not being handled correctly.
+				\item Validation now performs 1 run per instance by default instead of next multiple after 1000.
+				\item Can now specify the number of cores that SMAC validate will use (only when using the local command line), using the \textbf{-$~\!$-validation-cores} option.
+				\item Previous state folder is now renamed to something that preserves the run name and is no longer a warning.
+				\item Emphasized in many places that SMAC is minimizing the objective functions.
+
           	\end{enumerate}
           	
 

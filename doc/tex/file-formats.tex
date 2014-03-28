@@ -26,19 +26,21 @@ in section \ref{sec:exec-spec}. The string here should be invokable via the syst
 \texttt{<execdir>}; \texttt{<algo>}'' })
 \item [{deterministic}] A boolean that governs whether or not the algorithm should be treated as deterministic. For backwards compatibility with ParamILS, this option also supports using 0 for false, and 1 for true. SMAC will never invoke the target algorithm more than once for any given instance, seed and configuration. If this is set to \texttt{true}, SMAC will never invoke the target algorithm more than once for any given instance and configuration.
 
-\item [{run\_obj}] Determines how to convert the resulting output line
-into a scalar quantifying how ``good'' a single algorithm execution
+\item [{run\_obj}] Determines how to convert the resulting output line (as defined in Section
+ \ref{sec:wrapper_output}) into a scalar quantifying how ``good'' a single algorithm execution
 is, (\eg{ how long it took to execute, how good of a solution it found,
-etc...}). SMAC will attempt to \textit{minimize} this objective. Currently implemented objectives are the following:
+etc...}). SMAC will attempt to \emph{minimize} this objective. 
+
+ Currently implemented objectives are the following:
 \item [{
 \begin{tabular}{|c|c|}
 \hline 
 Name & Description\tabularnewline
 \hline 
 \hline 
-RUNTIME & The reported runtime of the algorithm.\tabularnewline
+RUNTIME & Minimize the reported runtime of the algorithm.\tabularnewline
 \hline 
-QUALITY & The reported quality of the algorithm.\tabularnewline
+QUALITY & Minimize the reported quality of the algorithm.\tabularnewline
 \hline 
 \end{tabular}}]~
 \item [{overall\_obj}] While \textbf{run\_obj} defines the objective function
