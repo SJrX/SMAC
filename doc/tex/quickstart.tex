@@ -3,7 +3,7 @@
 \usepackage{fullpage}
 \usepackage{setspace}
 \usepackage{alltt}
-
+\usepackage{ marvosym }
 \begin{document}
 
 \title{Quickstart Guide for SMAC version  \input{version}}
@@ -18,259 +18,171 @@ Vancouver, BC\ \ V6T~1Z4, Canada\\
 
 %\input{versionfull}
 %to be generated: 
-\newcommand{\version}{VERSION}
+\newcommand{\version}{\input{versionfull}}
 \maketitle
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This document is the manual for SMAC~\cite{HutHooLey11-SMAC} (an acronym for \emph{Sequential Model-based Algorithm Configuration}). SMAC aims to solve the following \emph{algorithm configuration} problem: Given a binary of a parameterized algorithm $\mathcal{A}$, a set of instances $\mathcal{S}$ of the problem $\mathcal{A}$ solves, and a performance metric $m$, find parameter settings of $\mathcal{A}$ optimizing $m$ across $\mathcal{S}$.
-The goal of this quickstart guide is to get you off the ground quickly; for more detailed information, please see the comprehensive manual.
+This document is the quick start guide for SMAC \cite{HutHooLey11-SMAC} and is designed to get you off the ground quickly; for more detailed information please see the accompanying manual. Additionally, some questions are answered in the accompanying FAQ document.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{License}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-SMAC is to be released under a dual usage license. 
-Academic \& non-commercial usage is permitted free of charge. Please contact us to discuss commercial usage.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section {Usage}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{System Requirements}
+\subsection{Prerequisites}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-SMAC itself requires only Java 6 or newer to run. The included scripts are currently only available for Unix-compatible operating systems. The included example scenarios require Ruby. 
-%To run SMAC manually you can replace \emph{./smac} you will need to consult your local java documentation, for specifics but the main entry point class is \emph{ca.ubc.cs.beta.smac.executors.AutomaticConfigurator} Additionally some included examples are only compiled for Linux.
+
+SMAC only requires Java 7 to run, and should work on both Windows and UNIX based operating systems. Some of the included examples require ruby version 1.9.3 or later.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Downloading SMAC}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Download and unpack the SMAC archive from:\\
+
+%{\footnotesize
+%\begin{alltt}
+%http://www.cs.ubc.ca/labs/beta/Projects/SMAC/smac-\version .tar.gz
+%\end{alltt}}
+\smaller
+\texttt{http://www.cs.ubc.ca/labs/beta/Projects/SMAC/smac-\version\unskip.tar.gz} 
+\larger \\
+
+This will create a new folder named \texttt{smac-\version}containing SMAC and several example scenarios. 
+From this folder, you can run SMAC using the simple bash script \texttt{./smac}.  On windows please use the corresponding \texttt{smac.bat} file.
+
+Additionally, SMAC includes some example scenarios that you can use in the  \texttt{example\_scenarios} folder.
+
+\subsection{Getting Ready to Run}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Creating a PCS File}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+First you will need a Parameter Configuration Space (PCS) file. The format is outlined in the section of the SMAC Manual entitled ``Algorithm Parameter File''.  It contains a description of the space
+of allowable configurations for your algorithm and supports both categorical and numeric parameter types.
+
+Included with SMAC are some examples that we will refer to, example PCS files are located in:
+{\footnotesize
+\begin{alltt}
+example_scenarios/saps/saps-params.pcs
+example_scenarios/spear/spear-params-mixed.pcs
+\end{alltt}}
+
+You will pass this file to SMAC via the \textbf{-$~\!$-pcs-file} argument.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Algorithm Wrapper}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Next you will need to create a \emph{wrapper}. A wrapper is a program that acts as a bridge between SMAC and your algorithm.  SMAC invokes the wrapper with a predefined format, the wrapper translates the call into the appropriate call for your algorithm, and then invokes it. The wrapper is responsible for ensuring that the algorithm does not exceed it's time budget, and finally it translates the output of the algorithm into the format required by SMAC. The specifics of the input and output required of the wrapper are detailed in the manual section ``Wrappers''.
+
+The AClib project (https://www.aclib.net) maintains a good template wrapper that is designed to be easy to adapt, and we recommend that you use it as a basis for writing your wrapper as there are many subtleties.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Readying Problem Instances}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+An \emph{instance} in SMAC terminology is a particular instantiation of a problem for your algorithm, for example a graph colouring algorithm might have a set of graphs to color, each individual graph is referred to as an instance. If your algorithm doesn't use instances, then you can add \textbf{-$~\!$-no-instances} to \texttt{true} on the command line, and skip the remainder of this subsection (SMAC will pass a dummy argument in this case for the instance).
+
+When using SMAC it is recommended that you partition your instances into two sets, a training set, and a test set. If your instances exist on the file system, the easiest way to do this is to move them into two folders, one called train and one called test. Then invoke smac with:
+
+\textbf{-$~\!$-instances} \texttt{<train-path>} \textbf{-$~\!$-test-instances} \texttt{<test-path>}
+
+Once SMAC completes, it will perform validation to obtain a better measure of the selected configurations performance. If you do not specify the \textbf{-$~\!$-test-instances} argument, no validation will be performed. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Running SMAC}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Download and extract the SMAC archive from:
+Once you have the previous three steps completed, then invoking SMAC is fairly straight forward. A more detailed description of the following options is available in the manual under the ``Scenario File'' section.
 
-{\footnotesize
-\begin{alltt}
-http://www.cs.ubc.ca/labs/beta/Projects/SMAC/smac-\version{}\unskip.tar.gz
-\end{alltt}}
+The first option which must always be set, is how much CPU time each invocation of
+the target algorithm should be allowed\footnote{It is entirely up to the wrapper to measure, police and ultimately report this value.}. This limit is set with the \textbf{-$~\!$-algo-cutoff-time} option and takes an integer in seconds.
 
-This will create a new folder named \texttt{smac-\version} containing SMAC and several example scenarios. 
-From this folder, you can run SMAC using the simple bash script \texttt{./smac}.  On windows please use the corresponding .bat files, if bash is otherwise unavailable you will need to manually construct a java call string. The class name needed can be retrieved by opening up the smac file.
+Secondly, you must decide whether you'd like SMAC to \emph{minimize} your algorithms' runtime, or some other measure of solution quality. To minimize runtime set the argument \textbf{-$~\!$-run-obj} to \texttt{RUNTIME} otherwise set it to \texttt{QUALITY}. A few things change depending on which option you pick internally in SMAC. Of particular note, is that when set to \texttt{QUALITY} SMAC tries to minimize the mean across instances, but when set to \texttt{RUNTIME} SMAC minimizes the \emph{PAR10}\footnote{The PAR10 score is the the arithmetic mean of each runtime, except that runtimes that hit the limit \textbf{-$~\!$-algo-cutoff-time} are multiplied by 10.}. There are other options that are affected by this choice as well, again consult the manual for a more detailed description.
 
+Finally you must decide how long SMAC itself should run. You can do that by setting some combination of the following three arguments \footnote{SMAC will terminate once the first limit is reached}:
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Basic Usage Example}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{description}
+\item[-$~\!$-wallclock-limit] How long SMAC should run for in seconds.
+\item[-$~\!$-cputime-limit] How many CPU seconds SMAC and the algorithm are allowed to consume. Loosely speaking, SMAC will terminate once the sum of the reported runtimes and SMAC's internal measurement of it's own CPU time passes this threshold.
+\item[-$~\!$-runcount-limit] How many invocations of the target algorithm are allowed to occur before SMAC terminates.
+\end{description}
 
-SMAC comes with some small configuration scenarios you can run to ensure everything is set up properly.
-We will use one of them as an example:
+So a final call to SMAC might look like
 
-{\footnotesize
-\begin{alltt}
-example_scenarios/spear/spear-scenario.txt
-\end{alltt}}
+\begin{verbatim}
+./smac --pcs-file <pcsfile> --instances <instances-folder> 
+--algo <call-to-wrapper> --seed <seed> --wallclock-limit <wallclock-time>
+--algo-cutoff-time <algo-cutoff-time> --run-obj <run-obj>
+\end{verbatim}
 
-This configures the systematic tree search algorithm Spear for a small training set of 5 SAT instances.
-(Normally, one would use a much larger set of training instances to avoid over-tuning to the specific instances in the training set -- we usually use 1\,000 instances if available; here, we did not include as many instances to keep the release small in size.)
-%
-From \texttt{smac-\input{versionfull}}\unskip, you can start SMAC on this scenario with the following command line:
+For instance to run the included SPEAR scenario on Linux you could execute:
 
-{\footnotesize
-\begin{alltt}
-./smac --scenario-file ./example_scenarios/spear/spear-scenario.txt --seed 1 --num-validation-runs 10
-\end{alltt}}
+\begin{verbatim}
+./smac --pcs-file ./example_scenarios/spear/spear-params-mixed.pcs --instances
+./example_scenarios/spear/instances/train/ --algo "ruby 
+ ./example_scenarios/spear/spear_wrapper.rb" --seed 1 --wallclock-limit 30
+--algo-cutoff-time 5 --run-obj RUNTIME
+\end{verbatim}
 
-%example_saps/scenario-Saps-SWGCP-sat-small-train-small-test.txt
-This command executes SMAC on this simple configuration scenario (which should take just above 30 seconds) and writes several output files to a subfolder of: 
+And to run the included SAPS scenario on Windows you could execute:
 
-{\footnotesize
-\begin{alltt}
-smac-\version\unskip/smac-output/
-\end{alltt}}
+\begin{verbatim}
+smac.bat --pcs-file ./example_scenarios/saps/saps-params.pcs --instances 
+.\example_scenarios\saps\instances\train --algo "ruby
+.\example_scenarios\saps\win_saps_wrapper.rb" --test-instances .\example_scenari
+os\saps\instances\test --seed 1 --wallclock-limit 30 --algo-cutoff-time 5 --run-
+obj RUNTIME 
+\end{verbatim}
 
-In this case the folder will look like:
+\textbf{Note:} Because SMAC is a randomized algorithm its performance differs across runs, thus we recommend that you perform several parallel runs (with different values of \textbf{-$~\!$-seed}) and use the one with the best reported training performance (see \cite{HutHooLey12-ParallelAC} for details).
 
-{\footnotesize
-\begin{alltt}
-smac-\version\unskip/smac-output/spear-scenario-SMAC-ac-true-cores1-cutoff5.0-\textit{DATE}
-\end{alltt}}
-The \texttt{--seed} parameter controls SMAC's random seed and output filenames in that folder; since SMAC is highly randomized and its performance differs across runs, we recommend to perform several parallel runs (with different values for \texttt{--seed}) and use the one with the best training performance (see \cite{HutHooLey12-ParallelAC} for details).
-The parameter \texttt{--num-validation-runs} controls the number of runs to perform for validating the final incumbent SMAC finds at the end of its runtime budget (again, here we set this to a small number of 10 to facilitate a quick example run, but in practice one would use a much larger number, \eg{} the default of 1\,000 validation runs). Note that validation runs are carried out on a benchmark test set disjoint from the training set; this is done to guard against over-tuning since performance on the training set is a biased (optimistic) estimator of generalization performance.
+\subsection{Interpreting SMACs output}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Interpreting output files}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Once SMAC completes it should print out a sample call string to your algorithm, as well as
+the performance of the configuration selected (which SMAC denotes the \emph{final incumbent}), on the training instances and test instances (if available).
 
-SMAC writes several output files; not all of these are important in everyday use, but if you encounter a problem please zip up and send all of them. The most important output file for users is the log file, here:
+For example a SMAC run on the SAPS scenario above, yields the following output near the end.\footnote{Because SMAC is a randomized algorithm, the exact output you see will likely be different.}:
+\begin{verbatim}
+[INFO ] Total Objective of Final Incumbent 3 (0x754D) on training set: 0.0480733
+3310445453; on test set: 0.022399997711184
+[INFO ] Sample Call for Final Incumbent 3 (0x754D)
+cd C:\smac-v2.06.02-development-660& ruby .\example_scenarios\saps\win_saps_wrapper.rb
+.\example_scenarios\saps\instances\train\SWlin2006.10286.cnf 0 5.0 2147483647
+15686777 -alpha '1.2552471818554198' -wp '0.011088485535736967' -rho '0.312
+2844671947156' -ps '0.038973215638773054'
+\end{verbatim}
+In the above example, the training performance is approximately 0.04 and the test performance is approximately 0.02 (Since this is a \texttt{RUNTIME} run, this is the PAR10 score for each set).
 
-{\footnotesize
-\begin{alltt}
-{smac-\version{}\unskip/example_out/log-run0.txt}
-\end{alltt}}
-%and\\
-%{\small\texttt{smac-v2.00.01rc-315/example\_out/classicValidationResults-run0.csv}}.\\
-This file lists a lot of information about the run and at its end includes an example command line call for the final incumbent, as well as its training and test performance. For example, in the run we performed, this output was:
+The optimized parameter values for SAPS are:
+\begin{center}
+\begin{tabular}{ c | l }
+Parameter & Value (rounded) \\
+\hline
+\hline
+alpha & 1.25524 \\
+\hline 
+ps & 0.03897 \\
+\hline
+rho & 0.31228 \\
+\hline
+wp & 0.01108 \\
+\hline 
+\end{tabular}
+\end{center}
 
-{\footnotesize
-\begin{alltt}
-[INFO ] Total Objective of Final Incumbent 65 (0xBD98E) on training set: 0.0316; on test set: 0.036
-[INFO ] Sample Call for Final Incumbent 65 (0xBD98E) 
-cd ./example_scenarios/spear; ruby spear_wrapper.rb instances/qcplin2006.10408.cnf 0 5.0 2147483647
-15643122 -sp-update-dec-queue '1' -sp-rand-var-dec-scaling '0.9192384779217873' 
--sp-clause-decay '1.3443711377045175' -sp-variable-decay '1.1655745641981787'
--sp-orig-clause-sort-heur '5' -sp-rand-phase-dec-freq '0.0001' -sp-clause-del-heur '2'
--sp-learned-clauses-inc '1.3325108654268105' -sp-restart-inc '1.1118337573922332' 
--sp-resolution '0' -sp-clause-activity-inc '0.7748363656557136' -sp-learned-clause-sort-heur '13'
--sp-var-activity-inc '0.6522039283230536' -sp-rand-var-dec-freq '0.01' -sp-use-pure-literal-rule '1'
--sp-learned-size-factor '1.0325284104478474' -sp-var-dec-heur '5'
--sp-phase-dec-heur '6' -sp-rand-phase-scaling '0.3537413161162636' -sp-first-restart '345'  
-\end{alltt}
-}
-
-%~[INFO ] Total Objective of Final Incumbent\\on training set: 0.0342; on test set: 0.043\\
-%~[INFO ] Sample Call for Final Incumbent 21 (0x2D359) \\
-%~cd smac-v2.00.01rc-315/example\_saps; ~ruby saps\_wrapper.rb\\ example\_data/qwh\_instance/000549.cnf 0 5.0 2147483647 9039844 -alpha '1.126' -ps '0.066' -rho '0.17' -wp '0.02'\\
-Note that due to SMAC's randomization, the result will likely differ when you execute this command.
-Also note that training and test performance are rather different from each other here because of the small 
-number of training/test instances used. With larger training and test sets sampled from the same underlying instance distribution,
-these numbers should be much closer. A better training than test performance can be a sign of over-tuning.
-
-%The validation file {\small\texttt{smac-v2.00.01rc-315/example\_out/classicValidationResults-run0.csv}} 
-%contains training and test performances for 
-
-%example_out/classicValidationResults-run0.csv
-%Other configuration scenarios
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Configuring your own algorithms}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-We will refer to the algorithm to be configured as the \emph{target algorithm}.
-The quickest way to set up everything needed to configure a new target algorithm is to 
-copy-paste and edit one of the provided examples. The following subsections 
-briefly describe the parts of a configuration scenario and give an example for each.
-Full details are given in Section 4 of the SMAC manual.
-All filenames below are relative to the SMAC folder {\footnotesize\texttt{smac-\version{}\unskip/}}.
-
-\hide{
-\begin{itemize}
-\denselist
-	\item \textbf{Scenario file:} This is the central file describing all ingredients of the configuration scenario, referencing the files that follow. 
-	
-	\item \textbf{Parameter file:} This file specifies the target algorithm's configurable parameters.
-
-	\item \textbf{Instance file:} This file specifies the list of training instances to configure the target algorithm on. 
-
-	\item \textbf{Algorithm wrapper:} This is a wrapper that executes the target algorithm and returns its measured performance.
-	
-	\item \textbf{Feature file:} This optional file provides additional information characterizing each problem instance.
-\end{itemize}
-
-\noindent{}These files are described by example in the following subsections.
-}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Scenario File}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This is the central file describing all ingredients of a configuration scenario.
-This file is not actually required since all its contents can also be specified on the command line, but it is still often useful to have as a central specification saved in this file. It references an exectuable for calling the target algorithm (and the path to execute it from), a file describing the target algorithm's parameters, a file containing a list of problem instances, a performance metric, an optional file specifying characteristics for each training instance, and some additional information for the configuration procedure. In the Spear example above, this file is
-
-{\footnotesize
-\begin{alltt}
-example_scenarios/spear/spear-scenario.txt
-\end{alltt}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Parameter File}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This file, referenced in the scenario file, specifies the configurable parameters your target algorithm accepts as an input, along with their domains. In the SPEAR example above, this file is 
-
-{\footnotesize
-\begin{alltt}
-example_scenarios/spear/spear-params-mixed.pcs
-\end{alltt}
-}
-
-In this file, notice the different syntax for specifying the domain of categorical parameters (a set of possible values in curly braces) and of numerical parameters (an interval of possible values). For both of these parameter types, the default is given after the domain specification. Also notice the two optional modifiers of numerical parameters given right after the default; `i' stands for integer parameters and `l' stands for parameters that naturally vary on a log-scale. For example, Spear parameter \emph{sp-first-restart} is an integer parameter that would naturally be discretized to $25, 50, \dots, 3200$, with default 100. As a categorical parameter, this would be written as {\footnotesize\texttt{\{25,50,100,200,400,800,1600,3200\}[100]}}; as an integer parameter, it is now written as {\footnotesize\texttt{[25, 3200][100]il}}.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Algorithm wrapper}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The scenario file references an exectuable of the target algorithm. Since this executable has to follow a rigid input/output format that we don't want to impose on algorithm developers, we typically specify a \emph{wrapper} around the target algorithm that translates between SMAC's and the target algorithm's input/output format.
-The input specifies (in this order) instance name, instance specifics (which is often empty but could, \eg{}, hold an optimal solution quality to reach), a cutoff time for the run, a cutoff length for the run (often empty), a seed, and a list of parameter value pairs in the format {\footnotesize\texttt{-param value}}. 
-In the Spear example above, the wrapper is the Ruby script 
-
-{\footnotesize
-\begin{alltt}
-example_scenarios/spear/spear_wrapper.rb
-\end{alltt}
-}
-
-Out of its inputs, this wrapper script only uses the instance name, cutoff time, seed, and parameter values; it ignores the two inputs instance specifics and cutoff length. It then runs Spear with the given parameters on the named instance, instructing it to terminate unsuccessfully after the given cutoff time. It then parses Spear's output and prints the following output line, from which SMAC parses the run's performance (in this case \texttt{\footnotesize{measured\_runtime}}):
-
-{\footnotesize
-\begin{alltt}
-Result for ParamILS: <solved>, <measured_runtime>, <measured_runlength>, 
-<best_solution>, <seed>
-\end{alltt}
-}
-
-Note that while this output line is compatible with our previous ParamILS software, SMAC can also parse other result lines. See Section 4.5 in the manual for this and further details on the wrapper.
+SMAC will also spit out more details and information to files, including a log and various CSV files that detail its performance in more detail. See the section ``Interpreting SMAC's Output'' in the manual for more information.  \\
+Good Luck \Smiley
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Instance File}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-This file, referenced in the scenario file, specifies the list of training instances to configure the target algorithm on. 
-In the Spear example above, this file is
 
-{\footnotesize
-\begin{alltt}
-example_scenario/spear/instances-train.txt
-\end{alltt}}
 
-There is also a file with test instances that will not be used at configuration time, but are used for offline validation of the final incumbent SMAC found; in the Spear example above, this file is
-
-{\footnotesize
-\begin{alltt}
-example_scenario/spear/instances-test.txt
-\end{alltt}}
-
-More detailed information about this file format is in Section 4.2 of the manual.
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Feature file}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-In order to optimize performance across a set or distribution of instances, SMAC accepts an optional input file that contains additional information for each instance in the training set. If such a feature file is given it has to contain an entry for every instance in the training set. Further, the file has to hold the same features (in the same order) for each instance.
-Any domain-specific instance characteristics (or ``features'') that might correlate with performance can be useful. If the file contains entries for additional instances these will be ignored by SMAC. (This feature enables users to, \eg{}, have one file containing the features for all their SAT instances.) In the Spear example above, the feature file is
-
-{\footnotesize
-\begin{alltt}
-example_scenario/spear/features.csv
-\end{alltt}}
-
-More detailed information about this file format is in Section 4.3 of the manual.
- 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Differences Between SMAC and ParamILS}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-There are various differences between SMAC and ParamILS. The following differences are described in some more detail in Section 2 of the SMAC manual.
-
-\begin{itemize}
-\item SMAC natively supports continuous and integer parameters.
-\item SMAC so far only implements ParamILS's most popular run objectives.
-\item The order of instances in SMAC's instance file is not important.
-\item SMAC counts its own overhead time as part of the configuration budget and allows for wall clock timeouts. This can fix ParamILS's large overheads in cases where target algorithm runs are extremely fast.
-\item SMAC can resume previous runs.
-\item SMAC accepts optional feature files as input.
-\item SMAC supports new options for the wrappers.
-\item SMAC auto-detects instance files vs. instance/seed files.
-\end{itemize}
- 
 %\bibliographystyle{plain}
 \bibliographystyle{apalike}
 %\bibliographystyle{plainnat}

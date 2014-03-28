@@ -75,7 +75,7 @@
 				<include name="fastrf.jar"/>
 			</fileset>-->
 			<fileset dir="${software.dir}/aclib-${git.branch}/" id="aclib">
-				<include name="*"/>
+				<include name="**/*"/>
 				
 			</fileset>
 		</path>	
@@ -111,16 +111,16 @@
 		
 		<delete dir="dist"/>
 		<mkdir dir="dist"/>
-		<jar destfile="dist/smac.jar" basedir="build/classes"/>
+		<mkdir dir="dist/lib"/>
+		<jar destfile="dist/lib/smac.jar" basedir="build/classes"/>
 		
-		<jar destfile="dist/smac-src.jar">
+		<jar destfile="dist/lib/smac-src.jar">
 					<fileset dir="src/">
 						 <include name="**/*.java"/>
 					</fileset>
 				</jar>
 			
 		<copy todir="dist/" force="true">
-			
 			<fileset dir="deployables">
 				<include name="*"/>
 				<include name="**/"/>
@@ -130,14 +130,21 @@
 				<exclude name="${lastdeployfile}"/>
 				<!--<include name="doc/"/>-->
 			</fileset>
-			<fileset refid="lib"/>
-			<!--<fileset refid="fastrf"/>-->
-			<fileset refid="aclib"/>
 			<!--<fileset dir="scripts">
 				<include name="*"/>
 			</fileset>-->
 		</copy>
-		 
+		
+		<copy todir="dist/lib/" force="true">
+			<fileset refid="lib"/>
+					<!--<fileset refid="fastrf"/>-->
+			<fileset refid="aclib"/>
+		</copy>
+		
+		<move file="dist/lib/example_scripts/" todir="dist/" force="true"/>
+		
+		
+		
 		<echo file="dist/git-hashes.txt" append="true">${ant.project.name} ${git.commit} ${git.dirty}${line.separator}</echo>
 		<echo file="dist/git-hashes.tex" append="true">${ant.project.name} &amp; ${version.string} &amp; ${git.commit} &amp; ${git.dirty} \\${line.separator}\hline${line.separator}</echo>
 	
@@ -177,7 +184,7 @@
 		
 		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.satisfiabilitychecker.SatisfiabilityChecker"/>
+			<arg value="ca.ubc.cs.beta.aclib.example.satisfiabilitychecker.SatisfiabilityCheckerOptions"/>
 			<arg value="--commandName"/>
 			<arg value="sat-check"/>
 			<arg value="--outputFile"/>
@@ -209,6 +216,8 @@
 			<arg value="dist/"/>
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
+			<arg value="--print-mem"/>
+			<arg value="false"/>
 		</java>
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
@@ -237,6 +246,8 @@
 			<arg value="dist/"/>	
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
+			<arg value="--print-mem"/>
+			<arg value="false"/>
 		</java>
 		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>

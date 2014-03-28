@@ -23,7 +23,6 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
@@ -36,6 +35,8 @@ import ca.ubc.cs.beta.aclib.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.smac.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
@@ -67,7 +68,7 @@ public class ValidatorExecutor {
 			options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
 			log = LoggerFactory.getLogger(ValidatorExecutor.class);
 			JCommanderHelper.logCallString(args, ValidatorExecutor.class);
-			log.info("==========Configuration Options==========\n{}", options.toString());
+			log.debug("==========Configuration Options==========\n{}", options.toString());
 			VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 			VersionTracker.logVersions();
 			
@@ -75,7 +76,7 @@ public class ValidatorExecutor {
 			
 			for(String name : jcom.getParameterFilesToRead())
 			{
-				log.info("Parsing (default) options from file: {} ", name);
+				log.debug("Parsing (default) options from file: {} ", name);
 			}
 
 			if(options.incumbent != null && options.trajectoryFileOptions.trajectoryFile != null)
@@ -96,7 +97,7 @@ public class ValidatorExecutor {
 				if(options.tunerTime == -1)
 				{
 					options.tunerTime = options.scenarioConfig.limitOptions.tunerTimeout;
-					log.info("Using Scenario Tuner Time {} seconds", options.tunerTime );
+					log.debug("Using Scenario Tuner Time {} seconds", options.tunerTime );
 				}
 				
 				if(options.wallTime == -1)
@@ -124,7 +125,7 @@ public class ValidatorExecutor {
 					
 				}
 				
-				log.info("Using manually set configurations");
+				log.debug("Using manually set configurations");
 			}
 			
 			//log.info("Parsing test instances from {}", options.scenarioConfig.testInstanceFile );
@@ -138,7 +139,7 @@ public class ValidatorExecutor {
 			InstanceSeedGenerator testInstanceSeedGen = ilws.getSeedGen();
 			
 
-			log.info("Parsing Parameter Space File", options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile);
+			log.debug("Parsing Parameter Space File", options.scenarioConfig.algoExecOptions.paramFileDelegate.paramFile);
 			//ParamConfigurationSpace configSpace = null;
 			Random configSpacePRNG = pool.getRandom(SeedableRandomPoolConstants.VALIDATE_RANDOM_CONFIG_POOL);
 			
@@ -151,7 +152,7 @@ public class ValidatorExecutor {
 			List<TrajectoryFileEntry> tfes;
 			if(options.trajectoryFileOptions.trajectoryFile != null)
 			{
-				log.info("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFile.getAbsolutePath());
+				log.debug("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFile.getAbsolutePath());
 				
 				
 				tfes = options.trajectoryFileOptions.parseTrajectoryFile(configSpace);
@@ -187,19 +188,19 @@ public class ValidatorExecutor {
 				int optionsSet=0;
 				if(options.incumbent != null)
 				{					
-					log.info("Parsing Supplied Configuration");
+					log.debug("Parsing Supplied Configuration");
 					configToValidate.add(configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
 					optionsSet++;
 				}
 				if(options.randomConfigurations > 0)
 				{
 					
-					log.info("Generating {} random configurations to validate");
+					log.trace("Generating {} random configurations to validate");
 					for(int i=0; i < options.randomConfigurations; i++)
 					{
 						if(options.includeRandomAsFirstDefault && i==0)
 						{
-							log.debug("Using the default as the first configuration");
+							log.trace("Using the default as the first configuration");
 							configToValidate.add(configSpace.getDefaultConfiguration());
 						} else
 						{
@@ -281,8 +282,9 @@ public class ValidatorExecutor {
 			
 			
 			//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) empirical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
-			log.info("Beginning Validation on {} entries", tfes.size());
+			log.debug("Beginning Validation on {} entries", tfes.size());
 			try {
+				int coreHint = Math.max(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs, ((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores);
 			(new Validator()).validate(testInstances,
 					options.validationOptions,
 					options.scenarioConfig.algoExecOptions.cutoffTime,
@@ -290,11 +292,13 @@ public class ValidatorExecutor {
 					validatingTae,
 					outputDir,
 					options.scenarioConfig.runObj,
-					options.scenarioConfig.intraInstanceObj,
+					options.scenarioConfig.getIntraInstanceObjective(),
 					options.scenarioConfig.interInstanceObj,
 					tfes,
 					options.seedOptions.numRun,
-					options.waitForPersistedRunCompletion, execConfig);
+
+					options.waitForPersistedRunCompletion, execConfig, coreHint);
+
 			
 			} finally
 			{

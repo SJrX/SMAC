@@ -5,9 +5,11 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -69,7 +71,7 @@ public class Validator {
 public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
 		final String outputDir,
 		final RunObjective runObj,
-		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, AlgorithmExecutionConfig execConfig) 
+		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, AlgorithmExecutionConfig execConfig,int cores) 
 		{
 
 		int testInstancesCount = Math.min(options.numberOfTestInstances, testInstances.size());
@@ -114,7 +116,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		{
 			if(validationRunsCount > testInstGen.getInitialInstanceSeedCount())
 			{
-				log.info("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
+				log.debug("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
 				validationRunsCount = testInstGen.getInitialInstanceSeedCount();
 			}
 			pisps = getValidationRuns(testInstances, (SetInstanceSeedGenerator) testInstGen, mode, validationRunsCount);
@@ -126,7 +128,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			throw new IllegalStateException("Unknown Instance Seed Generator specified");
 		}
 		
-		log.info("Scheduling {} validation runs per incumbent", pisps.size());
+		
 		
 		
 		Set<TrajectoryFileEntry> tfesToUse = new TreeSet<TrajectoryFileEntry>();
@@ -137,7 +139,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		} else if(options.validateOnlyLastIncumbent)
 		{
 			
-			log.debug("Validating only the last incumbent");
+			log.trace("Validating only the last incumbent");
 			if(options.useWallClockTime)
 			{
 				TrajectoryFileEntry tfe = tfes.get(tfes.size() - 1);
@@ -216,14 +218,32 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 			}
 		}
 		
+		
 		final List<TrajectoryFileEntry> tfesToRun = new ArrayList<TrajectoryFileEntry>(tfesToUse.size());
 		tfesToRun.addAll(tfesToUse);
 				
-		List<RunConfig> runConfigs = getRunConfigs(tfesToRun, pisps, cutoffTime,execConfig);
+		
+		Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
+		for(TrajectoryFileEntry tfe : tfes)
+		{
+			configs.add(tfe.getConfiguration());
+		}
 		
 
 		
-		log.info("Validation needs {} algorithm runs  to validate {} trajectory file entries ", runConfigs.size(), tfesToUse.size());
+		List<RunConfig> runConfigs = getRunConfigs(configs, pisps, cutoffTime,execConfig);
+		
+		log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runConfigs.size(), configs.size(),pisps.size());
+		
+		Date d = new Date(System.currentTimeMillis());
+		DateFormat df = DateFormat.getDateTimeInstance();	
+		
+	
+		
+		Date endTime = new Date(System.currentTimeMillis() + (long) (1.1*(cutoffTime * runConfigs.size()  * 1000/ cores)));
+		log.info("Validation start time: {}. Approximate worst-case end time: {}",df.format(d), df.format(endTime));
+		
+		
 		//List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
 		
 		final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
@@ -341,7 +361,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		if(!validatingTae.areRunsPersisted() || waitForRuns)
 		{
-			log.info("Waiting until validation completion");
+			log.debug("Waiting until validation completion");
 			callback.waitForCompletion();
 		}
 		
@@ -364,18 +384,11 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 
 
 
-private List<RunConfig> getRunConfigs(List<TrajectoryFileEntry> tfes, List<ProblemInstanceSeedPair> pisps, double cutoffTime, AlgorithmExecutionConfig execConfig) 
+
+private List<RunConfig> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime,AlgorithmExecutionConfig execConfig) 
 {
 	
-	Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
-	for(TrajectoryFileEntry tfe : tfes)
-	{
-		configs.add(tfe.getConfiguration());
-	}
-	
-	
-	
-	List<RunConfig> runConfigs  = new ArrayList<RunConfig>(pisps.size()*tfes.size());
+	List<RunConfig> runConfigs  = new ArrayList<RunConfig>(pisps.size()*configs.size());
 	for(ParamConfiguration config: configs)
 	{
 		for(ProblemInstanceSeedPair pisp : pisps)
@@ -474,7 +487,7 @@ endloop:
 
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir +  File.separator + "configurationMatrix"+suffix+"-run" + numRun + ".csv");
-		log.info("Validation Configuration/PISP Matrix Results Written to: {}", f.getAbsolutePath());
+		log.debug("Validation Configuration/PISP Matrix Results Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		try {
@@ -580,7 +593,7 @@ endloop:
 		
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir +  File.separator + "validationResultsMatrix"+suffix+"-run" + numRun + ".csv");
-		log.info("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
+		log.debug("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -696,7 +709,7 @@ endloop:
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
 		
-		log.info("Instance Seed Result File Written to: {}", f.getAbsolutePath());
+		log.debug("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
@@ -724,7 +737,7 @@ endloop:
 	{
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		File f = new File(outputDir + File.separator +  "rawValidationExecutionResults"+suffix+"-run" + numRun + ".csv");
-		log.info("Raw Validation Results File Written to: {}", f.getAbsolutePath());
+		log.debug("Raw Validation Results File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
@@ -755,8 +768,8 @@ endloop:
 		
 		File validationFile = new File(outputDir +  File.separator + "validationResults"+suffix+"-run" + numRun + ".csv");
 		
-		log.info("Validation Results File Written to: {}", validationFile.getAbsolutePath());
-		log.info("Classic Validation Results File Written to: {}", classicValidationFile.getAbsolutePath());
+		log.debug("Validation Results File Written to: {}", validationFile.getAbsolutePath());
+		log.debug("Classic Validation Results File Written to: {}", classicValidationFile.getAbsolutePath());
 	
 		if(!classicValidationFile.exists())
 		{

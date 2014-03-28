@@ -89,7 +89,7 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 	
 \subsubsection{How can I disable Validation?}
 
-	Yes, by setting \textbf{-~$\!$-doValidation} to false.
+	Yes, by setting \textbf{-~$\!$-validation} to false.
 	
 \subsubsection{Does SMAC support validating more than the last incumbent?}
 
@@ -99,6 +99,15 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 \subsubsection{How can I change the amount of memory SMAC uses?}
 
 If you are using the supplied shell scripts, you can set the SMAC\_MEMORY environment variable to a positive integer corresponding to amount of memory in MB SMAC will use. If you are using some other mechanism of execution, the \texttt{-Xmx} java option is the only other way.
+
+\subsection{Can I change the number of cores used in post-SMAC Validation?}
+
+Yes, using the \textbf{-~$\!$-validation-cores} options. This will only work
+if you are validating locally.
+
+\subsection{Can I change the Target Algorithm Evaluator used in post-SMAC Validation?}
+
+Not at this time.
 
 \subsection{Parameter Configuration Space}
 
@@ -195,13 +204,6 @@ This Target Algorithm Evaluator basically outputs random responses, it is useful
 	Additionally when using adaptive capping with $M$ processors, all parallel runs will be scheduled as if the other runs took 0 seconds. In other words, if we want to exploit the parallelism of running on $M$ processors, we have to run each algorithm for $M$ times as long, thus nullifying any advantage.
 	
 	For validation however, given infinite processors the runtime would be $O(1)$, and depending on the scenario validation can be more than 50\% of the runtime.
-
-
-\subsection{What is a Run Hash Code?}
-
-These are a mapping from the \texttt{<instance>,<seed>,<configuration setting>} to a hash. Primarily these are of use to developers, who want to ensure that a change in the code does not alter the trajectory of SMAC. Modulo the random noise in target algorithm execution, when you restore state the values should be preserved.
-
-
 
 
 	

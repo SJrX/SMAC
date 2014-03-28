@@ -1,7 +1,7 @@
 package ca.ubc.cs.beta.smac.builder;
 
 import java.io.File;
-import java.util.Collections;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +9,7 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.testng.collections.Lists;
+
 
 import com.beust.jcommander.ParameterException;
 
@@ -73,8 +73,7 @@ public class SMACBuilder {
 	private final EventManager eventManager; 
 	
 	private volatile TrajectoryFileLogger tLog;
-	
-	
+
 	private volatile LogRuntimeStatistics logRT;
 	public SMACBuilder()
 	{
@@ -147,10 +146,10 @@ public class SMACBuilder {
 	
 		if(Double.isInfinite(configSpaceSize))
 		{
-			log.info("Configuration Space has at least one continuous parameter or is very large (only bound experssible in IEEE 754 format is Infinity)");
+			log.debug("Configuration Space has at least one continuous parameter or is very large (only bound expressible in IEEE 754 format is Infinity)");
 		} else
 		{
-			log.info("Configuration Space size is at most {}", configSpace.getUpperBoundOnSize());
+			log.debug("Configuration Space size is at most {}", configSpace.getUpperBoundOnSize());
 		}
 		
 		StateFactory sf = options.getSaveStateFactory(outputDir);
@@ -166,10 +165,10 @@ public class SMACBuilder {
 		
 		if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
 		{
-			log.info("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			log.debug("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
 		} else
 		{
-			log.info("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			log.debug("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
 		}
 		
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
@@ -186,14 +185,15 @@ public class SMACBuilder {
 		tae = taeWrapper.wrap(tae);
 		AbstractAlgorithmFramework smac;
 
-		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
+
+		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
 		
 		
 		RunHistory rhModel;
 		
 		if(oRHModel == null)
 		{
-			rhModel= new NewRunHistory(options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
+			rhModel= new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
 		} else
 		{
 			rhModel = oRHModel;
@@ -234,7 +234,7 @@ public class SMACBuilder {
 		
 		InitializationProcedure initProc;
 		
-		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
+		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
 		
 		switch(options.initializationMode)
 		{
@@ -389,7 +389,7 @@ public class SMACBuilder {
 				break;
 			
 			case QUALITY:
-				if(!scenarioOptions.intraInstanceObj.equals(OverallObjective.MEAN))
+				if(!scenarioOptions.getIntraInstanceObjective().equals(OverallObjective.MEAN))
 				{
 					throw new ParameterException("To optimize quality you MUST use an intra-instance objective of " + OverallObjective.MEAN);
 				}

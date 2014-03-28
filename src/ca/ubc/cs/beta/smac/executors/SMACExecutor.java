@@ -21,29 +21,33 @@ import org.slf4j.MarkerFactory;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.logging.CommonMarkers;
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
+import ca.ubc.cs.beta.aclib.misc.version.JavaVersionInfo;
+import ca.ubc.cs.beta.aclib.misc.version.OSVersionInfo;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
+import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
-
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateFactoryOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
-
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
-
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
-
 import ca.ubc.cs.beta.smac.builder.SMACBuilder;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
+import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
@@ -92,7 +96,7 @@ public class SMACExecutor {
 		
 		if(log != null)
 		{
-			log.info("Returning with value: {}",returnValue);
+			log.debug("Returning with value: {}",returnValue);
 		}
 		
 		System.exit(returnValue);
@@ -116,36 +120,64 @@ public class SMACExecutor {
 			
 			SMACBuilder smacBuilder = new SMACBuilder();
 			
-			
 			//EventManager eventManager = smacBuilder.getEventManager();
 			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
 			
 			AbstractAlgorithmFramework smac;
 			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
 			
+			StopWatch watch = new AutoStartStopWatch();
 			
 			smac.run();
 			
-			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
+			watch.stop();
+			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
+			
 			
 			pool.logUsage();
 			
+			log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
 			List<TrajectoryFileEntry> tfes = smacBuilder.getTrajectoryFileLogger().getTrajectoryFileEntries();
+			
 			
 			SortedMap<TrajectoryFileEntry, Double> performance;
 			options.doValidation = (options.validationOptions.numberOfValidationRuns > 0) ? options.doValidation : false;
 			if(options.doValidation)
 			{
+				
 			
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other crap that is probably not applicable for validation
 				
 				if(options.validationOptions.maxTimestamp == -1)
 				{
-					options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
+					if(options.validationOptions.useWallClockTime)
+					{
+						if(options.scenarioConfig.limitOptions.runtimeLimit < Integer.MAX_VALUE)
+						{
+							options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.runtimeLimit;
+						} else
+						{
+							options.validationOptions.maxTimestamp = watch.time() / 1000.0;
+						}
+					} else
+					{
+						options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
+					}
+					
+					
 				}
 				
 				
 				options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
+				
+				int coreHint = 1;
+				if(options.validationCores != null && options.validationCores > 0)
+				{
+					log.debug("Validation will use {} cores", options.validationCores);
+					options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs = options.validationCores;
+					((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores = options.validationCores;
+					coreHint = options.validationCores;
+				}
 				
 				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts,  false, taeOptions);
 				try {
@@ -153,7 +185,9 @@ public class SMACExecutor {
 					List<ProblemInstance> testInstances = testingILWS.getInstances();
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
-					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true, execConfig);
+
+					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true, execConfig, coreHint);
+
 				} finally
 				{
 					validatingTae.notifyShutdown();
@@ -165,16 +199,22 @@ public class SMACExecutor {
 				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
 				
 			}
-			smac.logIncumbentPerformance(performance);
-
-			smac.logSMACResult(performance);
 			
-			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
+			
+			
+			
+			String incumbentPerformance = smac.logIncumbentPerformance(performance);
+			
+
+			String callString = smac.logSMACResult(performance);
+			
 			
 			smacBuilder.getEventManager().shutdown();
 			
-			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
-			log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
+			log.info("SMAC Result:\n=======================================================================================\nMinimized {}{}:\n{}\n{}\nAdditional information about run {} in: {}\n=======================================================================================",smac.getObjectiveToReport(), (performance.size() > 1) ? " over time": "" ,incumbentPerformance, callString, options.seedOptions.numRun, outputDir);
+			//log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
+			//log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
+			
 			
 			
 			return ACLibReturnValues.SUCCESS;
@@ -183,7 +223,7 @@ public class SMACExecutor {
 			System.out.flush();
 			System.err.flush();
 			
-			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
+			System.err.println("Error occurred while running SMAC\n>Error Message:"+  t.getMessage() +  "\n>Encountered Exception:" + t.getClass().getSimpleName() +"\n>Error Log Location: " + logLocation);
 			System.err.flush();
 			
 				if(log != null)
@@ -194,21 +234,22 @@ public class SMACExecutor {
 					
 					if(t instanceof ParameterException)
 					{
-						log.info("Don't forget that some options are set by default from files in ~/.aclib/");
+						log.info("Note that some options are read from files in the ~/.aeatk/ directory");
 						log.debug("Exception stack trace", t);
 						
 						
 					} else if(t instanceof TargetAlgorithmAbortException)
 					{
-						log.error("A serious problem occured during target algorithm execution and we are aborting execution ",t );
+						
+						log.error(CommonMarkers.SKIP_CONSOLE_PRINTING, "A serious problem occured during target algorithm execution and we are aborting execution ",t );
+						
 						
 						
 						log.error("We tried to call the target algorithm wrapper, but this call failed.");
-						log.error("The problem is (most likely) somewhere in the wrapper.");
-						log.error("There is also possibly additional error information above (in this log)");
+						log.error("The problem is (most likely) somewhere in the wrapper or with the arguments to SMAC.");
 						log.error("The easiest way to debug this problem is to manually execute the call we tried and see why it did not return the correct result");
-						log.error("The required syntax is something like \"Final Result for ParamILS: x,x,x,x,x\".);");
-						log.error("Specifically the regex we are matching is {}", CommandLineAlgorithmRun.AUTOMATIC_CONFIGURATOR_RESULT_REGEX);
+						log.error("The required output of the wrapper is something like \"Result for ParamILS: x,x,x,x,x\".);");
+						//log.error("Specifically the regex we are matching is {}", CommandLineAlgorithmRun.AUTOMATIC_CONFIGURATOR_RESULT_REGEX);
 					}	else
 					{
 						log.info("Maybe try running in DEBUG mode if you are missing information");
@@ -363,20 +404,23 @@ public class SMACExecutor {
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
 				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
+				
 				VersionTracker.logVersions();
+				SMACVersionInfo s = new SMACVersionInfo();
+				JavaVersionInfo j = new JavaVersionInfo();
+				OSVersionInfo o = new OSVersionInfo();
+				log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
+				
 				
 				for(String name : jcom.getParameterFilesToRead())
 				{
-					log.info("Parsing (default) options from file: {} ", name);
+					log.debug("Parsing (default) options from file: {} ", name);
 				}
 				
 			}
 			
-			log.trace("Command Line Options Parsed");
 			
-	
-			
-			JCommanderHelper.logCallString(args, SMACExecutor.class);
+			JCommanderHelper.logCallString(args, "smac");
 			
 
 			 if(log.isDebugEnabled())
@@ -429,7 +473,7 @@ public class SMACExecutor {
 				//We don't handle this more gracefully because this seems like a super rare incident.
 				if(ManagementFactory.getThreadMXBean().isThreadCpuTimeEnabled())
 				{
-					log.debug("JVM Supports CPU Timing Measurements");
+					log.trace("JVM Supports CPU Timing Measurements");
 				} else
 				{
 					log.warn("This Java Virtual Machine has CPU Time Measurements disabled, tunerTimeout will not contain any SMAC Execution Time.");
