@@ -136,13 +136,15 @@ public class SMACExecutor {
 			
 			pool.logUsage();
 			
+			log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
 			List<TrajectoryFileEntry> tfes = smacBuilder.getTrajectoryFileLogger().getTrajectoryFileEntries();
+			
 			
 			SortedMap<TrajectoryFileEntry, Double> performance;
 			options.doValidation = (options.validationOptions.numberOfValidationRuns > 0) ? options.doValidation : false;
 			if(options.doValidation)
 			{
-				log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
+				
 			
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other crap that is probably not applicable for validation
 				
@@ -171,7 +173,7 @@ public class SMACExecutor {
 				int coreHint = 1;
 				if(options.validationCores != null && options.validationCores > 0)
 				{
-					log.info("Validation will use {} cores", options.validationCores);
+					log.debug("Validation will use {} cores", options.validationCores);
 					options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs = options.validationCores;
 					((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores = options.validationCores;
 					coreHint = options.validationCores;
@@ -199,15 +201,18 @@ public class SMACExecutor {
 			
 			
 			
-			smac.logIncumbentPerformance(performance);
+			String incumbentPerformance = smac.logIncumbentPerformance(performance);
+			
 
-			smac.logSMACResult(performance);
+			String callString = smac.logSMACResult(performance);
 			
 			
 			smacBuilder.getEventManager().shutdown();
 			
-			log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
-			log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
+			log.info("SMAC Result:\n=======================================================================================\nMinimized {}{}:\n{}\n{}\nAdditional information about run {} in: {}\n=======================================================================================",smac.getObjectiveToReport(), (performance.size() > 1) ? " over time": "" ,incumbentPerformance, callString, options.seedOptions.numRun, outputDir);
+			//log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
+			//log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
+			
 			
 			
 			return ACLibReturnValues.SUCCESS;

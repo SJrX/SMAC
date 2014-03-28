@@ -624,7 +624,7 @@ public class AbstractAlgorithmFramework {
 	}
 
 	
-	public void logIncumbentPerformance(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
+	public String logIncumbentPerformance(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
 	{
 		TrajectoryFileEntry tfe = null;
 		double testSetPerformance = Double.POSITIVE_INFINITY;
@@ -635,6 +635,11 @@ public class AbstractAlgorithmFramework {
 		double lastEmpericalPerformance = Double.POSITIVE_INFINITY;
 		
 		double lastTestSetPerformance = Double.POSITIVE_INFINITY;
+		
+		StringBuilder sb = new StringBuilder();
+		
+		List<String> entries = new ArrayList<String>();
+		String lastEntry = "";
 		for(Entry<TrajectoryFileEntry, Double> ents : tfePerformance.entrySet())
 		{
 			
@@ -661,16 +666,31 @@ public class AbstractAlgorithmFramework {
 			
 			if(Double.isInfinite(testSetPerformance))
 			{
-				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance }; 
-				log.info("Minimized "+ objectiveToReport + " of Incumbent {} ({}) at time {} on training set: {}", args2 );
+				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance };
+				entries.add("Time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +empiricalPerformance + " based on "+runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(formerIncumbent) + " runs with the config on the training set");
+				
+				lastEntry = "Final time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +empiricalPerformance + " based on "+ runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(formerIncumbent) + " runs with the config on the training set";
+				//log.info("Minimized "+ objectiveToReport + " of Incumbent {} ({}) at time {} on training set: {}", args2 );
 			} else
 			{
 				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance, testSetPerformance };
-				log.info("Minimized "+objectiveToReport + " of Incumbent {} ({}) at time {} on training set: {}; on test set: {}", args2 );
+				entries.add("Time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +testSetPerformance + " on the test set");
+				
+				lastEntry = "Final time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +testSetPerformance + " on the test set";
+				//log.info("Minimized "+objectiveToReport + " of Incumbent {} ({}) at time {} on training set: {}; on test set: {}", args2 );
 			}
 			
 			
+			
 		}
+		
+		entries.set(entries.size()-1,lastEntry);
+		
+		for(String ent : entries)
+		{
+			sb.append(ent).append("\n");
+		}
+		return sb.toString();
 		
 	}
 	
@@ -678,7 +698,7 @@ public class AbstractAlgorithmFramework {
 	 * 
 	 * @param tfePerformance
 	 */
-	public void logSMACResult(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
+	public String logSMACResult(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
 	{
 		
 		
@@ -707,21 +727,24 @@ public class AbstractAlgorithmFramework {
 		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
 	
 
-		log.info("**********************************************");
+		//log.info("**********************************************");
 		
 		if(Double.isInfinite(testSetPerformance))
 		{
 			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime) }; 
-			log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}", args2 );
+			//log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}", args2 );
 		} else
 		{
 			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent,runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime), testSetPerformance };
-			log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}; on test set: {}", args2 );
+			//log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}; on test set: {}", args2 );
 		}
+		StringBuilder sb = new StringBuilder();
 		
-		log.info("Sample Call for Final Incumbent {} ({}) \n{} ",args);
-		log.info("Complete Configuration (no inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX_NO_INACTIVE));
-		log.info("Complete Configuration (including inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
+		sb.append("Sample Call for the final incumbent:\n" +  cmd ).append("\n");
+		return sb.toString();	
+		
+		//log.info("Complete Configuration (no inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX_NO_INACTIVE));
+		//log.info("Complete Configuration (including inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
 		
 	}
 
@@ -1008,7 +1031,7 @@ public class AbstractAlgorithmFramework {
 		
 		String cmd = tae.getManualCallString(config);
 		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
-		log.info("Sample Call for {} {} ({}): \n{} ",args);
+		log.info("Sample Call for {} {} (internal ID: {}): \n{} ",args);
 		
 	}
 
@@ -1086,10 +1109,10 @@ public class AbstractAlgorithmFramework {
 		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
-		log.info("Incumbent Changed to: {} ({}), Total Runs for Incumbent: {}", runHistory.getThetaIdx(challenger), challenger,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
+		log.info("Incumbent changed to: {} (internal ID: {}). Total runs for Incumbent: {}", runHistory.getThetaIdx(challenger), challenger,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
 		
 		
-		logConfiguration("New Incumbent", challenger);		
+		logConfiguration("new incumbent", challenger);		
 		fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),oldIncumbent, cpuTime));
 
 	}

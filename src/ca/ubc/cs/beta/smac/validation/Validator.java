@@ -230,7 +230,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		List<RunConfig> runConfigs = getRunConfigs(configs, pisps, cutoffTime);
 		
-		log.info("Validation needs {} algorithm runs to validate {} configurations found", runConfigs.size(), configs.size());
+		log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runConfigs.size(), configs.size(),pisps.size());
 		
 		Date d = new Date(System.currentTimeMillis());
 		DateFormat df = DateFormat.getDateTimeInstance();	
