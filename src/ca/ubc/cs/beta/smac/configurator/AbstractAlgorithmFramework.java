@@ -183,13 +183,13 @@ public class AbstractAlgorithmFramework {
 				switch(intraInstanceObj)
 				{
 					case MEAN:
-						objectiveToReport = "Mean Runtime";
+						objectiveToReport = "mean runtime";
 						break;
 					case MEAN10:
-						objectiveToReport = "Penalized Average Runtime 10 (PAR10)";
+						objectiveToReport = "penalized average runtime (PAR10)";
 						break;
 					case MEAN1000:
-						objectiveToReport = "Penalized Average Runtime 1000 (PAR1000)";
+						objectiveToReport = "penalized average runtime (PAR1000)";
 						break;
 					default:
 						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
@@ -199,7 +199,7 @@ public class AbstractAlgorithmFramework {
 				switch(intraInstanceObj)
 				{
 					case MEAN:
-						objectiveToReport = "Mean Quality";
+						objectiveToReport = "mean quality";
 						break;
 					default:
 						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
@@ -223,7 +223,7 @@ public class AbstractAlgorithmFramework {
 		}  else
 		{
 			MAX_RUNS_FOR_INCUMBENT=smacOptions.maxIncumbentRuns;
-			log.debug("Maximimum Number of Runs for the Incumbent Initialized to {}", MAX_RUNS_FOR_INCUMBENT);
+			log.debug("Maximimum number of runs for the incumbent initialized to {}", MAX_RUNS_FOR_INCUMBENT);
 		}
 		
 		TerminationCondition cond = new ConfigurationSpaceExhaustedCondition(configSpace,MAX_RUNS_FOR_INCUMBENT);
@@ -231,23 +231,7 @@ public class AbstractAlgorithmFramework {
 		
 		termCond.addCondition(cond);
 		//=== Initialize trajectory file.
-		/*
-		try {
-			String outputFileName = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".txt";
-			this.trajectoryFileWriter = new FileWriter(new File(outputFileName));
-			log.info("Trajectory File Writing To: {}", outputFileName);
-			String outputFileNameCSV = options.scenarioConfig.outputDirectory + File.separator + runGroupName + File.separator +"traj-run-" + options.seedOptions.numRun + ".csv";
-			this.trajectoryFileWriterCSV = new FileWriter(new File(outputFileNameCSV));
-			log.info("Trajectory File Writing To: {}", outputFileNameCSV);
-			
-			
-			
-			trajectoryFileWriter.write(runGroupName + ", " + options.seedOptions.numRun + "\n");
-			trajectoryFileWriterCSV.write(runGroupName + ", " + options.seedOptions.numRun + "\n");		
-		} catch (IOException e) {
-			
-			throw new IllegalStateException("Could not create trajectory file: " , e);
-		}*/
+		
 		this.configTracker = originTracker;
 		this.initProc = initProc;
 		
@@ -513,6 +497,8 @@ public class AbstractAlgorithmFramework {
 	}
 	
 	
+	
+	private int incumbentRunsLogged = 0;
 	/**
 	 * Actually performs the Automatic Configuration
 	 */
@@ -533,7 +519,7 @@ public class AbstractAlgorithmFramework {
 					log.trace("Initialization Procedure Completed");
 					
 					incumbent =initProc.getIncumbent(); 
-					logConfiguration("New Incumbent", incumbent);
+					logConfiguration("new incumbent", incumbent);
 					updateIncumbentCost();
 					logIncumbent(iteration);
 				} else
@@ -545,6 +531,7 @@ public class AbstractAlgorithmFramework {
 				 * Main Loop
 				 */
 				
+				incumbentRunsLogged = runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent);
 				try{
 					while(!have_to_stop(iteration+1))
 					{
@@ -808,6 +795,8 @@ public class AbstractAlgorithmFramework {
 	 * @param challenger - challenger we are running with
 	 * @param runIncumbent - whether we should run the incumbent before hand 
 	 */
+	
+	
 	private void challengeIncumbent(ParamConfiguration challenger, boolean runIncumbent) {
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		
@@ -822,6 +811,18 @@ public class AbstractAlgorithmFramework {
 				//fireEvent(new IncumbentChangeEvent(termCond,  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
 				fireEvent(new IncumbentPerformanceChangeEvent(termCond, currentIncumbentCost, incumbent ,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent),incumbent, cpuTime));
 				
+				
+				
+				int incumbentRunsLoggedPrevious = (200 * incumbentRunsLogged) / MAX_RUNS_FOR_INCUMBENT;
+				
+				int incumbentRunsLoggedNow = (200 * (1+incumbentRunsLogged)) / MAX_RUNS_FOR_INCUMBENT;
+				
+				incumbentRunsLogged++;
+				
+				if(incumbentRunsLoggedNow > incumbentRunsLoggedPrevious)
+				{
+					log.info("Updated estimated {} of the same incumbent: {}; estimate now based on {} runs.", objectiveToReport, currentIncumbentCost, incumbentRunsLogged);
+				} 
 				
 				
 				
@@ -1031,7 +1032,7 @@ public class AbstractAlgorithmFramework {
 		
 		String cmd = tae.getManualCallString(config);
 		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
-		log.info("Sample call for {} {} (internal ID: {}): \n{} ",args);
+		log.info("Sample call for {} config {} (internal ID: {}): \n{} ",args);
 		
 	}
 
@@ -1109,7 +1110,7 @@ public class AbstractAlgorithmFramework {
 		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
-		log.info("Incumbent changed to: {} (internal ID: {}). Total runs for Incumbent: {}", runHistory.getThetaIdx(challenger), challenger,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
+		log.info("Incumbent changed to: config {} (internal ID: {}).{}: {}; estimate based on {} runs.", runHistory.getThetaIdx(challenger), challenger, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
 		
 		
 		logConfiguration("new incumbent", challenger);		
@@ -1186,7 +1187,7 @@ public class AbstractAlgorithmFramework {
 	private  void updateIncumbentCost() {
 		
 		currentIncumbentCost = runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances), cutoffTime);
-		log.trace("Incumbent Cost now: {}", currentIncumbentCost);
+		log.trace("Incumbent cost now: {}", currentIncumbentCost);
 	}
 
 
@@ -1256,7 +1257,7 @@ public class AbstractAlgorithmFramework {
 			throw new OutOfTimeException();
 		} 
 	
-		log.debug("Iteration {}: Scheduling {} run(s):", iteration,  runConfigs.size());
+		
 		for(RunConfig rc : runConfigs)
 		{
 			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};

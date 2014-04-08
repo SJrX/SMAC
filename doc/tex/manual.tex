@@ -226,7 +226,7 @@ Value & Error Name & Description \\
 				\item Can now specify the number of cores that SMAC validate will use (only when using the local command line), using the \textbf{-$~\!$-validation-cores} option.
 				\item Previous state folder is now renamed to something that preserves the run name and is no longer a warning.
 				\item Emphasized in many places that SMAC is minimizing the objective functions.
-
+				\item SMAC now ignores the seed output in the response of wrappers entirely (it automatically substitutes the requested value. If your wrapper doesn't set this value correctly, you may notice discrepancies in SMAC.
           	\end{enumerate}
           	
 

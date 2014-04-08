@@ -232,7 +232,7 @@ public class SMACExecutor {
 					
 					if(t instanceof ParameterException)
 					{
-						log.info("Note that some options are read from files in the ~/.aeatk/ directory");
+						log.info("Note that some options are read from files in ~/.aeatk/");
 						log.debug("Exception stack trace", t);
 						
 						
@@ -261,11 +261,12 @@ public class SMACExecutor {
 						
 					log.info("Exiting SMAC with failure. Log: " + logLocation);
 					log.info("For a list of available commands use:  --help");
-					log.info("Please see above for the available options. Further information is available in the following documents:");
-					log.info("- The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
-					log.info("- The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
-					log.info("- The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
-
+					//log.info("Please see above for the available options. Further information is available in the following documents:");
+					log.info("The Quickstart guide at available at: http://www.cs.ubc.ca/labs/beta/Projects/SMAC/ or alternatively (doc/quickstart.html) gives simple examples for getting up and running.");
+					log.info("The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
+					log.info("The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
+					log.info("If you are stuck, please ask a question in the SMAC forum: https://groups.google.com/forum/#!forum/smac-forum");
+					
 					
 					
 					t = t.getCause();

@@ -39,7 +39,7 @@ File.open(filename){|file|
 		if line =~ /SuccessfulRuns = (\d+)/
 			numsolved = $1.to_i
 			if numsolved > 0
-				solved = "SAT"
+				solved = "SUCCESS"
 			else
 				solved = "TIMEOUT"
 			end
