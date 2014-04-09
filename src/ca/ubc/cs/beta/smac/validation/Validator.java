@@ -449,10 +449,17 @@ public class Validator {
 		final List<TrajectoryFileEntry> tfesToRun = new ArrayList<TrajectoryFileEntry>(tfesToUse.size());
 		tfesToRun.addAll(tfesToUse);
 		
-		Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
-		for(TrajectoryFileEntry tfe : tfes)
+		Set<ParamConfiguration> configs = new LinkedHashSet<ParamConfiguration>();
+		
+		final Map<ParamConfiguration, Integer> configToID = new LinkedHashMap<ParamConfiguration, Integer>();
+		
+		int id=1;
+		for(TrajectoryFileEntry tfe : tfesToRun)
 		{
-			configs.add(tfe.getConfiguration());
+			if(configs.add(tfe.getConfiguration()))
+			{
+				configToID.put(tfe.getConfiguration(), id++);
+			}
 		}
 		
 		
@@ -473,15 +480,16 @@ public class Validator {
 			@Override
 			public void onSuccess(List<AlgorithmRun> runs) {
 				// TODO Auto-generated method stub
-				try
-				{
-					writeInstanceRawResultsFile(runs, options, trajFile);
+				
+				
+				
+				try {
+					writeConfigurationMapFile(trajFile, options, configToID, execConfig, runs);
 				} catch(IOException e)
 				{
 					log.error("Could not write results file", e);
 				}
-				
-				
+				/*
 				try
 				{
 					writeInstanceSeedResultFile(runs, options, runObj, trajFile);
@@ -489,25 +497,22 @@ public class Validator {
 				{
 					log.error("Could not write results file", e);
 				}
-				
+				*/
 				
 				try
 				{
-					Map<ParamConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, trajFile);
+					Map<ParamConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, trajFile, configToID);
 					
 					
 					for(TrajectoryFileEntry tfe : tfesToRun)
 					{
 						finalPerformance.put(tfe, testSetPerformance.get(tfe.getConfiguration()));
 					}
-					if(runs.get(0) != null)
-					{
-						appendInstanceResultFile( finalPerformance,  trajFile,options, options.useWallClockTime, runs.get(0).getRunConfig(), execConfig);
-					} else
-					{
-						appendInstanceResultFile( finalPerformance,  trajFile,options, options.useWallClockTime, null, null);
-					}
 					
+					if(runs.size() > 0)
+					{
+						appendInstanceResultFile( finalPerformance,  trajFile,options, options.useWallClockTime, configToID);
+					}
 					
 					
 					
@@ -516,37 +521,37 @@ public class Validator {
 					log.error("Could not write results file:", e);
 				}
 				
-				if(options.writeThetaMatrix)
-				{
-					try {
-						ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns = new ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>>();
-						
-						for(AlgorithmRun run : runs)
-						{
-							matrixRuns.putIfAbsent(run.getRunConfig().getParamConfiguration(), new HashMap<ProblemInstanceSeedPair, AlgorithmRun>());
-							
-							Map<ProblemInstanceSeedPair, AlgorithmRun> configRuns = matrixRuns.get(run.getRunConfig().getParamConfiguration());
-							
-							configRuns.put(run.getRunConfig().getProblemInstanceSeedPair(), run);
-						}
-						
-						
-						List<ParamConfiguration> configs = new ArrayList<ParamConfiguration>();
-						
-						for(AlgorithmRun run : runs)
-						{
-							if(configs.contains(run.getRunConfig().getParamConfiguration())) continue;
-							configs.add(run.getRunConfig().getParamConfiguration());
-						}
-						
-						
-						writeConfigurationResultsMatrix(configs,matrixRuns, tfes, options, trajFile, runObj);
-						
-					} catch(IOException e)
+				
+				try {
+					ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns = new ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>>();
+					
+					for(AlgorithmRun run : runs)
 					{
-						log.error("Could not write matrix file:",e);
+						matrixRuns.putIfAbsent(run.getRunConfig().getParamConfiguration(), new HashMap<ProblemInstanceSeedPair, AlgorithmRun>());
+						
+						Map<ProblemInstanceSeedPair, AlgorithmRun> configRuns = matrixRuns.get(run.getRunConfig().getParamConfiguration());
+						
+						configRuns.put(run.getRunConfig().getProblemInstanceSeedPair(), run);
 					}
-				} 
+					
+					
+					List<ParamConfiguration> configs = new ArrayList<ParamConfiguration>();
+					
+					for(AlgorithmRun run : runs)
+					{
+						if(configs.contains(run.getRunConfig().getParamConfiguration())) continue;
+						configs.add(run.getRunConfig().getParamConfiguration());
+					}
+					
+					
+					writeConfigurationResultsMatrix(configs,matrixRuns, tfes, options, trajFile, runObj, configToID);
+					
+				} catch(IOException e)
+				{
+					log.error("Could not write matrix file:",e);
+				}
+			 
+				
 				
 				
 				if(options.saveStateFile)
@@ -564,6 +569,10 @@ public class Validator {
 			}
 
 			
+
+			
+
+
 
 			@Override
 			public void onFailure(RuntimeException t) {
@@ -730,6 +739,8 @@ endloop:
 		return pisps;
 	}
 	
+	
+	
 	private static List<ProblemInstanceSeedPair> getValidationRuns( List<ProblemInstance> pis,	SetInstanceSeedGenerator testInstGen, ValidationRoundingMode mode,  int validationRunsCount)
 	{
 
@@ -758,6 +769,51 @@ endloop:
 		return runs;
 	}
 
+	
+	private static void writeConfigurationMapFile(TrajectoryFile trajFile, ValidationOptions validationOptions,	Map<ParamConfiguration, Integer> configToID,AlgorithmExecutionConfig execConfig, List<AlgorithmRun> runs) throws IOException {
+		// TODO Auto-generated method stub
+		File f = getFile(trajFile, "validationCallStrings",validationOptions.outputFileSuffix,"csv");
+		// new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
+
+		log.debug("Instance Seed Result File Written to: {}", f.getAbsolutePath());
+		CSVWriter writer = new CSVWriter(new FileWriter(f));
+		
+		
+		if(validationOptions.validationHeaders)
+		{
+			String[] args = {"Validation Configuration ID","Configuration ","Sample Call String"};
+			writer.writeNext(args);
+		}
+		
+	
+
+		//sbClassicValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
+		//String callString = "Unavailable as we did no runs";
+	
+			//callString = 
+			
+		
+		//sbValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append(",\"").append(idMap.get(rc.getParamConfiguration())).append("\",\n");
+		
+		for(Entry<ParamConfiguration, Integer> ent : configToID.entrySet())
+		{
+			RunConfig rc = null;
+			
+			for(AlgorithmRun run : runs)
+			{
+				if (run.getRunConfig().getParamConfiguration().equals(ent.getKey()))
+				{
+					rc = run.getRunConfig();
+					break;
+				}
+			}
+			String[] args = {String.valueOf(ent.getValue()), ent.getKey().getFormattedParamString(StringFormat.NODB_SYNTAX), CommandLineAlgorithmRun.getTargetAlgorithmExecutionCommandAsString(execConfig, rc) };
+			writer.writeNext(args);
+		}
+		
+		writer.close();
+	}
+	
 	/**
 	 * Writes a matrix of the runs to the given file
 	 * @param matrixRuns
@@ -766,15 +822,20 @@ endloop:
 	 */
 	private static void writeConfigurationResultsMatrix( List<ParamConfiguration> inOrderConfigs, 
 			ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns,
-			List<TrajectoryFileEntry> tfes, ValidationOptions validationOptions,TrajectoryFile trajFile, RunObjective runObj) throws IOException {
+			List<TrajectoryFileEntry> tfes, ValidationOptions validationOptions,TrajectoryFile trajFile, RunObjective runObj, Map<ParamConfiguration, Integer> idMap) throws IOException {
 
 
 		
-		File f =  getFile(trajFile, "configurationMatrix",validationOptions.outputFileSuffix,"csv");
+		File configurationObjective =  getFile(trajFile, "configurationObjectiveMatrix",validationOptions.outputFileSuffix,"csv");
+		File configurationRun =  getFile(trajFile, "configurationRunMatrix",validationOptions.outputFileSuffix,"csv");
+		
+		
 				// new File(outputDir +  File.separator + "configurationMatrix"+suffix+"-run" + numRun + ".csv");
-		log.debug("Validation Configuration/PISP Matrix Results Written to: {}", f.getAbsolutePath());
+		log.debug("Validation Configuration/PISP Matrix of objectives Written to: {}", configurationObjective.getAbsolutePath());
+		log.debug("Validation Configuration/PISP Matrix of runs Written to: {}", configurationRun.getAbsolutePath());
 		
-		CSVWriter writer = new CSVWriter(new FileWriter(f));
+		CSVWriter objectiveMatrixCSV = new CSVWriter(new FileWriter(configurationObjective));
+		CSVWriter runMatrixCSV = new CSVWriter(new FileWriter(configurationRun));
 		try {
 			List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
 
@@ -815,7 +876,7 @@ endloop:
 					
 					ArrayList<String> headerRow = new ArrayList<String>();
 					
-					headerRow.add("");
+					headerRow.add("Validation Configuration ID");
 					for(ProblemInstanceSeedPair pisp : pisps)
 					{
 						headerRow.add(pisp.getInstance().getInstanceName() + "," + pisp.getSeed());
@@ -823,12 +884,18 @@ endloop:
 					
 					String[] header = headerRow.toArray(new String[0]);
 					
-					writer.writeNext(header);
+					objectiveMatrixCSV.writeNext(header);
+					runMatrixCSV.writeNext(header);
 				}
 				
 			
-				ArrayList<String> dataRow = new ArrayList<String>();
-				dataRow.add(config.getFormattedParamString(StringFormat.NODB_SYNTAX));
+				ArrayList<String> objectiveRow = new ArrayList<String>();
+				ArrayList<String> resultLineRow = new ArrayList<String>();
+				
+				
+				objectiveRow.add(String.valueOf(idMap.get(config)));
+				resultLineRow.add(String.valueOf(idMap.get(config)));
+				
 				for(ProblemInstanceSeedPair pisp : pisps)
 				{
 					AlgorithmRun run = runs.get(pisp);
@@ -841,19 +908,24 @@ endloop:
 					{
 						throw new IllegalStateException("DataStructure corruption detected ");
 					}
-					dataRow.add(String.valueOf(runObj.getObjective(run)));
+					objectiveRow.add(String.valueOf(runObj.getObjective(run)));
+					resultLineRow.add(run.getResultLine());
 					
 				}
 				
-				String[] nextRow = dataRow.toArray(new String[0]);
+				String[] nextRow = objectiveRow.toArray(new String[0]);
 				
-				writer.writeNext(nextRow);
+				String[] nextRunRow = resultLineRow.toArray(new String[0]);
+				
+				objectiveMatrixCSV.writeNext(nextRow);
+				runMatrixCSV.writeNext(nextRunRow);
 			}
 			
 			
 		} finally
 		{
-			writer.close();
+			objectiveMatrixCSV.close();
+			runMatrixCSV.close();
 		}
 		
 		
@@ -872,12 +944,10 @@ endloop:
 	 * @return - Overall objective over test set (For convinence)
 	 * @throws IOException
 	 */
-	private static Map<ParamConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, TrajectoryFile trajFile) throws IOException 
+	private static Map<ParamConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs, ValidationOptions validationOptions, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, TrajectoryFile trajFile, Map<ParamConfiguration, Integer> configIDToMap) throws IOException 
 	{
 		
-		
-		
-		File f =  getFile(trajFile,  "validationResultsMatrix",validationOptions.outputFileSuffix,"csv");
+		File f =  getFile(trajFile,  "validationPerformanceDebug",validationOptions.outputFileSuffix,"csv");
 		//new File(outputDir +  File.separator + "validationResultsMatrix"+suffix+"-run" + numRun + ".csv");
 		log.debug("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
 		
@@ -925,7 +995,7 @@ endloop:
 			
 		
 			ArrayList<String> headerRow = new ArrayList<String>();
-			headerRow.add("Config " + ent.getKey().toString());
+			headerRow.add("Validation Configuration ID:" + configIDToMap.get(ent.getKey()));
 			headerRow.add("Instance");
 			headerRow.add("OverallObjective");
 			
@@ -937,8 +1007,6 @@ endloop:
 			
 			writer.writeNext(headerRow.toArray(new String[0]));
 		
-			
-			
 			List<Double> overallObjectives = new ArrayList<Double>();
 			
 			
@@ -986,65 +1054,6 @@ endloop:
 			return calculatedOverallObjectives;
 	}
 
-
-
-
-	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, RunObjective runObj, TrajectoryFile trajFile) throws IOException
-	{
-		
-		
-		File f = getFile(trajFile, "validationInstanceSeedResult",validationOptions.outputFileSuffix,"csv");
-				// new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
-		
-		log.debug("Instance Seed Result File Written to: {}", f.getAbsolutePath());
-		CSVWriter writer = new CSVWriter(new FileWriter(f));
-		
-		
-		if(validationOptions.validationHeaders)
-		{
-			String[] args = {"Configuration","Seed","Instance","Response"};
-			writer.writeNext(args);
-		}
-		
-		for(AlgorithmRun run : runs)
-		{
-			
-			String[] args = { run.getRunConfig().getParamConfiguration().toString(), String.valueOf(run.getRunConfig().getProblemInstanceSeedPair().getSeed()),run.getRunConfig().getProblemInstanceSeedPair().getInstance().getInstanceName(), String.valueOf(runObj.getObjective(run)) };
-			writer.writeNext(args);
-		}
-		
-		writer.close();
-		
-	}
-
-
-
-
-	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, TrajectoryFile trajFile) throws IOException
-	{
-	
-		
-		File f = getFile(trajFile, "rawValidationExecutionResults",validationOptions.outputFileSuffix,"csv");
-		log.debug("Raw Validation Results File Written to: {}", f.getAbsolutePath());
-		CSVWriter writer = new CSVWriter(new FileWriter(f));
-		
-		
-		if(validationOptions.validationHeaders)
-		{
-			String[] args = {"Configuration", "Seed", "Instance","Raw Result Line", "Result Line"};
-			writer.writeNext(args);
-		}
-		
-		for(AlgorithmRun run : runs)
-		{
-			
-			String[] args = { run.getRunConfig().getParamConfiguration().toString(), String.valueOf(run.getRunConfig().getProblemInstanceSeedPair().getSeed()),run.getRunConfig().getProblemInstanceSeedPair().getInstance().getInstanceName(), run.rawResultLine(), run.getResultLine() };
-			writer.writeNext(args);
-		}
-		
-		writer.close();
-		
-	}
 	
 
 	
@@ -1067,64 +1076,16 @@ endloop:
 	
 		
 		File f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + baseName + suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
-		
-		
-		
-			return f;
-		
-			/*
-		
-		f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + trajectoryFileName  +suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
-		 
-		if(!f.exists())
-		{
-			return f;
-		}
-
-		f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-"+ trajectoryFileName + "-" + System.currentTimeMillis() +suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
-		
-		if(!f.exists())
-		{
-			return f;
-		}
-
-		
-		
-		f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + trajectoryFileName + "-" + System.currentTimeMillis() + "-" + Math.random() +suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
-		*/
-		//return f;
-		
-		
-		
+		return f;
+				
 	}
-	private void appendInstanceResultFile(Map<TrajectoryFileEntry, Double> finalPerformance, TrajectoryFile trajFile, ValidationOptions validationOptions, boolean useWallTime, RunConfig rc, AlgorithmExecutionConfig execConfig) throws IOException {
+	
+	private void appendInstanceResultFile(Map<TrajectoryFileEntry, Double> finalPerformance, TrajectoryFile trajFile, ValidationOptions validationOptions, boolean useWallTime,  Map<ParamConfiguration, Integer> idMap) throws IOException {
 		
-		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
-		
-		
-		//File f = 
-		
-		
-		File classicValidationFile = getFile(trajFile,  "classicValidationResults",validationOptions.outputFileSuffix,"csv");
-		
-		//new File(outputDir +  File.separator + "classicValidationResults"+suffix+"-run" + numRun + ".csv");
 		
 		File validationFile = getFile(trajFile,  "validationResults",validationOptions.outputFileSuffix,"csv");
-		//new File(outputDir +  File.separator + "validationResults"+suffix+"-run" + numRun + ".csv");
 		
 		log.debug("Validation Results File Written to: {}", validationFile.getAbsolutePath());
-		log.debug("Classic Validation Results File Written to: {}", classicValidationFile.getAbsolutePath());
-	
-		if(!classicValidationFile.exists())
-		{
-			classicValidationFile.createNewFile();
-			
-		} else
-		{
-			classicValidationFile.delete();
-			classicValidationFile.createNewFile();
-		}
-		
 		
 		if(!validationFile.exists())
 		{
@@ -1139,8 +1100,7 @@ endloop:
 	
 		
 		
-		StringBuilder sbClassicValidation = new StringBuilder();
-		StringBuilder sbValidation = new StringBuilder("\"Tuner Time\",\"Training (Emperical) Performance\",\"Test Set Performance\",\"AC Overhead Time\",\"Sample Call String\",\n");
+		StringBuilder sbValidation = new StringBuilder("\"Time\",\"Training (Empirical) Performance\",\"Test Set Performance\",\"AC Overhead Time\",\"Validation Configuration ID\",\n");
 		
 		for(Entry<TrajectoryFileEntry, Double > ent : finalPerformance.entrySet())
 		{
@@ -1157,23 +1117,10 @@ endloop:
 			double empiricalPerformance = ent.getKey().getEmpericalPerformance();
 			double testSetPerformance = ent.getValue();
 			double acOverhead = ent.getKey().getACOverhead();
-			
-			sbClassicValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
-			String callString = "Unavailable as we did no runs";
-		
-				callString = CommandLineAlgorithmRun.getTargetAlgorithmExecutionCommandAsString(execConfig, rc);
-			
-			sbValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append(",\"").append(callString).append("\",\n");
+				
+			sbValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append(",\"").append(idMap.get(ent.getKey().getConfiguration())).append("\",\n");
 		}
-		if(!classicValidationFile.canWrite())
-		{
-			log.error("Could not write classic trajectory file would have written: {}" , sbClassicValidation.toString());
-		} else
-		{
-			PrintWriter output = new PrintWriter(new FileOutputStream(classicValidationFile,true));
-			output.append(sbClassicValidation);
-			output.close();
-		}
+
 		
 		if(!validationFile.canWrite())
 		{
