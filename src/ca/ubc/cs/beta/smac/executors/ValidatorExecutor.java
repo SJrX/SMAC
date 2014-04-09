@@ -12,6 +12,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +42,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetA
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
@@ -59,14 +62,17 @@ public class ValidatorExecutor {
 		try {
 			JCommander jcom = JCommanderHelper.parseCheckingForHelpAndVersion(args,options, taeOptions);
 			
-			String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
+			//String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
 			
 			if(options.useScenarioOutDir)
 			{
-				outputDir = options.scenarioConfig.outputDirectory + File.separator;
+				throw new ParameterException("--use-scenario-outdir is now deprecated. Output of files will be in the same directory of the trajectory files or the current working directory if there isn't one ");
+				
+				//outputDir = options.scenarioConfig.outputDirectory + File.separator;
 			}
 			
-			options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
+			options.logOptions.initializeLogging(new File(".").getAbsolutePath(), options.seedOptions.numRun);
+			
 			log = LoggerFactory.getLogger(ValidatorExecutor.class);
 			JCommanderHelper.logCallString(args, ValidatorExecutor.class);
 			log.debug("==========Configuration Options==========\n{}", options.toString());
@@ -148,13 +154,13 @@ public class ValidatorExecutor {
 			
 			ParamConfigurationSpace configSpace = execConfig.getParamFile();
 			
-			Map<Integer, List<TrajectoryFileEntry>> tfes = new LinkedHashMap<Integer, List<TrajectoryFileEntry>>();
+			Set<TrajectoryFile> tfes = new TreeSet<TrajectoryFile>();
 			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
 			{
 				//log.debug("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFiles.getAbsolutePath());
 				
 				
-				tfes = options.trajectoryFileOptions.parseTrajectoryFiles(configSpace);
+				tfes.addAll(options.trajectoryFileOptions.parseTrajectoryFiles(configSpace));
 
 				 if(options.validationOptions.maxTimestamp == -1)
 				 {
@@ -180,6 +186,8 @@ public class ValidatorExecutor {
 				//We are explicitly setting configurations so validate all
 				options.validationOptions.validateAll = true;
 				
+				
+				File trajectoryFile = new File("cli");
 				
 				List<ParamConfiguration> configToValidate = new ArrayList<ParamConfiguration>(); 
 				//==== Parse the supplied configuration;
@@ -213,6 +221,7 @@ public class ValidatorExecutor {
 				{
 					BufferedReader reader = new BufferedReader(new FileReader(options.configurationList));
 					
+					
 					String line; 
 					while((line = reader.readLine()) != null)
 					{
@@ -225,6 +234,7 @@ public class ValidatorExecutor {
 					}
 					
 					optionsSet++;
+					trajectoryFile = options.configurationList;
 					reader.close();
 				}
 				
@@ -253,7 +263,7 @@ public class ValidatorExecutor {
 					}
 				}
 				
-				tfes.put(options.seedOptions.numRun, tfeList);
+				tfes.add(new TrajectoryFile(trajectoryFile, tfeList));
 			}
 			
 			options.checkProblemInstancesCompatibleWithVerifySAT(testInstances);
@@ -267,17 +277,6 @@ public class ValidatorExecutor {
 			
 			TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false,taeOptions);
 			
-			if(options.useScenarioOutDir)
-			{
-				outputDir = options.scenarioConfig.outputDirectory + File.separator;
-			}
-			File f = new File(outputDir);
-			
-			
-			if(!f.mkdirs() && !(f.exists() && f.isDirectory() && f.canWrite()))
-			{
-				throw new ParameterException("Couldn't make output Directory:" + outputDir);
-			}
 			
 			
 			
@@ -291,12 +290,10 @@ public class ValidatorExecutor {
 					options.scenarioConfig.algoExecOptions.cutoffTime,
 					testInstanceSeedGen,
 					validatingTae,
-					outputDir,
 					options.scenarioConfig.runObj,
 					options.scenarioConfig.getIntraInstanceObjective(),
 					options.scenarioConfig.interInstanceObj,
 					tfes,
-					options.seedOptions.numRun,
 					options.waitForPersistedRunCompletion, coreHint, execConfig);
 			
 			} finally

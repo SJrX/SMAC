@@ -44,6 +44,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetA
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.builder.SMACBuilder;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
@@ -185,7 +186,8 @@ public class SMACExecutor {
 					List<ProblemInstance> testInstances = testingILWS.getInstances();
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
-					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true, coreHint,execConfig);
+					TrajectoryFile trajFile = new TrajectoryFile(new File(outputDir + File.separator + "traj-run-" + options.seedOptions.numRun + ".txt"),tfes);
+					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile,true, coreHint,execConfig);
 				} finally
 				{
 					validatingTae.notifyShutdown();
@@ -365,6 +367,9 @@ public class SMACExecutor {
 						break;
 					case QUALITY:
 						options.randomForestOptions.logModel = false;
+						break;
+					default:
+						throw new IllegalStateException("Unsure what to do with new run objective");
 					}
 				}
 

@@ -23,6 +23,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.regex.Matcher;
 import java.util.SortedMap;
 
 import org.slf4j.Logger;
@@ -54,6 +55,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorCal
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.WaitableTAECallback;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
 
@@ -72,19 +74,19 @@ public class Validator {
 	public SortedMap<TrajectoryFileEntry, Double>  simpleValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
 			final String outputDir,
 			final RunObjective runObj,
-			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
+			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  TrajectoryFile trajFile, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
 			{
 
 				if(options.useWallClockTime)
 				{
-					options.outputFileSuffix = "walltime" + options.outputFileSuffix;
+					options.outputFileSuffix = "walltime" + (options.outputFileSuffix.trim().length() > 0 ?"-" + options.outputFileSuffix:"");
 				} else
 				{
-					options.outputFileSuffix = "tunertime" + options.outputFileSuffix;
+					options.outputFileSuffix = "tunertime" + (options.outputFileSuffix.trim().length() > 0 ?"-" + options.outputFileSuffix:"");
 				}
 	
 				List<ProblemInstanceSeedPair> pisps = getProblemInstanceSeedPairsToRun(testInstances, options, testInstGen);
-				ValidationRuns runs = validateStage(pisps, options, cutoffTime, outputDir, runObj, intraInstanceObjective, interInstanceObjective, tfes, numRun, execConfig);
+				ValidationRuns runs = validateStage(pisps, options, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, trajFile, execConfig);
 				
 				
 				if(runs.done)
@@ -98,7 +100,6 @@ public class Validator {
 					for(RunConfig rc : runs.runConfigs)
 					{
 						configs.add(rc.getParamConfiguration());
-						pisps.add(rc.getProblemInstanceSeedPair());
 					}
 					log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runs.runConfigs.size(), configs.size(),pisps.size());
 					
@@ -138,10 +139,9 @@ public class Validator {
 	
 	
 
-	public void  multiValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
-			final String outputDir,
+	public void  multiValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae,
 			final RunObjective runObj,
-			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final Map<Integer,List<TrajectoryFileEntry>> tfesList, final long numRun, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
+			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final Set<TrajectoryFile> tfes, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
 			{
 		
 		
@@ -156,13 +156,13 @@ public class Validator {
 				List<ProblemInstanceSeedPair> pisps = getProblemInstanceSeedPairsToRun(testInstances, options, testInstGen);
 				List<ValidationRuns> runs = new ArrayList<ValidationRuns>();
 				
-				if(tfesList.size() > 1)
+				if(tfes.size() > 1)
 				{
-					log.debug("Beginning multi-validation on {} files ", tfesList.size() );
+					log.debug("Beginning multi-validation on {} files ", tfes.size() );
 				}
-				for(Entry<Integer,List<TrajectoryFileEntry>> tfes: tfesList.entrySet())
+				for(TrajectoryFile tfe: tfes)
 				{
-					runs.add(validateStage(pisps, options, cutoffTime,  outputDir, runObj, intraInstanceObjective, interInstanceObjective, tfes.getValue(), tfes.getKey(),execConfig));
+					runs.add(validateStage(pisps, options, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, tfe,execConfig));
 				}
 
 				
@@ -322,15 +322,15 @@ public class Validator {
 	
 	
 	private ValidationRuns  validateStage(List<ProblemInstanceSeedPair> pisps, final ValidationOptions options,final double cutoffTime, 
-		final String outputDir,
 		final RunObjective runObj,
-		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, final AlgorithmExecutionConfig execConfig) 
+		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final TrajectoryFile trajFile, final AlgorithmExecutionConfig execConfig) 
 		{
 
 	
 		
 		double maxWallTimeStamp = 0;
 		double maxTunerTimeStamp = 0;
+		final List<TrajectoryFileEntry> tfes =  trajFile.getTrajectoryFileEntries();
 		for(TrajectoryFileEntry tfe : tfes)
 		{
 			
@@ -475,7 +475,7 @@ public class Validator {
 				// TODO Auto-generated method stub
 				try
 				{
-					writeInstanceRawResultsFile(runs, options, outputDir, numRun);
+					writeInstanceRawResultsFile(runs, options, trajFile);
 				} catch(IOException e)
 				{
 					log.error("Could not write results file", e);
@@ -484,7 +484,7 @@ public class Validator {
 				
 				try
 				{
-					writeInstanceSeedResultFile(runs, options, outputDir, runObj, numRun);
+					writeInstanceSeedResultFile(runs, options, runObj, trajFile);
 				} catch(IOException e)
 				{
 					log.error("Could not write results file", e);
@@ -493,7 +493,7 @@ public class Validator {
 				
 				try
 				{
-					Map<ParamConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, outputDir, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, numRun);
+					Map<ParamConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, trajFile);
 					
 					
 					for(TrajectoryFileEntry tfe : tfesToRun)
@@ -502,10 +502,10 @@ public class Validator {
 					}
 					if(runs.get(0) != null)
 					{
-						appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime, runs.get(0).getRunConfig(), execConfig);
+						appendInstanceResultFile( finalPerformance,  trajFile,options, options.useWallClockTime, runs.get(0).getRunConfig(), execConfig);
 					} else
 					{
-						appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime, null, null);
+						appendInstanceResultFile( finalPerformance,  trajFile,options, options.useWallClockTime, null, null);
 					}
 					
 					
@@ -540,7 +540,7 @@ public class Validator {
 						}
 						
 						
-						writeConfigurationResultsMatrix(configs,matrixRuns, tfes, options, outputDir, numRun, runObj);
+						writeConfigurationResultsMatrix(configs,matrixRuns, tfes, options, trajFile, runObj);
 						
 					} catch(IOException e)
 					{
@@ -553,8 +553,8 @@ public class Validator {
 				{
 					try {
 						
-						log.info("Writing state file  into " + outputDir);
-						writeLegacyStateFile(outputDir, options.outputFileSuffix,runs, numRun, interInstanceObjective, interInstanceObjective, runObj);
+						//log.info("Writing state file  into ");
+						writeLegacyStateFile(options.outputFileSuffix,runs, trajFile, interInstanceObjective, interInstanceObjective, runObj);
 					} catch(RuntimeException e)
 					{
 						log.error("Couldn't write state file:",e);
@@ -766,11 +766,12 @@ endloop:
 	 */
 	private static void writeConfigurationResultsMatrix( List<ParamConfiguration> inOrderConfigs, 
 			ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns,
-			List<TrajectoryFileEntry> tfes, ValidationOptions validationOptions, String outputDir, long numRun, RunObjective runObj) throws IOException {
+			List<TrajectoryFileEntry> tfes, ValidationOptions validationOptions,TrajectoryFile trajFile, RunObjective runObj) throws IOException {
 
 
-		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
-		File f = new File(outputDir +  File.separator + "configurationMatrix"+suffix+"-run" + numRun + ".csv");
+		
+		File f =  getFile(trajFile, "configurationMatrix",validationOptions.outputFileSuffix,"csv");
+				// new File(outputDir +  File.separator + "configurationMatrix"+suffix+"-run" + numRun + ".csv");
 		log.debug("Validation Configuration/PISP Matrix Results Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
@@ -871,12 +872,13 @@ endloop:
 	 * @return - Overall objective over test set (For convinence)
 	 * @throws IOException
 	 */
-	private static Map<ParamConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, String outputDir, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, long numRun) throws IOException 
+	private static Map<ParamConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, TrajectoryFile trajFile) throws IOException 
 	{
 		
 		
-		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
-		File f = new File(outputDir +  File.separator + "validationResultsMatrix"+suffix+"-run" + numRun + ".csv");
+		
+		File f =  getFile(trajFile,  "validationResultsMatrix",validationOptions.outputFileSuffix,"csv");
+		//new File(outputDir +  File.separator + "validationResultsMatrix"+suffix+"-run" + numRun + ".csv");
 		log.debug("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
@@ -987,11 +989,12 @@ endloop:
 
 
 
-	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, String outputDir, RunObjective runObj, long numRun) throws IOException
+	private static void writeInstanceSeedResultFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, RunObjective runObj, TrajectoryFile trajFile) throws IOException
 	{
 		
-		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
-		File f = new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
+		
+		File f = getFile(trajFile, "validationInstanceSeedResult",validationOptions.outputFileSuffix,"csv");
+				// new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
 		
 		log.debug("Instance Seed Result File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
@@ -1017,10 +1020,11 @@ endloop:
 
 
 
-	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, String outputDir, long numRun) throws IOException
+	private static void writeInstanceRawResultsFile(List<AlgorithmRun> runs,ValidationOptions validationOptions, TrajectoryFile trajFile) throws IOException
 	{
-		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
-		File f = new File(outputDir + File.separator +  "rawValidationExecutionResults"+suffix+"-run" + numRun + ".csv");
+	
+		
+		File f = getFile(trajFile, "rawValidationExecutionResults",validationOptions.outputFileSuffix,"csv");
 		log.debug("Raw Validation Results File Written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -1043,14 +1047,70 @@ endloop:
 	}
 	
 
-	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions, boolean useWallTime, RunConfig rc, AlgorithmExecutionConfig execConfig) throws IOException {
+	
+	private static File getFile(TrajectoryFile trajFile, String filename, String suffix, String extension)
+	{
+		suffix = (suffix.trim().equals("")) ? "" : "-" + suffix.trim();
+		
+		
+		String trajectoryFileName = trajFile.getLocation().getName();
+		
+		
+		String baseName;
+		if(trajectoryFileName.lastIndexOf(".") >= 0)
+		{
+			baseName = trajectoryFileName.substring(0,trajectoryFileName.lastIndexOf("."));
+		} else
+		{
+			baseName = trajectoryFileName;
+		}
+	
+		
+		File f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + baseName + suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
+		
+		
+		
+			return f;
+		
+			/*
+		
+		f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + trajectoryFileName  +suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
+		 
+		if(!f.exists())
+		{
+			return f;
+		}
+
+		f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-"+ trajectoryFileName + "-" + System.currentTimeMillis() +suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
+		
+		if(!f.exists())
+		{
+			return f;
+		}
+
+		
+		
+		f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + trajectoryFileName + "-" + System.currentTimeMillis() + "-" + Math.random() +suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
+		*/
+		//return f;
+		
+		
+		
+	}
+	private void appendInstanceResultFile(Map<TrajectoryFileEntry, Double> finalPerformance, TrajectoryFile trajFile, ValidationOptions validationOptions, boolean useWallTime, RunConfig rc, AlgorithmExecutionConfig execConfig) throws IOException {
 		
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		
 		
-		File classicValidationFile = new File(outputDir +  File.separator + "classicValidationResults"+suffix+"-run" + numRun + ".csv");
+		//File f = 
 		
-		File validationFile = new File(outputDir +  File.separator + "validationResults"+suffix+"-run" + numRun + ".csv");
+		
+		File classicValidationFile = getFile(trajFile,  "classicValidationResults",validationOptions.outputFileSuffix,"csv");
+		
+		//new File(outputDir +  File.separator + "classicValidationResults"+suffix+"-run" + numRun + ".csv");
+		
+		File validationFile = getFile(trajFile,  "validationResults",validationOptions.outputFileSuffix,"csv");
+		//new File(outputDir +  File.separator + "validationResults"+suffix+"-run" + numRun + ".csv");
 		
 		log.debug("Validation Results File Written to: {}", validationFile.getAbsolutePath());
 		log.debug("Classic Validation Results File Written to: {}", classicValidationFile.getAbsolutePath());
@@ -1129,7 +1189,7 @@ endloop:
 		
 }
 	
-	private static void writeLegacyStateFile(String outputDir, String suffix, List<AlgorithmRun> runs, long numRun, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
+	private static void writeLegacyStateFile( String suffix, List<AlgorithmRun> runs, TrajectoryFile trajFile, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
 	{
 		RunHistory rh = new NewRunHistory( interRunObjective, intraRunObjective, runObj);
 		for(AlgorithmRun run : runs)
@@ -1141,7 +1201,8 @@ endloop:
 			}
 		}
 		
-		StateFactory sf = new LegacyStateFactory(outputDir + File.separator + "state" + suffix +"-run" + numRun, null);
+		
+		StateFactory sf = new LegacyStateFactory(trajFile.getLocation().getParent() + File.separator + "state" + suffix +"-run-" + trajFile.getLocation().getName() , null);
 		
 		
 		
