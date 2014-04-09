@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,6 +34,7 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aclib.exceptions.DuplicateRunException;
+import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
 import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
 import ca.ubc.cs.beta.aclib.objectives.RunObjective;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
@@ -51,6 +53,7 @@ import ca.ubc.cs.beta.aclib.state.legacy.LegacyStateFactory;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluatorCallback;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.WaitableTAECallback;
+import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 
 
@@ -65,21 +68,266 @@ public class Validator {
 		return validate(testInstances, incumbent, config, cutoffTime, testInstGen, validatingTae, outputDir, runObj, intraInstanceObjective, interInstanceObjective,tunerTime, 0,0, numRun);
 	}
 		*/
-		
+
+	public SortedMap<TrajectoryFileEntry, Double>  simpleValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
+			final String outputDir,
+			final RunObjective runObj,
+			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
+			{
+
+				if(options.useWallClockTime)
+				{
+					options.outputFileSuffix = "walltime" + options.outputFileSuffix;
+				} else
+				{
+					options.outputFileSuffix = "tunertime" + options.outputFileSuffix;
+				}
 	
-public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
+				List<ProblemInstanceSeedPair> pisps = getProblemInstanceSeedPairsToRun(testInstances, options, testInstGen);
+				ValidationRuns runs = validateStage(pisps, options, cutoffTime, outputDir, runObj, intraInstanceObjective, interInstanceObjective, tfes, numRun, execConfig);
+				
+				
+				if(runs.done)
+				{
+					return runs.result;
+				} else
+				{
+					
+					Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
+					
+					for(RunConfig rc : runs.runConfigs)
+					{
+						configs.add(rc.getParamConfiguration());
+						pisps.add(rc.getProblemInstanceSeedPair());
+					}
+					log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runs.runConfigs.size(), configs.size(),pisps.size());
+					
+					Date d = new Date(System.currentTimeMillis());
+					DateFormat df = DateFormat.getDateTimeInstance();	
+					
+				
+					if(cutoffTime > Math.pow(10, 10))
+					{
+						log.info("Validation start time: {}. Approximate worst-case end time is unknown.",df.format(d));
+					} else
+					{
+						Date endTime = new Date(System.currentTimeMillis() + (long) (1.1*(cutoffTime * runs.runConfigs.size()  * 1000/ cores)));
+						log.info("Validation start time: {}. Approximate worst-case end time: {}",df.format(d), df.format(endTime));
+					}
+					
+					
+					validatingTae.evaluateRunsAsync(runs.runConfigs, runs.callback);
+					
+					
+					if(!validatingTae.areRunsPersisted() || waitForRuns)
+					{
+						log.debug("Waiting until validation completion");
+						runs.callback.waitForCompletion();
+					}
+					
+				
+					if(runs.exception.get() != null)
+					{
+						throw runs.exception.get();
+					}
+					
+					return runs.result;
+				}
+			}
+	
+	
+	
+
+	public void  multiValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
+			final String outputDir,
+			final RunObjective runObj,
+			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final Map<Integer,List<TrajectoryFileEntry>> tfesList, final long numRun, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
+			{
+		
+		
+				if(options.useWallClockTime)
+				{
+					options.outputFileSuffix = "walltime" + options.outputFileSuffix;
+				} else
+				{
+					options.outputFileSuffix = "tunertime" + options.outputFileSuffix;
+				}
+
+				List<ProblemInstanceSeedPair> pisps = getProblemInstanceSeedPairsToRun(testInstances, options, testInstGen);
+				List<ValidationRuns> runs = new ArrayList<ValidationRuns>();
+				
+				if(tfesList.size() > 1)
+				{
+					log.debug("Beginning multi-validation on {} files ", tfesList.size() );
+				}
+				for(Entry<Integer,List<TrajectoryFileEntry>> tfes: tfesList.entrySet())
+				{
+					runs.add(validateStage(pisps, options, cutoffTime,  outputDir, runObj, intraInstanceObjective, interInstanceObjective, tfes.getValue(), tfes.getKey(),execConfig));
+				}
+
+				
+				Set<RunConfig> runConfigs = new LinkedHashSet<RunConfig>();
+				Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
+				
+				final Map<WaitableTAECallback, List<RunConfig>> callbacksToSchedule = new LinkedHashMap<WaitableTAECallback, List<RunConfig>>();
+				for(ValidationRuns run : runs)
+				{
+					if(run.done)
+					{
+						continue;
+					}
+					
+					for(RunConfig rc : run.runConfigs)
+					{
+						runConfigs.add(rc);
+						configs.add(rc.getParamConfiguration());
+					}
+					
+					callbacksToSchedule.put(run.callback, run.runConfigs);
+					
+				}
+				
+				List<RunConfig> runConfigsToRun = new ArrayList<RunConfig>(runConfigs);
+
+				log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runConfigsToRun.size(), configs.size(),pisps.size());
+				
+				Date d = new Date(System.currentTimeMillis());
+				DateFormat df = DateFormat.getDateTimeInstance();	
+				
+			
+				if(cutoffTime > Math.pow(10, 10))
+				{
+					log.info("Validation start time: {}. Approximate worst-case end time is unknown.",df.format(d));
+				} else
+				{
+					Date endTime = new Date(System.currentTimeMillis() + (long) (1.1*(cutoffTime * runConfigsToRun.size()  * 1000/ cores)));
+					log.info("Validation start time: {}. Approximate worst-case end time: {}",df.format(d), df.format(endTime));
+				}
+				
+				final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
+				
+				
+				WaitableTAECallback taeCallback = new WaitableTAECallback(new TargetAlgorithmEvaluatorCallback()
+				{
+
+					@Override
+					public void onSuccess(List<AlgorithmRun> runs) {
+						
+						Map<RunConfig, AlgorithmRun> runsToRunConfig = new HashMap<RunConfig, AlgorithmRun>();
+						
+						for(AlgorithmRun run : runs)
+						{
+							runsToRunConfig.put(run.getRunConfig(),run);
+						}
+						
+						for(Entry<WaitableTAECallback, List<RunConfig>> ent : callbacksToSchedule.entrySet())
+						{
+						
+							List<AlgorithmRun> runsToNotify = new ArrayList<AlgorithmRun>();
+							for(RunConfig rc : ent.getValue())
+							{
+								runsToNotify.add(runsToRunConfig.get(rc));
+							}
+							
+							
+							try 
+							{
+								ent.getKey().onSuccess(runsToNotify);
+							} catch(RuntimeException e)
+							{
+								log.error("Error occurred while saving runs:" ,e);
+							}
+							
+						}
+						
+						
+						
+					}
+
+					@Override
+					public void onFailure(RuntimeException e) {
+						exception.set(e);
+					}
+					
+				});
+				
+				
+				validatingTae.evaluateRunsAsync(runConfigsToRun, taeCallback);
+				
+				
+				if(!validatingTae.areRunsPersisted() || waitForRuns)
+				{
+					log.debug("Waiting until validation completion");
+					taeCallback.waitForCompletion();
+				}
+				
+				if(exception.get() != null)
+				{
+					throw exception.get();
+				}
+				
+				
+				
+				/*
+				 * if(runs.done)
+				{
+					return runs.result;
+				} else
+				{
+					
+					Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
+					Set<ProblemInstanceSeedPair> pisps = new HashSet<ProblemInstanceSeedPair>();
+					
+					for(RunConfig rc : runs.runConfigs)
+					{
+						configs.add(rc.getParamConfiguration());
+						pisps.add(rc.getProblemInstanceSeedPair());
+					}
+					log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runs.runConfigs.size(), configs.size(),pisps.size());
+					
+					Date d = new Date(System.currentTimeMillis());
+					DateFormat df = DateFormat.getDateTimeInstance();	
+					
+				
+					if(cutoffTime > Math.pow(10, 10))
+					{
+						log.info("Validation start time: {}. Approximate worst-case end time is unknown.",df.format(d));
+					} else
+					{
+						Date endTime = new Date(System.currentTimeMillis() + (long) (1.1*(cutoffTime * runs.runConfigs.size()  * 1000/ cores)));
+						log.info("Validation start time: {}. Approximate worst-case end time: {}",df.format(d), df.format(endTime));
+					}
+					
+					
+					validatingTae.evaluateRunsAsync(runs.runConfigs, runs.callback);
+					
+					
+					if(!validatingTae.areRunsPersisted() || waitForRuns)
+					{
+						log.debug("Waiting until validation completion");
+						runs.callback.waitForCompletion();
+					}
+					
+				
+				
+					
+					return runs.result;
+				}
+				 */
+				
+				
+			}
+	
+	
+	
+	
+	private ValidationRuns  validateStage(List<ProblemInstanceSeedPair> pisps, final ValidationOptions options,final double cutoffTime, 
 		final String outputDir,
 		final RunObjective runObj,
-		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, int cores) 
+		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, final AlgorithmExecutionConfig execConfig) 
 		{
 
-		int testInstancesCount = Math.min(options.numberOfTestInstances, testInstances.size());
-		int testSeedsPerInstance = options.numberOfTestSeedsPerInstance;
-		int validationRunsCount = options.numberOfValidationRuns;
-		
-		ValidationRoundingMode mode = options.validationRoundingMode;		
-		
-		List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
+	
 		
 		double maxWallTimeStamp = 0;
 		double maxTunerTimeStamp = 0;
@@ -93,39 +341,18 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		if(options.validateOnlyIfWallTimeReached > maxWallTimeStamp)
 		{
 			log.info("Maximum walltime was {} but we required {} seconds to have passed validating ", maxWallTimeStamp, options.validateOnlyIfWallTimeReached );
-			return  new TreeMap<TrajectoryFileEntry,Double>();
+			return new ValidationRuns(new TreeMap<TrajectoryFileEntry,Double>());
 		}
 		
 		if(options.validateOnlyIfTunerTimeReached > maxTunerTimeStamp)
 		{
 			log.info("Maximum Tuner Time was {} but we required {} seconds to have passed before validating ", maxTunerTimeStamp, options.validateOnlyIfTunerTimeReached );
-			return  new TreeMap<TrajectoryFileEntry,Double>();
+			return new ValidationRuns(new TreeMap<TrajectoryFileEntry,Double>());
 		}
 		
 		
-		if(options.useWallClockTime)
-		{
-			options.outputFileSuffix = "walltime" + options.outputFileSuffix;
-		} else
-		{
-			options.outputFileSuffix = "tunertime" + options.outputFileSuffix;
-		}
-	
-		if(testInstGen instanceof SetInstanceSeedGenerator)
-		{
-			if(validationRunsCount > testInstGen.getInitialInstanceSeedCount())
-			{
-				log.debug("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
-				validationRunsCount = testInstGen.getInitialInstanceSeedCount();
-			}
-			pisps = getValidationRuns(testInstances, (SetInstanceSeedGenerator) testInstGen, mode, validationRunsCount);
-		} else if(testInstGen instanceof RandomInstanceSeedGenerator)
-		{
-			pisps = getValidationRuns(testInstances, (RandomInstanceSeedGenerator) testInstGen,mode, validationRunsCount, testSeedsPerInstance, testInstancesCount);
-		} else
-		{
-			throw new IllegalStateException("Unknown Instance Seed Generator specified");
-		}
+		
+		
 		
 		
 		
@@ -174,13 +401,14 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 					skipList.put(tfe.getTunerTime(), tfe);
 				}
 			}
-			if(options.maxTimestamp == -1)
+			double maxTimestamp = options.maxTimestamp;
+			if(maxTimestamp == -1)
 			{
-				options.maxTimestamp = skipList.floorKey(Double.MAX_VALUE);
+				maxTimestamp = skipList.floorKey(Double.MAX_VALUE);
 			}
 			ParamConfiguration lastConfig = null;
 			Double lastPerformance = Double.MAX_VALUE;
-			for(double x = options.maxTimestamp; x > options.minTimestamp ; x /= options.multFactor)
+			for(double x = maxTimestamp; x > options.minTimestamp ; x /= options.multFactor)
 			{
 				
 				Entry<Double, TrajectoryFileEntry> tfeEntry = skipList.floorEntry(x);
@@ -230,15 +458,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		
 		List<RunConfig> runConfigs = getRunConfigs(configs, pisps, cutoffTime);
 		
-		log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runConfigs.size(), configs.size(),pisps.size());
 		
-		Date d = new Date(System.currentTimeMillis());
-		DateFormat df = DateFormat.getDateTimeInstance();	
-		
-	
-		
-		Date endTime = new Date(System.currentTimeMillis() + (long) (1.1*(cutoffTime * runConfigs.size()  * 1000/ cores)));
-		log.info("Validation start time: {}. Approximate worst-case end time: {}",df.format(d), df.format(endTime));
 		
 		
 		//List<AlgorithmRun> runs = validatingTae.evaluateRun(runConfigs);
@@ -282,7 +502,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 					}
 					if(runs.get(0) != null)
 					{
-						appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime, runs.get(0).getRunConfig(), validatingTae);
+						appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime, runs.get(0).getRunConfig(), execConfig);
 					} else
 					{
 						appendInstanceResultFile(outputDir, finalPerformance,  numRun,options, options.useWallClockTime, null, null);
@@ -334,7 +554,7 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 					try {
 						
 						log.info("Writing state file  into " + outputDir);
-						writeLegacyStateFile(outputDir, options.outputFileSuffix,runs, numRun, testInstGen, interInstanceObjective, interInstanceObjective, runObj);
+						writeLegacyStateFile(outputDir, options.outputFileSuffix,runs, numRun, interInstanceObjective, interInstanceObjective, runObj);
 					} catch(RuntimeException e)
 					{
 						log.error("Couldn't write state file:",e);
@@ -353,22 +573,11 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 		});
 
 		
-		validatingTae.evaluateRunsAsync(runConfigs, callback);
 		
 		
-		if(!validatingTae.areRunsPersisted() || waitForRuns)
-		{
-			log.debug("Waiting until validation completion");
-			callback.waitForCompletion();
-		}
 		
-	
-		if(exception.get() != null)
-		{
-			throw exception.get();
-		}
-		
-		return finalPerformance;
+		return new ValidationRuns(runConfigs,callback, exception, finalPerformance);
+		//return finalPerformance;
 
 		
 		
@@ -379,7 +588,82 @@ public SortedMap<TrajectoryFileEntry, Double>  validate(List<ProblemInstance> te
 
 
 
+	/**
+	 * @param testInstances
+	 * @param options
+	 * @param testInstGen
+	 * @return
+	 */
+	private List<ProblemInstanceSeedPair> getProblemInstanceSeedPairsToRun(
+			List<ProblemInstance> testInstances,
+			final ValidationOptions options,
+			final InstanceSeedGenerator testInstGen) {
+		int testInstancesCount = Math.min(options.numberOfTestInstances, testInstances.size());
+		int testSeedsPerInstance = options.numberOfTestSeedsPerInstance;
+		int validationRunsCount = options.numberOfValidationRuns;
+		
+		ValidationRoundingMode mode = options.validationRoundingMode;		
+		
+		List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
+		
+		if(testInstGen instanceof SetInstanceSeedGenerator)
+		{
+			if(validationRunsCount > testInstGen.getInitialInstanceSeedCount())
+			{
+				log.debug("Clamping number of validation runs from {} to {} due to seed limit", validationRunsCount, testInstGen.getInitialInstanceSeedCount());
+				validationRunsCount = testInstGen.getInitialInstanceSeedCount();
+			}
+			pisps = getValidationRuns(testInstances, (SetInstanceSeedGenerator) testInstGen, mode, validationRunsCount);
+		} else if(testInstGen instanceof RandomInstanceSeedGenerator)
+		{
+			pisps = getValidationRuns(testInstances, (RandomInstanceSeedGenerator) testInstGen,mode, validationRunsCount, testSeedsPerInstance, testInstancesCount);
+		} else
+		{
+			throw new IllegalStateException("Unknown Instance Seed Generator specified");
+		}
+		return Collections.unmodifiableList(pisps);
+	}
 
+
+
+
+	
+	
+
+	
+	
+	
+	
+	
+	public static class ValidationRuns
+	{
+		List<RunConfig> runConfigs;
+		WaitableTAECallback callback;
+		private SortedMap<TrajectoryFileEntry, Double> result;
+		private AtomicReference<RuntimeException> exception;
+	
+		
+		
+		
+		public boolean done;
+		
+		public ValidationRuns(SortedMap<TrajectoryFileEntry, Double> result)
+		{
+			this.result = result; 
+			this.runConfigs = Collections.emptyList();
+			done = true;
+		}
+		
+		public ValidationRuns(List<RunConfig> runConfigs, WaitableTAECallback callback, AtomicReference<RuntimeException> exception,SortedMap<TrajectoryFileEntry, Double> result)
+		{
+			this.runConfigs = runConfigs; 
+			this.callback = callback;
+			this.exception = exception;
+			this.result = result;
+			done = false;
+		}
+	}
+	
 
 private List<RunConfig> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime) 
 {
@@ -759,7 +1043,7 @@ endloop:
 	}
 	
 
-	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions, boolean useWallTime, RunConfig rc, TargetAlgorithmEvaluator tae) throws IOException {
+	private void appendInstanceResultFile(String outputDir, Map<TrajectoryFileEntry, Double> finalPerformance, long numRun, ValidationOptions validationOptions, boolean useWallTime, RunConfig rc, AlgorithmExecutionConfig execConfig) throws IOException {
 		
 		String suffix = (validationOptions.outputFileSuffix.trim().equals("")) ? "" : "-" + validationOptions.outputFileSuffix.trim();
 		
@@ -816,10 +1100,9 @@ endloop:
 			
 			sbClassicValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append("\n");
 			String callString = "Unavailable as we did no runs";
-			if(tae != null && rc != null)
-			{
-				callString = tae.getManualCallString(rc);
-			}
+		
+				callString = CommandLineAlgorithmRun.getTargetAlgorithmExecutionCommandAsString(execConfig, rc);
+			
 			sbValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append(",\"").append(callString).append("\",\n");
 		}
 		if(!classicValidationFile.canWrite())
@@ -846,7 +1129,7 @@ endloop:
 		
 }
 	
-	private static void writeLegacyStateFile(String outputDir, String suffix, List<AlgorithmRun> runs, long numRun, InstanceSeedGenerator insc, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
+	private static void writeLegacyStateFile(String outputDir, String suffix, List<AlgorithmRun> runs, long numRun, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
 	{
 		RunHistory rh = new NewRunHistory( interRunObjective, intraRunObjective, runObj);
 		for(AlgorithmRun run : runs)

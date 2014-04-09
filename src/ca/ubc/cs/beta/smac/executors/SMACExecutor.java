@@ -185,7 +185,7 @@ public class SMACExecutor {
 					List<ProblemInstance> testInstances = testingILWS.getInstances();
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
-					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true, coreHint);
+					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true, coreHint,execConfig);
 				} finally
 				{
 					validatingTae.notifyShutdown();

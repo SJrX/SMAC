@@ -8,6 +8,7 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -79,7 +80,7 @@ public class ValidatorExecutor {
 				log.debug("Parsing (default) options from file: {} ", name);
 			}
 
-			if(options.incumbent != null && options.trajectoryFileOptions.trajectoryFile != null)
+			if(options.incumbent != null && options.trajectoryFileOptions.trajectoryFiles.size() > 0)
 			{
 				throw new ParameterException("You cannot specify both a configuration and a trajectory file");
 			}
@@ -91,7 +92,7 @@ public class ValidatorExecutor {
 			}
 			
 			//Set some default options
-			if(options.trajectoryFileOptions.trajectoryFile != null)
+			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
 			{ 
 			
 				if(options.tunerTime == -1)
@@ -147,17 +148,14 @@ public class ValidatorExecutor {
 			
 			ParamConfigurationSpace configSpace = execConfig.getParamFile();
 			
-			
-			
-			List<TrajectoryFileEntry> tfes;
-			if(options.trajectoryFileOptions.trajectoryFile != null)
+			Map<Integer, List<TrajectoryFileEntry>> tfes = new LinkedHashMap<Integer, List<TrajectoryFileEntry>>();
+			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
 			{
-				log.debug("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFile.getAbsolutePath());
+				//log.debug("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFiles.getAbsolutePath());
 				
 				
-				tfes = options.trajectoryFileOptions.parseTrajectoryFile(configSpace);
-				
-				 
+				tfes = options.trajectoryFileOptions.parseTrajectoryFiles(configSpace);
+
 				 if(options.validationOptions.maxTimestamp == -1)
 				 {
 					 if(options.validationOptions.useWallClockTime)
@@ -241,11 +239,13 @@ public class ValidatorExecutor {
 				
 						
 				
-				tfes = new ArrayList<TrajectoryFileEntry>();
+				
+				
+				List<TrajectoryFileEntry> tfeList = new ArrayList<TrajectoryFileEntry>();
 				int i=0;
 				for(ParamConfiguration config : configToValidate)
 				{
-					tfes.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empiricalPerformance, options.tunerOverheadTime + i));
+					tfeList.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empiricalPerformance, options.tunerOverheadTime + i));
 					
 					if(options.autoIncrementTunerTime)
 					{
@@ -253,6 +253,7 @@ public class ValidatorExecutor {
 					}
 				}
 				
+				tfes.put(options.seedOptions.numRun, tfeList);
 			}
 			
 			options.checkProblemInstancesCompatibleWithVerifySAT(testInstances);
@@ -282,10 +283,10 @@ public class ValidatorExecutor {
 			
 			
 			//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) empirical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
-			log.debug("Beginning Validation on {} entries", tfes.size());
+			
 			try {
 				int coreHint = Math.max(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs, ((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores);
-			(new Validator()).validate(testInstances,
+			(new Validator()).multiValidate(testInstances,
 					options.validationOptions,
 					options.scenarioConfig.algoExecOptions.cutoffTime,
 					testInstanceSeedGen,
@@ -296,7 +297,7 @@ public class ValidatorExecutor {
 					options.scenarioConfig.interInstanceObj,
 					tfes,
 					options.seedOptions.numRun,
-					options.waitForPersistedRunCompletion, coreHint);
+					options.waitForPersistedRunCompletion, coreHint, execConfig);
 			
 			} finally
 			{
