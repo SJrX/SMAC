@@ -187,7 +187,7 @@ public class SMACExecutor {
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
 					TrajectoryFile trajFile = new TrajectoryFile(new File(outputDir + File.separator + "traj-run-" + options.seedOptions.numRun + ".txt"),tfes);
-					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile,true, coreHint,execConfig);
+					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile,true, coreHint,execConfig);
 				} finally
 				{
 					validatingTae.notifyShutdown();
@@ -342,7 +342,7 @@ public class SMACExecutor {
 
 				if(options.adaptiveCapping == null)
 				{
-					switch(options.scenarioConfig.runObj)
+					switch(options.scenarioConfig.getRunObjective())
 					{
 					case RUNTIME:
 						options.adaptiveCapping = true;
@@ -360,7 +360,7 @@ public class SMACExecutor {
 				
 				if(options.randomForestOptions.logModel == null)
 				{
-					switch(options.scenarioConfig.runObj)
+					switch(options.scenarioConfig.getRunObjective())
 					{
 					case RUNTIME:
 						options.randomForestOptions.logModel = true;

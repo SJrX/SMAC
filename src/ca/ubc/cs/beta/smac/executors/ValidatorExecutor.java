@@ -290,7 +290,7 @@ public class ValidatorExecutor {
 					options.scenarioConfig.algoExecOptions.cutoffTime,
 					testInstanceSeedGen,
 					validatingTae,
-					options.scenarioConfig.runObj,
+					options.scenarioConfig.getRunObjective(),
 					options.scenarioConfig.getIntraInstanceObjective(),
 					options.scenarioConfig.interInstanceObj,
 					tfes,

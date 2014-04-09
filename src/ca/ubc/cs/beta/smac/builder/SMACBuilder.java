@@ -96,7 +96,7 @@ public class SMACBuilder {
 
 		if(options.adaptiveCapping == null)
 		{
-			switch(options.scenarioConfig.runObj)
+			switch(options.scenarioConfig.getRunObjective())
 			{
 			case RUNTIME:
 				options.adaptiveCapping = true;
@@ -114,7 +114,7 @@ public class SMACBuilder {
 		
 		if(options.randomForestOptions.logModel == null)
 		{
-			switch(options.scenarioConfig.runObj)
+			switch(options.scenarioConfig.getRunObjective())
 			{
 			case RUNTIME:
 				options.randomForestOptions.logModel = true;
@@ -165,8 +165,8 @@ public class SMACBuilder {
 		
 		AbstractAlgorithmFramework smac;
 
-		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
-		RunHistory rhModel = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.runObj);
+		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective());
+		RunHistory rhModel = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective());
 		
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
@@ -208,7 +208,7 @@ public class SMACBuilder {
 		
 		InitializationProcedure initProc;
 		
-		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
+		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
 		
 		switch(options.initializationMode)
 		{
@@ -237,7 +237,7 @@ public class SMACBuilder {
 		
 		if(options.expFunc == null)
 		{
-			switch(options.scenarioConfig.runObj)
+			switch(options.scenarioConfig.getRunObjective())
 			{
 			case RUNTIME:
 				options.expFunc = AcquisitionFunctions.EXPONENTIAL;
@@ -360,7 +360,7 @@ public class SMACBuilder {
 		
 		
 		
-		switch(scenarioOptions.runObj)
+		switch(scenarioOptions.getRunObjective())
 		{
 			case RUNTIME:
 				break;

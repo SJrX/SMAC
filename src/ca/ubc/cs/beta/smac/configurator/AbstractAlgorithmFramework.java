@@ -177,7 +177,7 @@ public class AbstractAlgorithmFramework {
 		
 		
 		OverallObjective intraInstanceObj = smacOptions.scenarioConfig.getIntraInstanceObjective();
-		switch(smacOptions.scenarioConfig.runObj)
+		switch(smacOptions.scenarioConfig.getRunObjective())
 		{
 			case RUNTIME:
 				switch(intraInstanceObj)
@@ -192,7 +192,7 @@ public class AbstractAlgorithmFramework {
 						objectiveToReport = "penalized average runtime (PAR1000)";
 						break;
 					default:
-						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.getRunObjective();
 				}
 				break;
 			case QUALITY:
@@ -202,12 +202,12 @@ public class AbstractAlgorithmFramework {
 						objectiveToReport = "mean quality";
 						break;
 					default:
-						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.getRunObjective();
 						break;
 				}
 				break;
 			default:
-				objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+				objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.getRunObjective();
 				break;
 		}
 		
@@ -1269,7 +1269,7 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : completedRuns)
 		{
 			RunConfig rc = run.getRunConfig();
-			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
+			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
 
 			log.debug("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 		}
