@@ -18,6 +18,7 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -26,9 +27,12 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.logging.CommonMarkers;
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
+import ca.ubc.cs.beta.aclib.misc.version.JavaVersionInfo;
+import ca.ubc.cs.beta.aclib.misc.version.OSVersionInfo;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
@@ -44,6 +48,7 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluat
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
+import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 public class ValidatorExecutor {
@@ -71,15 +76,50 @@ public class ValidatorExecutor {
 				//outputDir = options.scenarioConfig.outputDirectory + File.separator;
 			}
 			
-			options.logOptions.initializeLogging(new File(".").getAbsolutePath(), options.seedOptions.numRun);
+			options.logOptions.initializeLogging(new File(".").getCanonicalFile().getAbsolutePath(), options.seedOptions.numRun);
 			
 			log = LoggerFactory.getLogger(ValidatorExecutor.class);
-			JCommanderHelper.logCallString(args, ValidatorExecutor.class);
+			
+			
+			/*
+			 * 	options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
+				SMACExecutor.logLocation = options.logOptions.getLogLocation(outputDir,options.seedOptions.numRun);
+				
+				log = LoggerFactory.getLogger(SMACExecutor.class);
+				
+				exception = MarkerFactory.getMarker("EXCEPTION");
+				stackTrace = MarkerFactory.getMarker("STACKTRACE");
+				
+				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
+				
+				VersionTracker.logVersions();
+				SMACVersionInfo s = new SMACVersionInfo();
+				JavaVersionInfo j = new JavaVersionInfo();
+				OSVersionInfo o = new OSVersionInfo();
+				log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
+				
+				
+				for(String name : jcom.getParameterFilesToRead())
+				{
+					log.debug("Parsing (default) options from file: {} ", name);
+				}
+				
+			}
+			
+			
+			
+			
+			 */
 			log.debug("==========Configuration Options==========\n{}", options.toString());
 			VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 			VersionTracker.logVersions();
 			
+			SMACVersionInfo s = new SMACVersionInfo();
+			JavaVersionInfo j = new JavaVersionInfo();
+			OSVersionInfo o = new OSVersionInfo();
+			log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
 			
+			JCommanderHelper.logCallString(args, "smac-validate");
 			
 			for(String name : jcom.getParameterFilesToRead())
 			{
