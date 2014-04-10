@@ -181,7 +181,7 @@ public class AbstractAlgorithmFramework {
 		
 		
 		OverallObjective intraInstanceObj = smacOptions.scenarioConfig.getIntraInstanceObjective();
-		switch(smacOptions.scenarioConfig.runObj)
+		switch(smacOptions.scenarioConfig.getRunObjective())
 		{
 			case RUNTIME:
 				switch(intraInstanceObj)
@@ -196,7 +196,7 @@ public class AbstractAlgorithmFramework {
 						objectiveToReport = "penalized average runtime (PAR1000)";
 						break;
 					default:
-						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.getRunObjective();
 				}
 				break;
 			case QUALITY:
@@ -206,16 +206,16 @@ public class AbstractAlgorithmFramework {
 						objectiveToReport = "mean quality";
 						break;
 					default:
-						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+						objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.getRunObjective();
 						break;
 				}
 				break;
 			default:
-				objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.runObj;
+				objectiveToReport = intraInstanceObj + " " + smacOptions.scenarioConfig.getRunObjective();
 				break;
 		}
 		
-		log.info("SMAC Started at: {}. Minimizing {} ", df.format(d), objectiveToReport);				
+		log.info("SMAC started at: {}. Minimizing {}.", df.format(d), objectiveToReport);				
 		
 		
 		
@@ -523,8 +523,12 @@ public class AbstractAlgorithmFramework {
 					log.trace("Initialization Procedure Completed");
 					
 					incumbent =initProc.getIncumbent(); 
-					logConfiguration("new incumbent", incumbent);
+					
 					updateIncumbentCost();
+					log.info("First incumbent: config {} (internal ID: {}), with {}: {}; estimate based on {} runs.", runHistory.getThetaIdx(incumbent), incumbent, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent));
+					
+					logConfiguration("new incumbent", incumbent);
+					
 					logIncumbent(iteration);
 				} else
 				{
@@ -1118,7 +1122,7 @@ public class AbstractAlgorithmFramework {
 		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
-		log.info("Incumbent changed to: config {} (internal ID: {}).{}: {}; estimate based on {} runs.", runHistory.getThetaIdx(challenger), challenger, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
+		log.info("Incumbent changed to: config {} (internal ID: {}), with {}: {}; estimate based on {} runs.", runHistory.getThetaIdx(challenger), challenger, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
 		
 		
 		logConfiguration("new incumbent", challenger);		
@@ -1195,7 +1199,6 @@ public class AbstractAlgorithmFramework {
 	private  void updateIncumbentCost() {
 		
 		currentIncumbentCost = runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances), cutoffTime);
-		log.trace("Incumbent cost now: {}", currentIncumbentCost);
 	}
 
 
@@ -1276,7 +1279,7 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : completedRuns)
 		{
 			RunConfig rc = run.getRunConfig();
-			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.runObj.getObjective(run), run.getWallclockExecutionTime()};
+			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
 
 			log.debug("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 		}
@@ -1318,6 +1321,17 @@ public class AbstractAlgorithmFramework {
 
 	public RunHistory getRunHistory() {
 		return this.runHistory;
+	}
+	
+	public synchronized RunHistory runHistory() {
+
+		return runHistory;
+	}
+	
+	public synchronized TerminationCondition getTerminationCondition()
+	{
+		return termCond;
+
 	}
 	
 	

@@ -192,7 +192,7 @@ Value & Error Name & Description \\
                      \item Fixed typo in error message that mistakenly reported that instances where missing, when in fact it was the test instances that were missing.                     
                   \end{enumerate}
                   
-          \item[Version 2.06.02 (Mar-2014)] Minor Bug Fix Release of Java SMAC
+          \item[Version 2.06.00 (Apr-2014)] Usability and Validation Changes
           	\begin{enumerate}
           		\item SMAC is now more picky about instance names and feature names matching.
           		\item New \texttt{sat-check} utility allows determination of the satisfiability for each instance of a instance file.
@@ -201,10 +201,9 @@ Value & Error Name & Description \\
           		\item Instances can now be specified by folder using the \textbf{-$~\!$-instances} and \textbf{-$~\!$-test-instances} option. You can restrict which instances are used via the \textbf{-$~\!$-instance-suffix}  and \textbf{-$~\!$-test-instance-suffix} 
           		
           		\item \textbf{-$~\!$-exec-dir} option now defaults to current working directory.
-          		\item New option \textbf{-$~\!$-no-instances} will use a dummy instance instead of the instance file (useful for black box optimization).
+          		\item New option \textbf{-$~\!$-use-instances} will use a dummy instance instead of the instance file (useful for black box optimization).
           		
-          		\item Runtime Statistics are now printed less often.
-          		\item \textbf{[BETA]} Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come) .
+          		\item \textbf{[BETA]} Target Algorithm Evaluator implementation allows integrating with a TAE using UDP/TCP (more to come).
           		\item Implemented a work around to a bug where configurations with censored early runs could become the incumbent erroneously. It's still suboptimal, but in fact it probably would never happen. See Known Issue \#1 in section \ref{known-issues}.
           		\item Validation rounding mode now changes the number of runs on deterministic runs, or runs with set problem instance seed pairs.
           		\item New option \textbf{-$~\!$-cli-kill-by-environment-cmd} allows terminating all processes by an environment variable. See section \ref{sec:exec-env} for more information.
@@ -227,6 +226,15 @@ Value & Error Name & Description \\
 				\item Previous state folder is now renamed to something that preserves the run name and is no longer a warning.
 				\item Emphasized in many places that SMAC is minimizing the objective functions.
 				\item SMAC now ignores the seed output in the response of wrappers entirely (it automatically substitutes the requested value. If your wrapper doesn't set this value correctly, you may notice discrepancies in SMAC.
+				\item A few validation options have been deprecated and removed
+				\item Can now validate multiple trajectory files in one pass using the \textbf{-$~\!$-trajectory-files} option. 
+				\item Output format of validation has been completely changed to be more useful.
+				\item \texttt{traj-run-N.csv} is now \texttt{detailed-traj-run-N.csv} and has a slightly different format.
+				\item SMAC now requires Java version 7 to run.
+				\item \texttt{conf/logback.xml} is no longer used, and the file is stored internally. To override the configuration, set the java system property \texttt{logback.configurationFile=/path/to/config.xml}
+				\item Some columns in the trajectory file have been renamed for clarity. The order is still the same.
+				\item Changed default wrapper string to ``Result of this algorithm run:''.
+				
           	\end{enumerate}
           	
 
@@ -238,8 +246,6 @@ Value & Error Name & Description \\
 
 \item Using any alias for \textbf{-$~\!$-showHiddenParameters}, \textbf{-$~\!$-help}, or \textbf{-$~\!$-version} as values to other arguments (\eg{ Setting -$~\!$-runGroupName -$~\!$-help}) does not parse correctly (This is unlikely to be fixed until someone complains).
 \item Using large parameter values in continuous integral parameters, may cause loss of precision, and or crashes if the values are too big.
-
-\item On older versions of Java ($<$1.6.0\_23), SMAC  may get an IOException with Out Of Memory when trying to execute the target algorithms
 
 \item ArrayOutOfBoundsException occurs if not all instances have features
 

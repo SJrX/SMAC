@@ -77,14 +77,16 @@ Recent versions of SMAC also set the following environment variables, which shou
 
 The Target Algorithm is free to output anything, which will be ignored
 but must at some point output a line (only once) in the following
-format%
-\footnote{ParamILS in not a typo. While other values are possible including
-SMAC, HAL. ParamILS is probably the most portable. The exact Regex
-that is used in this version is: \textbf{\^\textbackslash{}s{*}(Final)?\textbackslash{}s{*}{[}Rr{]}esult\textbackslash{}s+(?:([Ff]or)|([oO]f))\textbackslash{}s+(?:(HAL)|(ParamILS)|(SMAC)|([Tt]his
-[wW]rapper))}}:%
-\\
-\\
-\texttt{Result for ParamILS: <solved>, <runtime>, <runlength>, <quality>, <seed>, <additional rundata>} 
+format\footnote{Other strings are also permissible, but will one day be replaced. Most notably ``Result for ParamILS:''}:%
+
+
+
+%ParamILS in not a typo. While other values are possible including
+%SMAC, HAL. ParamILS is probably the most portable. The exact Regex
+%that is used in this version is: \textbf{\^\textbackslash{}s{*}(Final)?%\textbackslash{}s{*}{[}Rr{]}esult\textbackslash{}s+(?:([Ff]or)|([oO]f))\textbackslash{}s+(?:(HAL)|(ParamILS)|(SMAC)|([Tt]his
+%[wW]rapper))}}:%
+
+\texttt{Result of this algorithm run: <solved>, <runtime>, <runlength>, <quality>, <seed>, <additional rundata>} 
 \begin{description}
 
 \item [{solved}] Must be one of \texttt{SAT} (signifying a successful run that was satisfiable), \texttt{UNSAT} (signifying a successful run that was unsatisfiable), \texttt{TIMEOUT} if the algorithm didn't finish within the allotted time, \texttt{CRASHED} if something untoward happened during the algorithm run, or \texttt{ABORT} if something prevents the target algorithm for successfully executing and it is believed that further attempts would be futile. 

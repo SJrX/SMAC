@@ -8,13 +8,17 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
@@ -23,9 +27,12 @@ import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aclib.logging.CommonMarkers;
 import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
 import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
+import ca.ubc.cs.beta.aclib.misc.version.JavaVersionInfo;
+import ca.ubc.cs.beta.aclib.misc.version.OSVersionInfo;
 import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aclib.options.AbstractOptions;
 import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
@@ -39,7 +46,9 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetA
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
+import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 public class ValidatorExecutor {
@@ -58,28 +67,66 @@ public class ValidatorExecutor {
 		try {
 			JCommander jcom = JCommanderHelper.parseCheckingForHelpAndVersion(args,options, taeOptions);
 			
-			String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
+			//String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
 			
 			if(options.useScenarioOutDir)
 			{
-				outputDir = options.scenarioConfig.outputDirectory + File.separator;
+				throw new ParameterException("--use-scenario-outdir is now deprecated. Output of files will be in the same directory of the trajectory files or the current working directory if there isn't one ");
+				
+				//outputDir = options.scenarioConfig.outputDirectory + File.separator;
 			}
 			
-			options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
+			options.logOptions.initializeLogging(new File(".").getCanonicalFile().getAbsolutePath(), options.seedOptions.numRun);
+			
 			log = LoggerFactory.getLogger(ValidatorExecutor.class);
-			JCommanderHelper.logCallString(args, ValidatorExecutor.class);
+			
+			
+			/*
+			 * 	options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
+				SMACExecutor.logLocation = options.logOptions.getLogLocation(outputDir,options.seedOptions.numRun);
+				
+				log = LoggerFactory.getLogger(SMACExecutor.class);
+				
+				exception = MarkerFactory.getMarker("EXCEPTION");
+				stackTrace = MarkerFactory.getMarker("STACKTRACE");
+				
+				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
+				
+				VersionTracker.logVersions();
+				SMACVersionInfo s = new SMACVersionInfo();
+				JavaVersionInfo j = new JavaVersionInfo();
+				OSVersionInfo o = new OSVersionInfo();
+				log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
+				
+				
+				for(String name : jcom.getParameterFilesToRead())
+				{
+					log.debug("Parsing (default) options from file: {} ", name);
+				}
+				
+			}
+			
+			
+			
+			
+			 */
 			log.debug("==========Configuration Options==========\n{}", options.toString());
 			VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 			VersionTracker.logVersions();
 			
+			SMACVersionInfo s = new SMACVersionInfo();
+			JavaVersionInfo j = new JavaVersionInfo();
+			OSVersionInfo o = new OSVersionInfo();
+			log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
 			
+			JCommanderHelper.logCallString(args, "smac-validate");
 			
 			for(String name : jcom.getParameterFilesToRead())
 			{
 				log.debug("Parsing (default) options from file: {} ", name);
 			}
 
-			if(options.incumbent != null && options.trajectoryFileOptions.trajectoryFile != null)
+			if(options.incumbent != null && options.trajectoryFileOptions.trajectoryFiles.size() > 0)
 			{
 				throw new ParameterException("You cannot specify both a configuration and a trajectory file");
 			}
@@ -91,7 +138,7 @@ public class ValidatorExecutor {
 			}
 			
 			//Set some default options
-			if(options.trajectoryFileOptions.trajectoryFile != null)
+			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
 			{ 
 			
 				if(options.tunerTime == -1)
@@ -147,17 +194,14 @@ public class ValidatorExecutor {
 			
 			ParamConfigurationSpace configSpace = execConfig.getParamFile();
 			
-			
-			
-			List<TrajectoryFileEntry> tfes;
-			if(options.trajectoryFileOptions.trajectoryFile != null)
+			Set<TrajectoryFile> tfes = new TreeSet<TrajectoryFile>();
+			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
 			{
-				log.debug("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFile.getAbsolutePath());
+				//log.debug("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFiles.getAbsolutePath());
 				
 				
-				tfes = options.trajectoryFileOptions.parseTrajectoryFile(configSpace);
-				
-				 
+				tfes.addAll(options.trajectoryFileOptions.parseTrajectoryFiles(configSpace));
+
 				 if(options.validationOptions.maxTimestamp == -1)
 				 {
 					 if(options.validationOptions.useWallClockTime)
@@ -182,6 +226,8 @@ public class ValidatorExecutor {
 				//We are explicitly setting configurations so validate all
 				options.validationOptions.validateAll = true;
 				
+				
+				File trajectoryFile = new File("cli");
 				
 				List<ParamConfiguration> configToValidate = new ArrayList<ParamConfiguration>(); 
 				//==== Parse the supplied configuration;
@@ -215,6 +261,7 @@ public class ValidatorExecutor {
 				{
 					BufferedReader reader = new BufferedReader(new FileReader(options.configurationList));
 					
+					
 					String line; 
 					while((line = reader.readLine()) != null)
 					{
@@ -227,6 +274,7 @@ public class ValidatorExecutor {
 					}
 					
 					optionsSet++;
+					trajectoryFile = options.configurationList;
 					reader.close();
 				}
 				
@@ -241,11 +289,13 @@ public class ValidatorExecutor {
 				
 						
 				
-				tfes = new ArrayList<TrajectoryFileEntry>();
+				
+				
+				List<TrajectoryFileEntry> tfeList = new ArrayList<TrajectoryFileEntry>();
 				int i=0;
 				for(ParamConfiguration config : configToValidate)
 				{
-					tfes.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empiricalPerformance, options.tunerOverheadTime + i));
+					tfeList.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empiricalPerformance, options.tunerOverheadTime + i));
 					
 					if(options.autoIncrementTunerTime)
 					{
@@ -253,6 +303,7 @@ public class ValidatorExecutor {
 					}
 				}
 				
+				tfes.add(new TrajectoryFile(trajectoryFile, tfeList));
 			}
 			
 			options.checkProblemInstancesCompatibleWithVerifySAT(testInstances);
@@ -266,38 +317,24 @@ public class ValidatorExecutor {
 			
 			TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts,  false,taeOptions);
 			
-			if(options.useScenarioOutDir)
-			{
-				outputDir = options.scenarioConfig.outputDirectory + File.separator;
-			}
-			File f = new File(outputDir);
-			
-			
-			if(!f.mkdirs() && !(f.exists() && f.isDirectory() && f.canWrite()))
-			{
-				throw new ParameterException("Couldn't make output Directory:" + outputDir);
-			}
 			
 			
 			
 			
 			//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) empirical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
-			log.debug("Beginning Validation on {} entries", tfes.size());
+			
 			try {
 				int coreHint = Math.max(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs, ((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores);
-			(new Validator()).validate(testInstances,
+			(new Validator()).multiValidate(testInstances,
 					options.validationOptions,
 					options.scenarioConfig.algoExecOptions.cutoffTime,
 					testInstanceSeedGen,
 					validatingTae,
-					outputDir,
-					options.scenarioConfig.runObj,
+					options.scenarioConfig.getRunObjective(),
 					options.scenarioConfig.getIntraInstanceObjective(),
 					options.scenarioConfig.interInstanceObj,
 					tfes,
-					options.seedOptions.numRun,
-
-					options.waitForPersistedRunCompletion, execConfig, coreHint);
+					options.waitForPersistedRunCompletion, coreHint, execConfig);
 
 			
 			} finally
@@ -332,9 +369,6 @@ public class ValidatorExecutor {
 					log.error(stackTrace, "StackTrace:{}",sWriter.toString());
 					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
 				}
-				
-					
-				
 				
 				
 				log.info("Exiting Application with failure");

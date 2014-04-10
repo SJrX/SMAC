@@ -56,4 +56,4 @@ File.open(filename){|file|
 	end
 }
 File.delete(filename)
-puts "Result for ParamILS: #{solved}, #{runtime}, #{runlength}, #{best_sol}, #{seed}"
+puts "Result of algorithm run: #{solved}, #{runtime}, #{runlength}, #{best_sol}, #{seed}"

@@ -36,72 +36,91 @@ except only from error messages.
 
 SMAC basically goes through three phases when executing:
 \begin{itemize}
-\item Setup Phase Input files are read, and their arguments validated. Everything necessary to execute the Automatic Configuration Phase is constructed. This phase ends (baring anything that must be lazily loaded), once the message \texttt{Automatic Configurator Started} is logged.
-
-\item Automatic Configuration Phase: SMAC is now actively configuring the target algorithm. SMAC will spend most of it's time here, and outputs it's progress. The most important output is the Runtime Statistics which will appear like:
+\item Setup Phase Input files are read, and their arguments validated. Everything necessary to execute the Automatic Configuration Phase is constructed. This phase ends, once the following message appears:
 \scriptsize{
 \begin{verbatim}
- *****Runtime Statistics*****
- Count: 15
- Incumbent ID: 11 (0x1D8A2)
- Number of Runs for Incumbent: 33
- Number of Instances for Incumbent: 5
- Number of Configurations Run: 30
- Performance of the Incumbent: 0.04219047619047619
- Configuration Time Budget used: 30.038589432000038 s (100%)
- Configuration Time Budget remaining: -0.038589432000037505 s
- Wall-clock Time Budget used: 36.816 s (0%)
- Wall-clock Time Budget remaining: 2.147483610184E9 s
- Algorithm Runs used: 104.0  (0%)
- Algorithm Runs remaining: 9.223372036854776E18 
- Model/Iteration used: 14.0  (0%)
- Model/Iteration remaining: 2.147483633E9 
- Configuration Space Searched 0.0 % 
- Sum of Target Algorithm Execution Times \
- (treating minimum value as 0.1): 27.20000000000004 s
- CPU time of Configurator: 2.838245764 s
- User time of Configurator: 2.8384146279999998 s
- Total Reported Algorithm Runtime: 21.05999999999998 s
- Sum of Measured Wallclock Runtime: 30.20900000000001 s
- Max Memory: 910.25 MB
- Total Java Memory: 226.8125 MB
- Free Java Memory: 199.03646850585938 MB
+SMAC started at: 10-Apr-2014 10:01:40 AM. Minimizing penalized average runtime (PAR10)
 \end{verbatim}
 }
+\normalsize 
+\item Automatic Configuration Phase: SMAC is now actively configuring the target algorithm. SMAC will spend most of it's time here, and outputs it's progress. 
 
+There are two types of messages you will see here:
+
+
+\scriptsize{
+\begin{verbatim}
+1) Incumbent changed to: config 2 (internal ID: 0x7), with penalized average runtime (PAR10): 7.1;
+ estimate based on 2 runs.
+ Sample call for new incumbent config 2 (internal ID: 0x7): 
+cd saps; ruby saps_wrapper.rb instances/train/SWlin2006.19724.cnf 0 10.0 2147483647 -1
+ -alpha '1.1' -ps '0.1' -rho '0.84' -wp '0.06'  
+
+\end{verbatim}
+}
 \normalsize
-While most of the fields are self-explanatory some deserve special attention:
+
+This signifies that the incumbent (the best configuration found so far), has been changed to configuration 2 (this ID is used in some files that SMAC will output). It also gives a sample estimate of the performance of this configuration on the instances we have seen already.
+
+Next a sample call is given for this configuration so that you can test it yourself. From this you can determine the actual configuration selected, in this example it is:
+
+\begin{center}
+\emph{-alpha '1.1' -ps '0.1' -rho '0.84' -wp '0.06'}
+\end{center}
 
 
-\texttt{Incumbent ID}
+\scriptsize{
+\begin{verbatim}
+2) Updated estimated penalized average runtime (PAR10) of the same incumbent: 3.86;
+estimate now based on 4 runs.
+\end{verbatim}
+}
+\normalsize
 
-The second ID (0x18824F) is a hex-code that represents the configuration anywhere / everywhere it is logged. The first ID, 64, occurs in context where we know the configuration is intended to be run. This ID will corresponding to the ID in the state files. The second ID will always associate with a unique first ID, but not conversely. The second ID roughly represents the specific configuration in memory \footnote{Specifically every time a configuration is modified, this number is incremented. In cases where the configuration space is small,or we are examining a small part of it, SMAC may end up back at the same configuration again. As far as the behaviour of SMAC is concerned these are identical, the ID is only ever used for logging.}.
+As SMAC continues to run it will continue refining the estimate by making more samples of the incumbents configuration, and it will occasionally provide you with an update. This number can vary wildly as SMAC learns more about your instance distribution.
 
-\texttt{Performance of the Incumbent}
 
-This represents the performance of the incumbent under the given \textbf{run\_obj} and \textbf{overall\_obj} on the runs so far.
 
-\texttt{Configuration Time Budget used}
+\item 
+Once SMAC is completed, it will output some summary statistics:
 
-The tuner time that has been used so far.
+\scriptsize{
+\begin{verbatim}
+=======================================================================================
+SMAC has finished. Reason: total CPU time limit (600.0 s) has been reached.   
+SMAC's final incumbent: config 45 (internal ID: 0xBB), 
+ with estimated penalized average runtime (PAR10): 0.12 ,
+ based on 5 run(s) on 5 training instance(s).
+Total number of runs performed: 171, total CPU time used: 604 s,
+ total wallclock time used: 607 s, total configurations tried: 113.
+=======================================================================================
+\end{verbatim}
+}
+\normalsize
+The first line indicates why SMAC terminated, in this case the CPU time limit
+was exceeded. It provides an updated estimate of the objective, in this case 0.12. 
 
-\texttt{Sum of Target Algorithm Execution Times} 
 
-This represents the contribution of the algorithm runs to the Tuner Time (if applicable), in general each run contributes the minimum of $0.1$ and it's reported runtime. This parameter differs from \texttt{Sum of Measurement Wallclock Runtime} in that the latter is a direct sum. If you are only running on algorithms with large runtime, this difference may be 0.
+\item Offline Validation Phase, depending on the options used this can also take a large fraction of SMAC's runtime. The logic here is actually quite simple, as it largely only requires running many algorithm runs and computing the objectives from them.
 
-\item Validation Phase, depending on the options used this can also take a large fraction of SMAC's runtime. The logic here is actually quite simple, as it largely only requires running many algorithm runs and computing the objectives from them.
 
-At the end of Validation the Runtime Statistics (from the Automatic Configuration Phase) are displayed again, as is the following information
+\scriptsize{
+\begin{verbatim}
+-------------------------------------------------------
+Minimized penalized average runtime (PAR10):
+Final time: 607 config 45 (internal ID: 0xBB):  0.14 on the test set
 
-\begin{enumerate}
+Sample call for the final incumbent:
+cd saps; ruby saps_wrapper.rb instances/train/SWlin2006.19724.cnf 0 10.0 2147483647 -1
+ -alpha '1.1' -ps '0.1' -rho '0.84' -wp '0.06'
 
-\item The performance of the incumbent on both the training and test set.
-\item A sample call of the final incumbent (selected configuration)
-\item The complete configuration selected (without inactive conditionals)
-\item The complete configuration selected (with inactive conditionals)
-\item The Return value of SMAC (generally 0 if successful)
+Additional information about run 1 in: smac-output/run1/
+-------------------------------------------------------
+\end{verbatim}
+}
+\normalsize
 
-\end{enumerate}
+
 
 \end{itemize}
 
@@ -151,7 +170,7 @@ The following files are saved in this state directory (ignoring the suffix):
 \subsection{Trajectory File}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-SMAC also outputs a trajectory file into identical files \texttt{traj-run-$N$.txt} \footnote{This file is outputted for backwards compatibility with existing scripts.} and \texttt{traj-run-$N$.csv}. These files outline the incumbent (by id) over the course of execution and it's performance. The first line gives the 
+SMAC also outputs a trajectory file into the \texttt{detailed-traj-run-$N$.csv}  and outline the incumbent (by id) over the course of execution and it's performance. The first line gives the 
 \textbf{-~$\!\!$-rungroup}, and then the  \textbf{-~$\!\!$-seed}.
 
 The rest of the file follows the following format:
@@ -161,77 +180,101 @@ The rest of the file follows the following format:
 Column Name & Description\tabularnewline
 \hline 
 \hline 
-Total Time & Sum of all execution times \\ & and CPU time of SMAC\tabularnewline
+CPU Time Used & Sum of all execution times \\ & and CPU time of SMAC\tabularnewline
 \hline 
-Incumbents Mean Performance & Performance of the Incumbent under the given \\ &  \textbf{--run-obj
-}and \textbf{--overall-obj}\tabularnewline
+Estimated Training Performance & Performance of the Incumbent under the given \\ &  \textbf{-~$\!\!$-run-obj
+}and \textbf{-~$\!\!$-overall-obj}\tabularnewline
 \hline 
-Wallclock Time $\sigma$ & Time of entry with respect to wallclock time. %Standard deviation of the Incumbent under the given \textbf{--runObjective }and \textbf{--overallObjective}
+Wallclock Time & Time of entry with respect to wallclock time. %Standard deviation of the Incumbent under the given \textbf{--runObjective }and \textbf{--overallObjective}
 \tabularnewline
 \hline 
-Incumbent ID & The ID of the incumbent \\ & as listed in the \textbf{param\_strings} file \ref{subsec:state-files}.
+Incumbent ID & The ID of the incumbent \\ & as listed in the \textbf{param\_strings} file in \textsection \ref{subsec:state-files}, and the logs
 \tabularnewline
 \hline 
-acTime & CPU Time of SMAC\tabularnewline
+Automatic Configurator (CPU) Time & CPU Time used of SMAC\tabularnewline
 \hline 
-Remaining Columns & Give a name value mapping for the \\& configuration value as given by the \texttt{Incumbent ID} column \tabularnewline
+Full Configuration & The full configuration of this incumbent \tabularnewline
 \hline 
 \end{tabular}
+\\
+\textsc{Note}: SMAC also outputs \texttt{traj-run-$N$.txt} the first five columns are the same, but the remaining columns represent the configuration, with each cell being a key and value. This is identical the trajectory file outputted by ParamILS.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Validation Output}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-When Validation is completed four files are outputted, (again $N$ is the value of the \textbf{-~$\!\!$-seed} argument):
+When Validation is completed four files are outputted, (again $N$ is the value of the \textbf{-~$\!\!$-seed} argument). Finally depending on which options are used the, especially with \texttt{smac-validate}, the actual file name outputted may vary.
 
 \begin{enumerate}
+\item \texttt{validationResults-traj-run-$N$-walltime.csv}:
+A CSV file that contains a summary of the results of validation, the \textit{Validation Configuration ID} maps to a line in the next file
 
+\item \texttt{validationCallStrings-traj-run-$N$-walltime.csv}:
+A CSV file containing a mapping between \textit{Validation Configuration ID} to
+the actual configuration, and a sample call string.
 
-\item \texttt{rawValidationExecutionResults-run$N$.csv}:
+\item \texttt{validationPerformanceDebug-traj-run-$N$-walltime.csv}:
+A CSV file that contains a detailed breakdown of how the final validation score
+was obtained. This file is meant for human consumption, and not for parsing.
 
- CSV File containing a list of the configuration, 
-seeds \& instance run and the corresponding result and the result of the target algorithm execution. This file is mainly for debugging.
+\item \texttt{validationObjectiveMatrix-traj-run-$N$-walltime.csv}:
+A CSV file that contains a table, for each row (configuration) the objective for the problem instance seed pair as given in the column.
 
-\item 
-\texttt{validationInstanceSeedResult-run$N$.csv}:
-
- CSV File containing a list of seeds \&
-instances and the resulting response value. Again this file is mainly for debugging, but is easier to parse than the previous.
-\item 
-\texttt{validationResultsMatrix-run$N$.csv}:
-
-CSV File containing the list of instances
-on each line, the next column is the aggregation of the remaining columns under the 
-\textbf{overall\_obj}. Finally there is one additional row that
-gives the aggregation of all the individual \textbf{overall\_obj},
-aggregated in the same way.
-
-\texttt{validationResults-run$N$.csv}
-\\
-CSV File containing the result of the validation. The columns are defined as follows:
-
-\begin{tabular}{|c|c|}
-\hline 
-Column Name & Description\tabularnewline
-\hline 
-\hline 
-Tuner Time &  The tuner time when validation occurred \tabularnewline
-\hline 
-Emperical Performance & The incumbent's performance on the training set \tabularnewline
-\hline 
-Test Set Performance & The incumbent's performance on the test set \tabularnewline
-\hline
-AC Overhead Time & Total CPU Time Used by the Automatic Configurator  \tabularnewline
-\hline 
-Sample Call String \tabularnewline
-\hline
-
-\end{tabular}
-
-
-
+\item \texttt{validationRunMatrix-traj-run-$N$-walltime.csv}:
+A CSV file that contains a table, for each row (configuration) the response from the wrapper (ignoring the prefix).
 
 \end{enumerate}
+
+
+
+
+%
+%
+%\item \texttt{rawValidationExecutionResults-run$N$.csv}:
+%
+% CSV File containing a list of the configuration, 
+%seeds \& instance run and the corresponding result and the result of the target algorithm execution. This file is mainly for debugging.
+%
+%\item 
+%\texttt{validationInstanceSeedResult-run$N$.csv}:
+%
+% CSV File containing a list of seeds \&
+%instances and the resulting response value. Again this file is mainly for debugging, but is easier to parse than the previous.
+%\item 
+%\texttt{validationResultsMatrix-run$N$.csv}:
+%
+%CSV File containing the list of instances
+%on each line, the next column is the aggregation of the remaining columns under the 
+%\textbf{overall\_obj}. Finally there is one additional row that
+%gives the aggregation of all the individual \textbf{overall\_obj},
+%aggregated in the same way.
+%
+%\texttt{validationResults-run$N$.csv}
+%\\
+%CSV File containing the result of the validation. The columns are defined as follows:
+%
+%\begin{tabular}{|c|c|}
+%\hline 
+%Column Name & Description\tabularnewline
+%\hline 
+%\hline 
+%Tuner Time &  The tuner time when validation occurred \tabularnewline
+%\hline 
+%Emperical Performance & The incumbent's performance on the training set \tabularnewline
+%\hline 
+%Test Set Performance & The incumbent's performance on the test set \tabularnewline
+%\hline
+%AC Overhead Time & Total CPU Time Used by the Automatic Configurator  \tabularnewline
+%\hline 
+%Sample Call String \tabularnewline
+%\hline
+
+%\end{tabular}
+
+
+
+
+%\end{enumerate}
 
 
 \end{document}

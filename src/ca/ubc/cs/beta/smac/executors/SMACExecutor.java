@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedMap;
@@ -18,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
@@ -35,6 +37,7 @@ import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
 import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
 import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aclib.smac.SMACOptions;
 import ca.ubc.cs.beta.aclib.state.StateFactoryOptions;
@@ -44,6 +47,8 @@ import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetA
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
 import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
+import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
 import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.builder.SMACBuilder;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
@@ -136,7 +141,28 @@ public class SMACExecutor {
 			
 			pool.logUsage();
 			
-			log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
+			ParamConfiguration incumbent = smac.getIncumbent();
+			RunHistory runHistory = smac.runHistory();
+			TerminationCondition tc = smac.getTerminationCondition();
+			
+			final DecimalFormat df0 = new DecimalFormat("0"); 
+			log.info("\n=======================================================================================\n"
+					+ "SMAC has finished. Reason: {}\n"
+					+ "SMAC's final incumbent: config {} (internal ID: {}), with estimated {}: {}, based on {} run(s) on {} training instance(s).\n"
+					+ "Total number of runs performed: {}, total CPU time used: {} s, total wallclock time used: {} s, total configurations tried: {}.\n"
+					+ "=======================================================================================" ,
+					smac.getTerminationReason(), 
+					
+					runHistory.getThetaIdx(incumbent), incumbent,
+					smac.getObjectiveToReport(),
+					smac.getEmpericalPerformance(incumbent),
+					runHistory.getAlgorithmRunsExcludingRedundant(incumbent).size(),
+					runHistory.getProblemInstanceSeedPairsRan(incumbent).size(),
+					runHistory.getAlgorithmRunsExcludingRedundant().size(),
+					df0.format(tc.getTunerTime()),
+					df0.format(tc.getWallTime()),
+					runHistory.getAllParameterConfigurationsRan().size()
+					);
 			List<TrajectoryFileEntry> tfes = smacBuilder.getTrajectoryFileLogger().getTrajectoryFileEntries();
 			
 			
@@ -145,6 +171,7 @@ public class SMACExecutor {
 			if(options.doValidation)
 			{
 				
+				log.info("Now starting offline validation.");
 			
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other crap that is probably not applicable for validation
 				
@@ -186,7 +213,12 @@ public class SMACExecutor {
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
 
-					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true, execConfig, coreHint);
+					TrajectoryFile trajFile = new TrajectoryFile(new File(outputDir + File.separator + "traj-run-" + options.seedOptions.numRun + ".txt"),tfes);
+					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile, true, coreHint, execConfig);
+
+
+					
+//					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile,true, coreHint,execConfig);
 
 				} finally
 				{
@@ -211,9 +243,32 @@ public class SMACExecutor {
 			
 			smacBuilder.getEventManager().shutdown();
 			
-			log.info("SMAC Result:\n=======================================================================================\nMinimized {}{}:\n{}\n{}\nAdditional information about run {} in: {}\n=======================================================================================",smac.getObjectiveToReport(), (performance.size() > 1) ? " over time": "" ,incumbentPerformance, callString, options.seedOptions.numRun, outputDir);
+			
+			log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+					+ "Minimized {}{}:\n"
+					+ "{}\n"
+					+ "{}\n"
+					+ "Additional information about run {} in: {}\n"
+					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
+					,smac.getObjectiveToReport()
+					, (performance.size() > 1) ? " over time": ""
+				    ,incumbentPerformance,
+				    callString,
+				    options.seedOptions.numRun,
+				    outputDir);
+				    
 			//log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
 			//log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
+			/*
+			log.info("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"+
+			"SMAC's final incumbent: {}.\n"+
+			/*
+			[INFO ] Training performance: estimated mean quality 0.4236244493298802, based on 1 run(s) on 1 instance(s).
+			[INFO ] Test performance: estimated mean quality 0.4236244493298802, based on 1 run(s) on 1 instance(s).
+			[INFO ] Sample call for this final incumbent:
+			cd /home/hutter/smac-v2.06.02-development-665; examples/branin/wrapper.rb no_instance 0 1.7976931348623157E308 2147483647 -1 -x2 '2.9229911729079787' -x1 '5.134529068134288'
+			*/
+			//For additional information, see run 1 in: /home/hutter/smac-v2.06.02-development-665/smac-output/scenario-SMAC-ac-false-cores1-cutoff1.7976931348623157E308-2014-03-31
 			
 			
 			
@@ -342,7 +397,7 @@ public class SMACExecutor {
 
 				if(options.adaptiveCapping == null)
 				{
-					switch(options.scenarioConfig.runObj)
+					switch(options.scenarioConfig.getRunObjective())
 					{
 					case RUNTIME:
 						options.adaptiveCapping = true;
@@ -360,13 +415,16 @@ public class SMACExecutor {
 				
 				if(options.randomForestOptions.logModel == null)
 				{
-					switch(options.scenarioConfig.runObj)
+					switch(options.scenarioConfig.getRunObjective())
 					{
 					case RUNTIME:
 						options.randomForestOptions.logModel = true;
 						break;
 					case QUALITY:
 						options.randomForestOptions.logModel = false;
+						break;
+					default:
+						throw new IllegalStateException("Unsure what to do with new run objective");
 					}
 				}
 
