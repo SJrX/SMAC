@@ -211,7 +211,7 @@ public class AbstractAlgorithmFramework {
 				break;
 		}
 		
-		log.info("SMAC Started at: {}. Minimizing {} ", df.format(d), objectiveToReport);				
+		log.info("SMAC started at: {}. Minimizing {}.", df.format(d), objectiveToReport);				
 		
 		
 		
@@ -519,8 +519,12 @@ public class AbstractAlgorithmFramework {
 					log.trace("Initialization Procedure Completed");
 					
 					incumbent =initProc.getIncumbent(); 
-					logConfiguration("new incumbent", incumbent);
+					
 					updateIncumbentCost();
+					log.info("First incumbent: config {} (internal ID: {}), with {}: {}; estimate based on {} runs.", runHistory.getThetaIdx(incumbent), incumbent, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent));
+					
+					logConfiguration("new incumbent", incumbent);
+					
 					logIncumbent(iteration);
 				} else
 				{
@@ -1110,7 +1114,7 @@ public class AbstractAlgorithmFramework {
 		ParamConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
-		log.info("Incumbent changed to: config {} (internal ID: {}).{}: {}; estimate based on {} runs.", runHistory.getThetaIdx(challenger), challenger, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
+		log.info("Incumbent changed to: config {} (internal ID: {}), with {}: {}; estimate based on {} runs.", runHistory.getThetaIdx(challenger), challenger, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
 		
 		
 		logConfiguration("new incumbent", challenger);		
@@ -1187,7 +1191,6 @@ public class AbstractAlgorithmFramework {
 	private  void updateIncumbentCost() {
 		
 		currentIncumbentCost = runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances), cutoffTime);
-		log.trace("Incumbent cost now: {}", currentIncumbentCost);
 	}
 
 
@@ -1305,6 +1308,17 @@ public class AbstractAlgorithmFramework {
 	private String getConfigurationString(ParamConfiguration config)
 	{
 		return ((runHistory.getThetaIdx(config)!=-1) ? runHistory.getThetaIdx(config) + " (" + config.getFriendlyIDHex() + ")" :"(" +  config.getFriendlyIDHex() + ")");	
+	}
+
+
+	public synchronized RunHistory runHistory() {
+
+		return runHistory;
+	}
+	
+	public synchronized TerminationCondition getTerminationCondition()
+	{
+		return termCond;
 	}
 	
 	
