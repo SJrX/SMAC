@@ -203,7 +203,7 @@ Value & Error Name & Description \\
           		\item \textbf{-$~\!$-exec-dir} option now defaults to current working directory.
           		\item New option \textbf{-$~\!$-use-instances} will use a dummy instance instead of the instance file (useful for black box optimization).
           		
-          		\item \textbf{[BETA]} Target Algorithm Evaluator implementation allows integrating with a TAE using UDP (more to come) .
+          		\item \textbf{[BETA]} Target Algorithm Evaluator implementation allows integrating with a TAE using UDP/TCP (more to come).
           		\item Implemented a work around to a bug where configurations with censored early runs could become the incumbent erroneously. It's still suboptimal, but in fact it probably would never happen. See Known Issue \#1 in section \ref{known-issues}.
           		\item Validation rounding mode now changes the number of runs on deterministic runs, or runs with set problem instance seed pairs.
           		\item New option \textbf{-$~\!$-cli-kill-by-environment-cmd} allows terminating all processes by an environment variable. See section \ref{sec:exec-env} for more information.
