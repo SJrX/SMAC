@@ -27,6 +27,7 @@ import com.beust.jcommander.ParameterException;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aeatk.algorithmrun.RunResult;
+import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
@@ -55,7 +56,6 @@ import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.aeatk.random.RandomUtil;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
-import ca.ubc.cs.beta.aeatk.runconfig.RunConfig;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistoryHelper;
 import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistory;
@@ -720,7 +720,7 @@ public class AbstractAlgorithmFramework {
 		
 		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();
 	
-		RunConfig runConfig = new RunConfig(pisp, cutoffTime, incumbent, execConfig);
+		AlgorithmRunConfiguration runConfig = new AlgorithmRunConfiguration(pisp, cutoffTime, incumbent, execConfig);
 	
 		String cmd = tae.getManualCallString(runConfig);
 		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
@@ -817,7 +817,7 @@ public class AbstractAlgorithmFramework {
 			if (runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent) < MAX_RUNS_FOR_INCUMBENT){
 				log.debug("Performing additional run with the incumbent ");
 				ProblemInstanceSeedPair pisp = RunHistoryHelper.getRandomInstanceSeedWithFewestRunsFor(runHistory,instanceSeedGen, incumbent, instances, pool.getRandom("CHALLENGE_INCUMBENT_INSTANCE_SELECTION"),options.deterministicInstanceOrdering);
-				RunConfig incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
+				AlgorithmRunConfiguration incumbentRunConfig = getRunConfig(pisp, cutoffTime,incumbent);
 				evaluateRun(incumbentRunConfig);
 				updateIncumbentCost();
 				//fireEvent(new IncumbentChangeEvent(termCond,  runHistory.getEmpiricalCost(incumbent, new HashSet<ProblemInstance>(instances) , cutoffTime), incumbent,runHistory.getTotalNumRunsOfConfig(incumbent)));
@@ -919,7 +919,7 @@ public class AbstractAlgorithmFramework {
 			Object[] args2 = { N,  runHistory.getThetaIdx(challenger)!=-1?" " + runHistory.getThetaIdx(challenger):"" , challenger, bound_inc } ;
 			log.debug("Performing up to {} run(s) for challenger{} ({}) up to a total bound of {} ", args2);
 			
-			List<RunConfig> runsToEval = new ArrayList<RunConfig>(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs); 
+			List<AlgorithmRunConfiguration> runsToEval = new ArrayList<AlgorithmRunConfiguration>(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs); 
 			
 			if(options.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
@@ -934,7 +934,7 @@ public class AbstractAlgorithmFramework {
 					//Runs to make and aMissing should be the same size
 					//int index = permutations[i];
 					
-					RunConfig runConfig;
+					AlgorithmRunConfiguration runConfig;
 					ProblemInstanceSeedPair pisp = aMissing.get(0);
 					if(options.adaptiveCapping)
 					{
@@ -1040,7 +1040,7 @@ public class AbstractAlgorithmFramework {
 		
 		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();
 		
-		RunConfig config = new RunConfig(pisp, cutoffTime, challenger, execConfig);
+		AlgorithmRunConfiguration config = new AlgorithmRunConfiguration(pisp, cutoffTime, challenger, execConfig);
 		
 		String cmd = tae.getManualCallString(config);
 		Object[] args = { type, runHistory.getThetaIdx(challenger), challenger, cmd };
@@ -1065,7 +1065,7 @@ public class AbstractAlgorithmFramework {
 			log.warn("Configuration {} which has been selected to replace the current incumbent {} has {} early censored runs. Future versions of SMAC will handle this case properly. For now we will simply repair the invariant manually by running all capped runs up to kappaMax. This warning can be safely ignored, it exists only so that this condition has some visibility (as SMAC could be improved by fixing this)", getConfigurationString(challenger), getConfigurationString(incumbent), earlyCensoredPISPs.size());
 			
 			
-			List<RunConfig> rcs = new ArrayList<RunConfig>();
+			List<AlgorithmRunConfiguration> rcs = new ArrayList<AlgorithmRunConfiguration>();
 			
 			for(ProblemInstanceSeedPair pisp : earlyCensoredPISPs)
 			{
@@ -1210,18 +1210,18 @@ public class AbstractAlgorithmFramework {
 	 * @param configuration
 	 * @return
 	 */
-	protected RunConfig getRunConfig(ProblemInstanceSeedPair pisp, double cutofftime, ParamConfiguration configuration)
+	protected AlgorithmRunConfiguration getRunConfig(ProblemInstanceSeedPair pisp, double cutofftime, ParamConfiguration configuration)
 	{
-		RunConfig rc =  new RunConfig(pisp, cutofftime, configuration, execConfig);
+		AlgorithmRunConfiguration rc =  new AlgorithmRunConfiguration(pisp, cutofftime, configuration, execConfig);
 		
 		return rc;
 	}
 	
 	
-	private RunConfig getBoundedRunConfig(
+	private AlgorithmRunConfiguration getBoundedRunConfig(
 			ProblemInstanceSeedPair pisp, double capTime,
 			ParamConfiguration challenger) {
-		RunConfig rc =  new RunConfig(pisp, capTime, challenger, execConfig );
+		AlgorithmRunConfiguration rc =  new AlgorithmRunConfiguration(pisp, capTime, challenger, execConfig );
 		return rc;
 	}
 	
@@ -1250,7 +1250,7 @@ public class AbstractAlgorithmFramework {
 	 * @param runConfig
 	 * @return
 	 */
-	protected List<AlgorithmRun> evaluateRun(RunConfig runConfig)
+	protected List<AlgorithmRun> evaluateRun(AlgorithmRunConfiguration runConfig)
 	{
 		return evaluateRun(Collections.singletonList(runConfig));
 	}
@@ -1260,7 +1260,7 @@ public class AbstractAlgorithmFramework {
 	 * @param runConfigs
 	 * @return
 	 */
-	protected List<AlgorithmRun> evaluateRun(List<RunConfig> runConfigs)
+	protected List<AlgorithmRun> evaluateRun(List<AlgorithmRunConfiguration> runConfigs)
 	{
 		if (have_to_stop(iteration)){
 			log.debug("Cannot schedule any more runs, out of time");
@@ -1268,9 +1268,9 @@ public class AbstractAlgorithmFramework {
 		} 
 	
 		
-		for(RunConfig rc : runConfigs)
+		for(AlgorithmRunConfiguration rc : runConfigs)
 		{
-			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
+			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParameterConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParameterConfiguration()):"", rc.getParameterConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
 			log.debug("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
@@ -1278,8 +1278,8 @@ public class AbstractAlgorithmFramework {
 		
 		for(AlgorithmRun run : completedRuns)
 		{
-			RunConfig rc = run.getRunConfig();
-			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
+			AlgorithmRunConfiguration rc = run.getRunConfig();
+			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParameterConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParameterConfiguration()):"", rc.getParameterConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
 
 			log.debug("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 		}

@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aeatk.exceptions.DeveloperMadeABooBooException;
@@ -40,7 +41,6 @@ import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
 import ca.ubc.cs.beta.aeatk.objectives.RunObjective;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
-import ca.ubc.cs.beta.aeatk.runconfig.RunConfig;
 import ca.ubc.cs.beta.aeatk.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
 import ca.ubc.cs.beta.aeatk.seedgenerator.InstanceSeedGenerator;
@@ -97,9 +97,9 @@ public class Validator {
 					
 					Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
 					
-					for(RunConfig rc : runs.runConfigs)
+					for(AlgorithmRunConfiguration rc : runs.runConfigs)
 					{
-						configs.add(rc.getParamConfiguration());
+						configs.add(rc.getParameterConfiguration());
 					}
 					log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runs.runConfigs.size(), configs.size(),pisps.size());
 					
@@ -166,10 +166,10 @@ public class Validator {
 				}
 
 				
-				Set<RunConfig> runConfigs = new LinkedHashSet<RunConfig>();
+				Set<AlgorithmRunConfiguration> runConfigs = new LinkedHashSet<AlgorithmRunConfiguration>();
 				Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
 				
-				final Map<WaitableTAECallback, List<RunConfig>> callbacksToSchedule = new LinkedHashMap<WaitableTAECallback, List<RunConfig>>();
+				final Map<WaitableTAECallback, List<AlgorithmRunConfiguration>> callbacksToSchedule = new LinkedHashMap<WaitableTAECallback, List<AlgorithmRunConfiguration>>();
 				for(ValidationRuns run : runs)
 				{
 					if(run.done)
@@ -177,17 +177,17 @@ public class Validator {
 						continue;
 					}
 					
-					for(RunConfig rc : run.runConfigs)
+					for(AlgorithmRunConfiguration rc : run.runConfigs)
 					{
 						runConfigs.add(rc);
-						configs.add(rc.getParamConfiguration());
+						configs.add(rc.getParameterConfiguration());
 					}
 					
 					callbacksToSchedule.put(run.callback, run.runConfigs);
 					
 				}
 				
-				List<RunConfig> runConfigsToRun = new ArrayList<RunConfig>(runConfigs);
+				List<AlgorithmRunConfiguration> runConfigsToRun = new ArrayList<AlgorithmRunConfiguration>(runConfigs);
 
 				log.info("Validation needs {} algorithm runs to validate {} configurations found, each on {} problem instance seed pairs", runConfigsToRun.size(), configs.size(),pisps.size());
 				
@@ -213,18 +213,18 @@ public class Validator {
 					@Override
 					public void onSuccess(List<AlgorithmRun> runs) {
 						
-						Map<RunConfig, AlgorithmRun> runsToRunConfig = new HashMap<RunConfig, AlgorithmRun>();
+						Map<AlgorithmRunConfiguration, AlgorithmRun> runsToRunConfig = new HashMap<AlgorithmRunConfiguration, AlgorithmRun>();
 						
 						for(AlgorithmRun run : runs)
 						{
 							runsToRunConfig.put(run.getRunConfig(),run);
 						}
 						
-						for(Entry<WaitableTAECallback, List<RunConfig>> ent : callbacksToSchedule.entrySet())
+						for(Entry<WaitableTAECallback, List<AlgorithmRunConfiguration>> ent : callbacksToSchedule.entrySet())
 						{
 						
 							List<AlgorithmRun> runsToNotify = new ArrayList<AlgorithmRun>();
-							for(RunConfig rc : ent.getValue())
+							for(AlgorithmRunConfiguration rc : ent.getValue())
 							{
 								runsToNotify.add(runsToRunConfig.get(rc));
 							}
@@ -469,7 +469,7 @@ public class Validator {
 		
 
 		
-		List<RunConfig> runConfigs = getRunConfigs(configs, pisps, cutoffTime,execConfig);
+		List<AlgorithmRunConfiguration> runConfigs = getRunConfigs(configs, pisps, cutoffTime,execConfig);
 		
 		
 		
@@ -533,9 +533,9 @@ public class Validator {
 					
 					for(AlgorithmRun run : runs)
 					{
-						matrixRuns.putIfAbsent(run.getRunConfig().getParamConfiguration(), new HashMap<ProblemInstanceSeedPair, AlgorithmRun>());
+						matrixRuns.putIfAbsent(run.getRunConfig().getParameterConfiguration(), new HashMap<ProblemInstanceSeedPair, AlgorithmRun>());
 						
-						Map<ProblemInstanceSeedPair, AlgorithmRun> configRuns = matrixRuns.get(run.getRunConfig().getParamConfiguration());
+						Map<ProblemInstanceSeedPair, AlgorithmRun> configRuns = matrixRuns.get(run.getRunConfig().getParameterConfiguration());
 						
 						configRuns.put(run.getRunConfig().getProblemInstanceSeedPair(), run);
 					}
@@ -545,8 +545,8 @@ public class Validator {
 					
 					for(AlgorithmRun run : runs)
 					{
-						if(configs.contains(run.getRunConfig().getParamConfiguration())) continue;
-						configs.add(run.getRunConfig().getParamConfiguration());
+						if(configs.contains(run.getRunConfig().getParameterConfiguration())) continue;
+						configs.add(run.getRunConfig().getParameterConfiguration());
 					}
 					
 					
@@ -652,7 +652,7 @@ public class Validator {
 	
 	public static class ValidationRuns
 	{
-		List<RunConfig> runConfigs;
+		List<AlgorithmRunConfiguration> runConfigs;
 		WaitableTAECallback callback;
 		private SortedMap<TrajectoryFileEntry, Double> result;
 		private AtomicReference<RuntimeException> exception;
@@ -669,7 +669,7 @@ public class Validator {
 			done = true;
 		}
 		
-		public ValidationRuns(List<RunConfig> runConfigs, WaitableTAECallback callback, AtomicReference<RuntimeException> exception,SortedMap<TrajectoryFileEntry, Double> result)
+		public ValidationRuns(List<AlgorithmRunConfiguration> runConfigs, WaitableTAECallback callback, AtomicReference<RuntimeException> exception,SortedMap<TrajectoryFileEntry, Double> result)
 		{
 			this.runConfigs = runConfigs; 
 			this.callback = callback;
@@ -681,15 +681,15 @@ public class Validator {
 	
 
 
-private List<RunConfig> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime,AlgorithmExecutionConfiguration execConfig) 
+private List<AlgorithmRunConfiguration> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime,AlgorithmExecutionConfiguration execConfig) 
 {
 	
-	List<RunConfig> runConfigs  = new ArrayList<RunConfig>(pisps.size()*configs.size());
+	List<AlgorithmRunConfiguration> runConfigs  = new ArrayList<AlgorithmRunConfiguration>(pisps.size()*configs.size());
 	for(ParamConfiguration config: configs)
 	{
 		for(ProblemInstanceSeedPair pisp : pisps)
 		{
-			runConfigs.add(new RunConfig(pisp, cutoffTime,config,execConfig));
+			runConfigs.add(new AlgorithmRunConfiguration(pisp, cutoffTime,config,execConfig));
 		}
 	}
 	
@@ -800,11 +800,11 @@ endloop:
 		
 		for(Entry<ParamConfiguration, Integer> ent : configToID.entrySet())
 		{
-			RunConfig rc = null;
+			AlgorithmRunConfiguration rc = null;
 			
 			for(AlgorithmRun run : runs)
 			{
-				if (run.getRunConfig().getParamConfiguration().equals(ent.getKey()))
+				if (run.getRunConfig().getParameterConfiguration().equals(ent.getKey()))
 				{
 					rc = run.getRunConfig();
 					break;
@@ -963,7 +963,7 @@ endloop:
 		
 		for(AlgorithmRun run : runs)
 		{
-			ParamConfiguration config = run.getRunConfig().getParamConfiguration();
+			ParamConfiguration config = run.getRunConfig().getParameterConfiguration();
 			if(configToRunMap.get(config) == null)
 			{
 				configToRunMap.put(config, new ArrayList<AlgorithmRun>(1000));
