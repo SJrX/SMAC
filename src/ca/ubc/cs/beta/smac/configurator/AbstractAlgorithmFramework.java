@@ -344,7 +344,7 @@ public class AbstractAlgorithmFramework {
 			ProblemInstanceSeedPair pisp = run.getRunConfig().getProblemInstanceSeedPair();
 			allPisps.add(run.getRunConfig().getProblemInstanceSeedPair());
 			log.trace("Blacklisting problem instance seed pair: {} ", pisp);
-			this.instanceSeedGen.take(pisp.getInstance(), pisp.getSeed());
+			this.instanceSeedGen.take(pisp.getProblemInstance(), pisp.getSeed());
 		}
 		
 		if(runHistory.getProblemInstanceSeedPairsRan(incumbent).size() != allPisps.size())
@@ -906,7 +906,7 @@ public class AbstractAlgorithmFramework {
 				for(int i=0; i < runsToMake; i++)
 				{
 					//int index = permutations[i];
-					missingInstances.add(aMissing.get(i).getInstance());
+					missingInstances.add(aMissing.get(i).getProblemInstance());
 				}
 				missingPlusCommon = new HashSet<ProblemInstance>();
 				missingPlusCommon.addAll(missingInstances);
@@ -1175,7 +1175,7 @@ public class AbstractAlgorithmFramework {
 		
 		for(ProblemInstanceSeedPair missingPisp : aMissing)
 		{
-			ProblemInstance pi = missingPisp.getInstance();
+			ProblemInstance pi = missingPisp.getProblemInstance();
 		
 			if(hallucinatedValues.get(pi) == null)
 			{
@@ -1270,7 +1270,7 @@ public class AbstractAlgorithmFramework {
 		
 		for(RunConfig rc : runConfigs)
 		{
-			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
+			Object[] args = { iteration, runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime()};
 			log.debug("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
@@ -1279,7 +1279,7 @@ public class AbstractAlgorithmFramework {
 		for(AlgorithmRun run : completedRuns)
 		{
 			RunConfig rc = run.getRunConfig();
-			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
+			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParamConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParamConfiguration()):"", rc.getParamConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
 
 			log.debug("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 		}

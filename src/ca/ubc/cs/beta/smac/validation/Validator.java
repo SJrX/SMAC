@@ -863,12 +863,12 @@ endloop:
 								public int compare(ProblemInstanceSeedPair o1,
 										ProblemInstanceSeedPair o2) {
 									
-									if(o1.getInstance().equals(o2.getInstance()))
+									if(o1.getProblemInstance().equals(o2.getProblemInstance()))
 									{
 										return (int) Math.signum(o1.getSeed() - o2.getSeed());
 									} else
 									{
-										return o1.getInstance().getInstanceID() - o2.getInstance().getInstanceID();
+										return o1.getProblemInstance().getInstanceID() - o2.getProblemInstance().getInstanceID();
 									}
 									
 									
@@ -882,7 +882,7 @@ endloop:
 					headerRow.add("Validation Configuration ID");
 					for(ProblemInstanceSeedPair pisp : pisps)
 					{
-						headerRow.add(pisp.getInstance().getInstanceName() + "," + pisp.getSeed());
+						headerRow.add(pisp.getProblemInstance().getInstanceName() + "," + pisp.getSeed());
 					}
 					
 					String[] header = headerRow.toArray(new String[0]);
@@ -982,7 +982,7 @@ endloop:
 			int maxRunLength =0;
 			for(AlgorithmRun run : runs)
 			{
-				ProblemInstance pi = run.getRunConfig().getProblemInstanceSeedPair().getInstance();
+				ProblemInstance pi = run.getRunConfig().getProblemInstanceSeedPair().getProblemInstance();
 				if(map.get(pi) == null)
 				{
 					map.put(pi, new ArrayList<AlgorithmRun>());
