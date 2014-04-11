@@ -28,10 +28,6 @@ import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionCo
 import ca.ubc.cs.beta.aeatk.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aeatk.algorithmrun.RunResult;
 import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.aeatk.configspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.AutomaticConfigurationEnd;
@@ -52,6 +48,10 @@ import ca.ubc.cs.beta.aeatk.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
 import ca.ubc.cs.beta.aeatk.objectives.RunObjective;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.aeatk.random.RandomUtil;
@@ -84,7 +84,7 @@ public class AbstractAlgorithmFramework {
 
 	protected final long applicationStartTime = System.currentTimeMillis();
 
-	protected final ParamConfigurationSpace configSpace;
+	protected final ParameterConfigurationSpace configSpace;
 	
 	protected final double cutoffTime;
 	
@@ -105,7 +105,7 @@ public class AbstractAlgorithmFramework {
 	//private final FileWriter trajectoryFileWriterCSV;
 	
 	private int iteration = 0;
-	protected ParamConfiguration incumbent = null;
+	protected ParameterConfiguration incumbent = null;
 	
 	private final int MAX_RUNS_FOR_INCUMBENT;
 	
@@ -116,7 +116,7 @@ public class AbstractAlgorithmFramework {
 	
 	protected InstanceSeedGenerator instanceSeedGen;
 	
-	private final ParamConfiguration initialIncumbent;
+	private final ParameterConfiguration initialIncumbent;
 
 	private final EventManager evtManager;
 
@@ -147,7 +147,7 @@ public class AbstractAlgorithmFramework {
 	private final String objectiveToReport;
 	
 
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
 	{
 		this.cpuTime = cpuTime;
 		this.instances = instances;
@@ -168,9 +168,9 @@ public class AbstractAlgorithmFramework {
 		this.pool = pool;
 		
 		this.termCond = termCond;
-		if(initialIncumbent.isForbiddenParamConfiguration())
+		if(initialIncumbent.isForbiddenParameterConfiguration())
 		{
-			throw new ParameterException("Initial Incumbent specified is forbidden: " + this.initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			throw new ParameterException("Initial Incumbent specified is forbidden: " + this.initialIncumbent.getFormattedParameterString(ParameterStringFormat.NODB_SYNTAX));
 		}
 		
 		
@@ -268,13 +268,13 @@ public class AbstractAlgorithmFramework {
 		return objectiveToReport;
 	}
 	
-	public ParamConfiguration getInitialIncumbent()
+	public ParameterConfiguration getInitialIncumbent()
 	{
 		return initialIncumbent;
 	}
 	
 	
-	public ParamConfiguration getIncumbent()
+	public ParameterConfiguration getIncumbent()
 	{
 		return incumbent;
 	}
@@ -559,7 +559,7 @@ public class AbstractAlgorithmFramework {
 						log.trace("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
 						fireEvent(new ModelBuildEndEvent(termCond, getModel()));
-						ArrayList<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>();
+						ArrayList<ParameterConfiguration> challengers = new ArrayList<ParameterConfiguration>();
 						challengers.addAll(selectConfigurations());
 						
 
@@ -618,7 +618,7 @@ public class AbstractAlgorithmFramework {
 	
 	
 
-	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) {
+	protected void learnModel(RunHistory runHistory, ParameterConfigurationSpace configSpace) {
 		//ROAR mode
 	}
 
@@ -630,7 +630,7 @@ public class AbstractAlgorithmFramework {
 		
 		//=== We want the last TFE
 		
-		ParamConfiguration lastIncumbent = null;
+		ParameterConfiguration lastIncumbent = null;
 		double lastEmpericalPerformance = Double.POSITIVE_INFINITY;
 		
 		double lastTestSetPerformance = Double.POSITIVE_INFINITY;
@@ -648,7 +648,7 @@ public class AbstractAlgorithmFramework {
 			
 			testSetPerformance = ents.getValue();
 			double tunerTime = tfe.getTunerTime();
-			ParamConfiguration formerIncumbent = tfe.getConfiguration();
+			ParameterConfiguration formerIncumbent = tfe.getConfiguration();
 			
 			
 			if(formerIncumbent.equals(lastIncumbent) && empiricalPerformance == lastEmpericalPerformance && lastTestSetPerformance == testSetPerformance)
@@ -754,9 +754,9 @@ public class AbstractAlgorithmFramework {
 	}
 	private int selectionCount =0;
 	
-	protected List<ParamConfiguration> selectConfigurations()
+	protected List<ParameterConfiguration> selectConfigurations()
 	{
-		ParamConfiguration config = configSpace.getRandomConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
+		ParameterConfiguration config = configSpace.getRandomParameterConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
 		log.trace("Selecting a random configuration {}", config);
 		configTracker.addConfiguration(config, "RANDOM", "SelectionCount="+selectionCount);
 		return Collections.singletonList(config);
@@ -766,7 +766,7 @@ public class AbstractAlgorithmFramework {
 	 * @param challengers - List of challengers we should check against
 	 * @param timeBound  - Amount of time we are allowed to run against (seconds)
 	 */
-	private void intensify(List<ParamConfiguration> challengers, double timeBound) 
+	private void intensify(List<ParameterConfiguration> challengers, double timeBound) 
 	{
 		double initialTime = runHistory.getTotalRunCost();
 		log.debug("Calling intensify with {} challenger(s)", challengers.size());
@@ -791,7 +791,7 @@ public class AbstractAlgorithmFramework {
 	 * Counter that controls number of attempts for challenge Incumbent to not hit the limit before giving up
 	 */
 	
-	private void challengeIncumbent(ParamConfiguration challenger)
+	private void challengeIncumbent(ParameterConfiguration challenger)
 	{
 		fireEvent(new ChallengeStartEvent(termCond, challenger));
 		this.challengeIncumbent(challenger, true);
@@ -809,7 +809,7 @@ public class AbstractAlgorithmFramework {
 	 */
 	
 	
-	private void challengeIncumbent(ParamConfiguration challenger, boolean runIncumbent) {
+	private void challengeIncumbent(ParameterConfiguration challenger, boolean runIncumbent) {
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		
 		if(runIncumbent)
@@ -992,7 +992,7 @@ public class AbstractAlgorithmFramework {
 	 * @param outstandingPispSet
 	 * @return
 	 */
-	private boolean shouldContinueChallenge(ParamConfiguration challenger, Set<ProblemInstanceSeedPair> outstandingPispSet) {
+	private boolean shouldContinueChallenge(ParameterConfiguration challenger, Set<ProblemInstanceSeedPair> outstandingPispSet) {
 		
 		//=== Get performance of incumbent and challenger on their common instances.
 		Set<ProblemInstance> piCommon = runHistory.getProblemInstancesRan(incumbent);
@@ -1035,7 +1035,7 @@ public class AbstractAlgorithmFramework {
 	}
 	
 
-	private void logConfiguration(String type, ParamConfiguration challenger) {
+	private void logConfiguration(String type, ParameterConfiguration challenger) {
 		
 		
 		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();
@@ -1052,7 +1052,7 @@ public class AbstractAlgorithmFramework {
 
 	private static double currentIncumbentCost;
 
-	private void changeIncumbentTo(ParamConfiguration challenger) {
+	private void changeIncumbentTo(ParameterConfiguration challenger) {
 	
 		Set<ProblemInstanceSeedPair> earlyCensoredPISPs = this.runHistory.getEarlyCensoredProblemInstanceSeedPairs(challenger);
 		
@@ -1119,7 +1119,7 @@ public class AbstractAlgorithmFramework {
 		}
 		
 	
-		ParamConfiguration oldIncumbent = incumbent;
+		ParameterConfiguration oldIncumbent = incumbent;
 		incumbent = challenger;
 		updateIncumbentCost();
 		log.info("Incumbent changed to: config {} (internal ID: {}), with {}: {}; estimate based on {} runs.", runHistory.getThetaIdx(challenger), challenger, objectiveToReport, currentIncumbentCost,runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger));
@@ -1130,7 +1130,7 @@ public class AbstractAlgorithmFramework {
 
 	}
 
-	private double computeCap(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
+	private double computeCap(ParameterConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
 	{
 		if(incumbentImpossibleToBeat(challenger, pisp, aMissing, instanceSet, cutofftime, bound_inc))
 		{
@@ -1139,14 +1139,14 @@ public class AbstractAlgorithmFramework {
 		return computeCapBinSearch(challenger, pisp, aMissing, instanceSet, cutofftime, bound_inc, BEST_POSSIBLE_VALUE, cutofftime);
 	}
 	
-	private boolean incumbentImpossibleToBeat(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
+	private boolean incumbentImpossibleToBeat(ParameterConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double bound_inc)
 	{
 		return (lowerBoundOnEmpiricalPerformance(challenger, pisp, aMissing, instanceSet, cutofftime, BEST_POSSIBLE_VALUE) > bound_inc);
 	}
 	
 	private static final double BEST_POSSIBLE_VALUE = 0;
 	private static final double UNCOMPETITIVE_CAPTIME = 0;
-	private double computeCapBinSearch(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> missingInstances, double cutofftime, double bound_inc,  double lowerBound, double upperBound)
+	private double computeCapBinSearch(ParameterConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> missingInstances, double cutofftime, double bound_inc,  double lowerBound, double upperBound)
 	{
 	
 		if(upperBound - lowerBound < Math.pow(10,-6))
@@ -1168,7 +1168,7 @@ public class AbstractAlgorithmFramework {
 	}
 
 	
-	private double lowerBoundOnEmpiricalPerformance(ParamConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double probe)
+	private double lowerBoundOnEmpiricalPerformance(ParameterConfiguration challenger, ProblemInstanceSeedPair pisp, List<ProblemInstanceSeedPair> aMissing, Set<ProblemInstance> instanceSet, double cutofftime, double probe)
 	{
 		
 		Map<ProblemInstance, Map<Long, Double>> hallucinatedValues = new HashMap<ProblemInstance, Map<Long, Double>>();
@@ -1210,7 +1210,7 @@ public class AbstractAlgorithmFramework {
 	 * @param configuration
 	 * @return
 	 */
-	protected AlgorithmRunConfiguration getRunConfig(ProblemInstanceSeedPair pisp, double cutofftime, ParamConfiguration configuration)
+	protected AlgorithmRunConfiguration getRunConfig(ProblemInstanceSeedPair pisp, double cutofftime, ParameterConfiguration configuration)
 	{
 		AlgorithmRunConfiguration rc =  new AlgorithmRunConfiguration(pisp, cutofftime, configuration, execConfig);
 		
@@ -1220,7 +1220,7 @@ public class AbstractAlgorithmFramework {
 	
 	private AlgorithmRunConfiguration getBoundedRunConfig(
 			ProblemInstanceSeedPair pisp, double capTime,
-			ParamConfiguration challenger) {
+			ParameterConfiguration challenger) {
 		AlgorithmRunConfiguration rc =  new AlgorithmRunConfiguration(pisp, capTime, challenger, execConfig );
 		return rc;
 	}
@@ -1291,7 +1291,7 @@ public class AbstractAlgorithmFramework {
 	}
 
 
-	public double getEmpericalPerformance(ParamConfiguration config) {
+	public double getEmpericalPerformance(ParameterConfiguration config) {
 		Set<ProblemInstance> pis = new HashSet<ProblemInstance>();
 		pis.addAll(instances);
 		return runHistory.getEmpiricalCost(config, pis, cutoffTime);
@@ -1312,7 +1312,7 @@ public class AbstractAlgorithmFramework {
 		return terminationReason;
 	}
 	
-	private String getConfigurationString(ParamConfiguration config)
+	private String getConfigurationString(ParameterConfiguration config)
 	{
 		return ((runHistory.getThetaIdx(config)!=-1) ? runHistory.getThetaIdx(config) + " (" + config.getFriendlyIDHex() + ")" :"(" +  config.getFriendlyIDHex() + ")");	
 	}

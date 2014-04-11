@@ -24,9 +24,6 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
 import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aeatk.misc.returnvalues.ACLibReturnValues;
@@ -35,6 +32,9 @@ import ca.ubc.cs.beta.aeatk.misc.version.JavaVersionInfo;
 import ca.ubc.cs.beta.aeatk.misc.version.OSVersionInfo;
 import ca.ubc.cs.beta.aeatk.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aeatk.options.AbstractOptions;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
 import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
@@ -192,7 +192,7 @@ public class ValidatorExecutor {
 			
 			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
-			ParamConfigurationSpace configSpace = execConfig.getParameterConfigurationSpace();
+			ParameterConfigurationSpace configSpace = execConfig.getParameterConfigurationSpace();
 			
 			Set<TrajectoryFile> tfes = new TreeSet<TrajectoryFile>();
 			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
@@ -229,13 +229,13 @@ public class ValidatorExecutor {
 				
 				File trajectoryFile = new File("cli");
 				
-				List<ParamConfiguration> configToValidate = new ArrayList<ParamConfiguration>(); 
+				List<ParameterConfiguration> configToValidate = new ArrayList<ParameterConfiguration>(); 
 				//==== Parse the supplied configuration;
 				int optionsSet=0;
 				if(options.incumbent != null)
 				{					
 					log.debug("Parsing Supplied Configuration");
-					configToValidate.add(configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
+					configToValidate.add(configSpace.getParameterConfigurationFromString(options.incumbent, ParameterStringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
 					optionsSet++;
 				}
 				if(options.randomConfigurations > 0)
@@ -250,7 +250,7 @@ public class ValidatorExecutor {
 							configToValidate.add(configSpace.getDefaultConfiguration());
 						} else
 						{
-							configToValidate.add(configSpace.getRandomConfiguration(configSpacePRNG));
+							configToValidate.add(configSpace.getRandomParameterConfiguration(configSpacePRNG));
 						}
 					}
 					optionsSet++;
@@ -270,7 +270,7 @@ public class ValidatorExecutor {
 						{
 							continue;
 						}
-						configToValidate.add(configSpace.getConfigurationFromString(line, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
+						configToValidate.add(configSpace.getParameterConfigurationFromString(line, ParameterStringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
 					}
 					
 					optionsSet++;
@@ -293,7 +293,7 @@ public class ValidatorExecutor {
 				
 				List<TrajectoryFileEntry> tfeList = new ArrayList<TrajectoryFileEntry>();
 				int i=0;
-				for(ParamConfiguration config : configToValidate)
+				for(ParameterConfiguration config : configToValidate)
 				{
 					tfeList.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empiricalPerformance, options.tunerOverheadTime + i));
 					

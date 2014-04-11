@@ -33,12 +33,12 @@ import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aeatk.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aeatk.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
 import ca.ubc.cs.beta.aeatk.objectives.RunObjective;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.aeatk.runhistory.NewRunHistory;
@@ -95,7 +95,7 @@ public class Validator {
 				} else
 				{
 					
-					Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
+					Set<ParameterConfiguration> configs = new HashSet<ParameterConfiguration>();
 					
 					for(AlgorithmRunConfiguration rc : runs.runConfigs)
 					{
@@ -167,7 +167,7 @@ public class Validator {
 
 				
 				Set<AlgorithmRunConfiguration> runConfigs = new LinkedHashSet<AlgorithmRunConfiguration>();
-				Set<ParamConfiguration> configs = new HashSet<ParamConfiguration>();
+				Set<ParameterConfiguration> configs = new HashSet<ParameterConfiguration>();
 				
 				final Map<WaitableTAECallback, List<AlgorithmRunConfiguration>> callbacksToSchedule = new LinkedHashMap<WaitableTAECallback, List<AlgorithmRunConfiguration>>();
 				for(ValidationRuns run : runs)
@@ -410,7 +410,7 @@ public class Validator {
 			{
 				maxTimestamp = skipList.floorKey(Double.MAX_VALUE);
 			}
-			ParamConfiguration lastConfig = null;
+			ParameterConfiguration lastConfig = null;
 			Double lastPerformance = Double.MAX_VALUE;
 			for(double x = maxTimestamp; x > options.minTimestamp ; x /= options.multFactor)
 			{
@@ -454,9 +454,9 @@ public class Validator {
 		tfesToRun.addAll(tfesToUse);
 				
 		
-		Set<ParamConfiguration> configs = new LinkedHashSet<ParamConfiguration>();
+		Set<ParameterConfiguration> configs = new LinkedHashSet<ParameterConfiguration>();
 		
-		final Map<ParamConfiguration, Integer> configToID = new LinkedHashMap<ParamConfiguration, Integer>();
+		final Map<ParameterConfiguration, Integer> configToID = new LinkedHashMap<ParameterConfiguration, Integer>();
 		
 		int id=1;
 		for(TrajectoryFileEntry tfe : tfesToRun)
@@ -507,7 +507,7 @@ public class Validator {
 				
 				try
 				{
-					Map<ParamConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, trajFile, configToID);
+					Map<ParameterConfiguration, Double> testSetPerformance = writeInstanceResultFile(runs, options, cutoffTime, runObj, intraInstanceObjective, interInstanceObjective, trajFile, configToID);
 					
 					
 					for(TrajectoryFileEntry tfe : tfesToRun)
@@ -529,7 +529,7 @@ public class Validator {
 				
 				
 				try {
-					ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns = new ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>>();
+					ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns = new ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>>();
 					
 					for(AlgorithmRun run : runs)
 					{
@@ -541,7 +541,7 @@ public class Validator {
 					}
 					
 					
-					List<ParamConfiguration> configs = new ArrayList<ParamConfiguration>();
+					List<ParameterConfiguration> configs = new ArrayList<ParameterConfiguration>();
 					
 					for(AlgorithmRun run : runs)
 					{
@@ -681,11 +681,11 @@ public class Validator {
 	
 
 
-private List<AlgorithmRunConfiguration> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime,AlgorithmExecutionConfiguration execConfig) 
+private List<AlgorithmRunConfiguration> getRunConfigs(Set<ParameterConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime,AlgorithmExecutionConfiguration execConfig) 
 {
 	
 	List<AlgorithmRunConfiguration> runConfigs  = new ArrayList<AlgorithmRunConfiguration>(pisps.size()*configs.size());
-	for(ParamConfiguration config: configs)
+	for(ParameterConfiguration config: configs)
 	{
 		for(ProblemInstanceSeedPair pisp : pisps)
 		{
@@ -773,7 +773,7 @@ endloop:
 	}
 
 	
-	private static void writeConfigurationMapFile(TrajectoryFile trajFile, ValidationOptions validationOptions,	Map<ParamConfiguration, Integer> configToID, List<AlgorithmRun> runs) throws IOException {
+	private static void writeConfigurationMapFile(TrajectoryFile trajFile, ValidationOptions validationOptions,	Map<ParameterConfiguration, Integer> configToID, List<AlgorithmRun> runs) throws IOException {
 		// TODO Auto-generated method stub
 		File f = getFile(trajFile, "validationCallStrings",validationOptions.outputFileSuffix,"csv");
 		// new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
@@ -798,7 +798,7 @@ endloop:
 		
 		//sbValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append(",\"").append(idMap.get(rc.getParamConfiguration())).append("\",\n");
 		
-		for(Entry<ParamConfiguration, Integer> ent : configToID.entrySet())
+		for(Entry<ParameterConfiguration, Integer> ent : configToID.entrySet())
 		{
 			AlgorithmRunConfiguration rc = null;
 			
@@ -810,7 +810,7 @@ endloop:
 					break;
 				}
 			}
-			String[] args = {String.valueOf(ent.getValue()), ent.getKey().getFormattedParamString(StringFormat.NODB_SYNTAX), CommandLineAlgorithmRun.getTargetAlgorithmExecutionCommandAsString( rc) };
+			String[] args = {String.valueOf(ent.getValue()), ent.getKey().getFormattedParameterString(ParameterStringFormat.NODB_SYNTAX), CommandLineAlgorithmRun.getTargetAlgorithmExecutionCommandAsString( rc) };
 			writer.writeNext(args);
 		}
 		
@@ -823,9 +823,9 @@ endloop:
 	 * @param tfes
 	 * @throws IOException 
 	 */
-	private static void writeConfigurationResultsMatrix( List<ParamConfiguration> inOrderConfigs, 
-			ConcurrentHashMap<ParamConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns,
-			List<TrajectoryFileEntry> tfes, ValidationOptions validationOptions,TrajectoryFile trajFile, RunObjective runObj, Map<ParamConfiguration, Integer> idMap) throws IOException {
+	private static void writeConfigurationResultsMatrix( List<ParameterConfiguration> inOrderConfigs, 
+			ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns,
+			List<TrajectoryFileEntry> tfes, ValidationOptions validationOptions,TrajectoryFile trajFile, RunObjective runObj, Map<ParameterConfiguration, Integer> idMap) throws IOException {
 
 
 		
@@ -842,9 +842,9 @@ endloop:
 		try {
 			List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
 
-			Set<ParamConfiguration> doneConfigs = new HashSet<ParamConfiguration>();
+			Set<ParameterConfiguration> doneConfigs = new HashSet<ParameterConfiguration>();
 			
-			for(ParamConfiguration config : inOrderConfigs)
+			for(ParameterConfiguration config : inOrderConfigs)
 			{
 				
 				if(doneConfigs.contains(config)) continue;
@@ -947,7 +947,7 @@ endloop:
 	 * @return - Overall objective over test set (For convinence)
 	 * @throws IOException
 	 */
-	private static Map<ParamConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs, ValidationOptions validationOptions, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, TrajectoryFile trajFile, Map<ParamConfiguration, Integer> configIDToMap) throws IOException 
+	private static Map<ParameterConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs, ValidationOptions validationOptions, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, TrajectoryFile trajFile, Map<ParameterConfiguration, Integer> configIDToMap) throws IOException 
 	{
 		
 		File f =  getFile(trajFile,  "validationPerformanceDebug",validationOptions.outputFileSuffix,"csv");
@@ -956,14 +956,14 @@ endloop:
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
-		Map<ParamConfiguration, Double> calculatedOverallObjectives = new LinkedHashMap<ParamConfiguration, Double>();
+		Map<ParameterConfiguration, Double> calculatedOverallObjectives = new LinkedHashMap<ParameterConfiguration, Double>();
 	
 		
-		Map<ParamConfiguration, List<AlgorithmRun>> configToRunMap = new LinkedHashMap<ParamConfiguration, List<AlgorithmRun>>();
+		Map<ParameterConfiguration, List<AlgorithmRun>> configToRunMap = new LinkedHashMap<ParameterConfiguration, List<AlgorithmRun>>();
 		
 		for(AlgorithmRun run : runs)
 		{
-			ParamConfiguration config = run.getRunConfig().getParameterConfiguration();
+			ParameterConfiguration config = run.getRunConfig().getParameterConfiguration();
 			if(configToRunMap.get(config) == null)
 			{
 				configToRunMap.put(config, new ArrayList<AlgorithmRun>(1000));
@@ -972,7 +972,7 @@ endloop:
 			
 		}
 		
-		for(Entry<ParamConfiguration, List<AlgorithmRun>> ent : configToRunMap.entrySet())
+		for(Entry<ParameterConfiguration, List<AlgorithmRun>> ent : configToRunMap.entrySet())
 		{
 			Map<ProblemInstance, List<AlgorithmRun>> map = new LinkedHashMap<ProblemInstance,List<AlgorithmRun>>();
 			
@@ -1083,7 +1083,7 @@ endloop:
 				
 	}
 	
-	private void appendInstanceResultFile(Map<TrajectoryFileEntry, Double> finalPerformance, TrajectoryFile trajFile, ValidationOptions validationOptions, boolean useWallTime,  Map<ParamConfiguration, Integer> idMap) throws IOException {
+	private void appendInstanceResultFile(Map<TrajectoryFileEntry, Double> finalPerformance, TrajectoryFile trajFile, ValidationOptions validationOptions, boolean useWallTime,  Map<ParameterConfiguration, Integer> idMap) throws IOException {
 		
 		
 		File validationFile = getFile(trajFile,  "validationResults",validationOptions.outputFileSuffix,"csv");

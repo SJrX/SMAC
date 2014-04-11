@@ -20,7 +20,6 @@ import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
-import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aeatk.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
@@ -33,6 +32,7 @@ import ca.ubc.cs.beta.aeatk.misc.version.VersionTracker;
 import ca.ubc.cs.beta.aeatk.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aeatk.options.AbstractOptions;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
 import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceOptions.TrainTestInstances;
@@ -141,7 +141,7 @@ public class SMACExecutor {
 			
 			pool.logUsage();
 			
-			ParamConfiguration incumbent = smac.getIncumbent();
+			ParameterConfiguration incumbent = smac.getIncumbent();
 			RunHistory runHistory = smac.runHistory();
 			TerminationCondition tc = smac.getTerminationCondition();
 			
