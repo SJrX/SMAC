@@ -26,7 +26,7 @@ import com.beust.jcommander.ParameterException;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
 import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aeatk.misc.returnvalues.ACLibReturnValues;
@@ -190,9 +190,9 @@ public class ValidatorExecutor {
 			//ParamConfigurationSpace configSpace = null;
 			Random configSpacePRNG = pool.getRandom(SeedableRandomPoolConstants.VALIDATE_RANDOM_CONFIG_POOL);
 			
-			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
+			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
-			ParamConfigurationSpace configSpace = execConfig.getParamFile();
+			ParamConfigurationSpace configSpace = execConfig.getParameterConfigurationSpace();
 			
 			Set<TrajectoryFile> tfes = new TreeSet<TrajectoryFile>();
 			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)

@@ -27,7 +27,7 @@ import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.state.StateRestoredEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.handlers.LogRuntimeStatistics;
-import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.initialization.classic.ClassicInitializationProcedure;
 import ca.ubc.cs.beta.aeatk.initialization.doublingcapping.DoublingCappingInitializationProcedure;
@@ -93,12 +93,12 @@ public class SMACBuilder {
 		}
 		
 	};
-	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfig execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool)
+	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfiguration execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool)
 	{
 		return this.getAutomaticConfigurator(execConfig, trainingILWS, options, taeOptions, outputDir, pool, null, null);
 	}
 	
-	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfig execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool, TargetAlgorithmEvaluator oTAE, RunHistory oRHModel)
+	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfiguration execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool, TargetAlgorithmEvaluator oTAE, RunHistory oRHModel)
 	{	
 		CPUTime cpuTime = new CPUTime();
 		
@@ -138,7 +138,7 @@ public class SMACBuilder {
 		}
 		
 		
-		ParamConfigurationSpace configSpace = execConfig.getParamFile();
+		ParamConfigurationSpace configSpace = execConfig.getParameterConfigurationSpace();
 		
 		double configSpaceSize = configSpace.getUpperBoundOnSize();
 	
@@ -213,7 +213,7 @@ public class SMACBuilder {
 		onEvents.add(IterationStartEvent.class);
 		onEvents.add(AutomaticConfigurationEnd.class);
 		
-		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime(),tae,false, cpuTime, onEvents);
+		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmMaximumCutoffTime(),tae,false, cpuTime, onEvents);
 		termCond.registerWithEventManager(eventManager);	
 		eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
@@ -233,20 +233,20 @@ public class SMACBuilder {
 		
 		InitializationProcedure initProc;
 		
-		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
+		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmMaximumCutoffTime());
 		
 		switch(options.initializationMode)
 		{
 			case CLASSIC:
-				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, execConfig);
+				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, execConfig);
 				break;
 			
 			case ITERATIVE_CAPPING:
-				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper, execConfig);
+				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper, execConfig);
 				break;
 				
 			case UNBIASED_TABLE:
-				initProc = new UnbiasChallengerInitializationProcedure(rh, initialIncumbent, acTae, execConfig, options.ucip, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
+				initProc = new UnbiasChallengerInitializationProcedure(rh, initialIncumbent, acTae, execConfig, options.ucip, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
 				break;
 				
 			default:
@@ -347,7 +347,7 @@ public class SMACBuilder {
 	}
 	
 	
-	private void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig, RunHistory rh) {
+	private void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfiguration execConfig, RunHistory rh) {
 		
 		if(options.stateOpts.restoreIteration < 0)
 		{

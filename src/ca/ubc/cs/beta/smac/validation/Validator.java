@@ -35,7 +35,7 @@ import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
 import ca.ubc.cs.beta.aeatk.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aeatk.exceptions.DuplicateRunException;
-import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
 import ca.ubc.cs.beta.aeatk.objectives.RunObjective;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
@@ -74,7 +74,7 @@ public class Validator {
 	public SortedMap<TrajectoryFileEntry, Double>  simpleValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
 			final String outputDir,
 			final RunObjective runObj,
-			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  TrajectoryFile trajFile, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
+			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  TrajectoryFile trajFile, boolean waitForRuns, int cores, AlgorithmExecutionConfiguration execConfig) 
 			{
 
 				if(options.useWallClockTime)
@@ -141,7 +141,7 @@ public class Validator {
 
 	public void  multiValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae,
 			final RunObjective runObj,
-			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final Set<TrajectoryFile> tfes, boolean waitForRuns, int cores, AlgorithmExecutionConfig execConfig) 
+			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final Set<TrajectoryFile> tfes, boolean waitForRuns, int cores, AlgorithmExecutionConfiguration execConfig) 
 			{
 		
 		
@@ -326,7 +326,7 @@ public class Validator {
 
 //		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, AlgorithmExecutionConfig execConfig,int cores) 
 
-		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final TrajectoryFile trajFile, AlgorithmExecutionConfig execConfig) 
+		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final TrajectoryFile trajFile, AlgorithmExecutionConfiguration execConfig) 
 
 		{
 
@@ -681,7 +681,7 @@ public class Validator {
 	
 
 
-private List<RunConfig> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime,AlgorithmExecutionConfig execConfig) 
+private List<RunConfig> getRunConfigs(Set<ParamConfiguration> configs, List<ProblemInstanceSeedPair> pisps, double cutoffTime,AlgorithmExecutionConfiguration execConfig) 
 {
 	
 	List<RunConfig> runConfigs  = new ArrayList<RunConfig>(pisps.size()*configs.size());

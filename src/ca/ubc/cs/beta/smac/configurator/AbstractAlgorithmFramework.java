@@ -43,7 +43,7 @@ import ca.ubc.cs.beta.aeatk.eventsystem.events.state.StateRestoredEvent;
 import ca.ubc.cs.beta.aeatk.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aeatk.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aeatk.exceptions.OutOfTimeException;
-import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.misc.MapList;
 import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
@@ -140,14 +140,14 @@ public class AbstractAlgorithmFramework {
 	 */
 	private final AtomicBoolean shouldWriteStateOnCrash = new AtomicBoolean(false);
 	
-	private final AlgorithmExecutionConfig execConfig;
+	private final AlgorithmExecutionConfiguration execConfig;
 
 	private final CPUTime cpuTime;
 	
 	private final String objectiveToReport;
 	
 
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfig execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
 	{
 		this.cpuTime = cpuTime;
 		this.instances = instances;

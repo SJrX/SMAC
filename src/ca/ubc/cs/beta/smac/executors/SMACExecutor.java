@@ -22,7 +22,7 @@ import org.slf4j.MarkerFactory;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aeatk.exceptions.TrajectoryDivergenceException;
-import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
 import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
 import ca.ubc.cs.beta.aeatk.misc.returnvalues.ACLibReturnValues;
@@ -126,7 +126,7 @@ public class SMACExecutor {
 			SMACBuilder smacBuilder = new SMACBuilder();
 			
 			//EventManager eventManager = smacBuilder.getEventManager();
-			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
+			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
 			AbstractAlgorithmFramework smac;
 			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);

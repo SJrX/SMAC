@@ -19,7 +19,7 @@ import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aeatk.configspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
-import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfig;
+import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.misc.associatedvalue.ParamWithEI;
 import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
@@ -78,7 +78,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	private final RunHistory modelRunHistory;
 
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, AlgorithmExecutionConfig execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
 		super(smacConfig,execConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc,cpuTime);
 
 		numPCA = smacConfig.numPCA;
