@@ -24,7 +24,7 @@ import ca.ubc.cs.beta.aeatk.exceptions.StateSerializationException;
 import ca.ubc.cs.beta.aeatk.exceptions.TrajectoryDivergenceException;
 import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
 import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
-import ca.ubc.cs.beta.aeatk.misc.returnvalues.ACLibReturnValues;
+import ca.ubc.cs.beta.aeatk.misc.returnvalues.AEATKReturnValues;
 import ca.ubc.cs.beta.aeatk.misc.spi.SPIClassLoaderHelper;
 import ca.ubc.cs.beta.aeatk.misc.version.JavaVersionInfo;
 import ca.ubc.cs.beta.aeatk.misc.version.OSVersionInfo;
@@ -272,7 +272,7 @@ public class SMACExecutor {
 			
 			
 			
-			return ACLibReturnValues.SUCCESS;
+			return AEATKReturnValues.SUCCESS;
 		} catch(Throwable t)
 		{
 			System.out.flush();
@@ -344,20 +344,20 @@ public class SMACExecutor {
 				
 				if(t instanceof ParameterException)
 				{
-					return ACLibReturnValues.PARAMETER_EXCEPTION;
+					return AEATKReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 				if(t instanceof StateSerializationException)
 				{
-					return ACLibReturnValues.SERIALIZATION_EXCEPTION;
+					return AEATKReturnValues.SERIALIZATION_EXCEPTION;
 				}
 				
 				if(t instanceof TrajectoryDivergenceException)
 				{
-					return ACLibReturnValues.TRAJECTORY_DIVERGENCE;
+					return AEATKReturnValues.TRAJECTORY_DIVERGENCE;
 				}
 				
-				return ACLibReturnValues.OTHER_EXCEPTION;
+				return AEATKReturnValues.OTHER_EXCEPTION;
 		}
 		
 		

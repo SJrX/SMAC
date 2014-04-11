@@ -74,7 +74,7 @@
 			<!--<fileset dir="${software.dir}/fastrf/" id="fastrf">
 				<include name="fastrf.jar"/>
 			</fileset>-->
-			<fileset dir="${software.dir}/aclib-${git.branch}/" id="aclib">
+			<fileset dir="${software.dir}/aeatk-${git.branch}/" id="aeatk">
 				<include name="**/*"/>
 				
 			</fileset>
@@ -138,7 +138,7 @@
 		<copy todir="dist/lib/" force="true">
 			<fileset refid="lib"/>
 					<!--<fileset refid="fastrf"/>-->
-			<fileset refid="aclib"/>
+			<fileset refid="aeatk"/>
 		</copy>
 		
 		<move file="dist/lib/example_scripts/" todir="dist/" force="true"/>
@@ -155,59 +155,59 @@
 		<mkdir dir="dist/plugins"/>
 				
 				
-		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aeatk.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.smac.ValidationExecutorOptions"/>
+			<arg value="ca.ubc.cs.beta.aeatk.smac.ValidationExecutorOptions"/>
 			<arg value="--commandName"/>
 			<arg value="smac-validate"/>
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
-		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aeatk.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+			<arg value="ca.ubc.cs.beta.aeatk.smac.SMACOptions"/>
 			<arg value="--commandName"/>
 			<arg value="smac"/>
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
-		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aeatk.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunnerOptions"/>
+			<arg value="ca.ubc.cs.beta.aeatk.example.tae.TargetAlgorithmEvaluatorRunnerOptions"/>
 			<arg value="--commandName"/>
 			<arg value="algo-test"/>
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
-		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aeatk.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.satisfiabilitychecker.SatisfiabilityCheckerOptions"/>
+			<arg value="ca.ubc.cs.beta.aeatk.example.satisfiabilitychecker.SatisfiabilityCheckerOptions"/>
 			<arg value="--commandName"/>
 			<arg value="sat-check"/>
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
-		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aeatk.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioOptions"/>
+			<arg value="ca.ubc.cs.beta.aeatk.example.verifyscenario.VerifyScenarioOptions"/>
 			<arg value="--commandName"/>
 			<arg value="verify-scenario"/>
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
-		<java classname="ca.ubc.cs.beta.aclib.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
+		<java classname="ca.ubc.cs.beta.aeatk.misc.bashcompletion.BashCompletion" failonerror="true" classpathref="compile.classpath" fork="true">	
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.statemerge.StateMergeOptions"/>
+			<arg value="ca.ubc.cs.beta.aeatk.example.statemerge.StateMergeOptions"/>
 			<arg value="--commandName"/>
 			<arg value="state-merge"/>
 			<arg value="--outputFile"/>
 			<arg value="dist/util/bash_autocomplete.sh"/>
 		</java>
 		
-		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.smac.executors.SMACExecutor"/>
 			<arg value="--name"/>
@@ -219,17 +219,17 @@
 			<arg value="--print-mem"/>
 			<arg value="false"/>
 		</java>
-		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.tae.TargetAlgorithmEvaluatorRunner"/>
+			<arg value="ca.ubc.cs.beta.aeatk.example.tae.TargetAlgorithmEvaluatorRunner"/>
 			<arg value="--name"/>
 			<arg value="algo-test"/>
 			<arg value="--file-to-write"/>
 			<arg value="dist/"/>	
 		</java>
-		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.satisfiabilitychecker.SatisfiabilityChecker"/>
+			<arg value="ca.ubc.cs.beta.aeatk.example.satisfiabilitychecker.SatisfiabilityChecker"/>
 			<arg value="--name"/>
 			<arg value="sat-check"/>
 			<arg value="--file-to-write"/>
@@ -237,7 +237,7 @@
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
 		</java>
-		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.smac.executors.ValidatorExecutor"/>
 			<arg value="--name"/>
@@ -249,9 +249,9 @@
 			<arg value="--print-mem"/>
 			<arg value="false"/>
 		</java>
-		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aclib.example.statemerge.StateMergeExecutor"/>
+			<arg value="ca.ubc.cs.beta.aeatk.example.statemerge.StateMergeExecutor"/>
 			<arg value="--name"/>
 			<arg value="state-merge"/>
 			<arg value="--file-to-write"/>
@@ -261,9 +261,9 @@
 		</java>
 		
 		
-		<java classname="ca.ubc.cs.beta.aclib.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 					<arg value="--class"/>
-					<arg value="ca.ubc.cs.beta.aclib.example.verifyscenario.VerifyScenarioExecutor"/>
+					<arg value="ca.ubc.cs.beta.aeatk.example.verifyscenario.VerifyScenarioExecutor"/>
 					<arg value="--name"/>
 					<arg value="verify-scenario"/>
 					<arg value="--file-to-write"/>
@@ -381,12 +381,12 @@
 		
 		
 		<!-- Something with the warning we generate has caused this to require forking, no idea why -->
-		<!--<java classname="ca.ubc.cs.beta.aclib.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" fork="true" output="${doc.buildpath}/options-ref.tex">
+		<!--<java classname="ca.ubc.cs.beta.aeatk.options.ConfigToLaTeX" failonerror="true" classpathref="compile.classpath" fork="true" output="${doc.buildpath}/options-ref.tex">
 		</java>-->
 		
-		<java classname="ca.ubc.cs.beta.aclib.options.docgen.OptionsToLaTeX" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.options.docgen.OptionsToLaTeX" failonerror="true" classpathref="build.classpath" fork="true">
 					<arg value="--class"/>
-					<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+					<arg value="ca.ubc.cs.beta.aeatk.smac.SMACOptions"/>
 					<arg value="--file-to-write"/>
 					<arg value="${doc.buildpath}/options-basic-ref.tex"/>
 					<arg value="--level"/>
@@ -396,9 +396,9 @@
 		</java>
 				
 		
-		<java classname="ca.ubc.cs.beta.aclib.options.docgen.OptionsToLaTeX" failonerror="true" classpathref="build.classpath" fork="true">
+		<java classname="ca.ubc.cs.beta.aeatk.options.docgen.OptionsToLaTeX" failonerror="true" classpathref="build.classpath" fork="true">
 					<arg value="--class"/>
-					<arg value="ca.ubc.cs.beta.aclib.smac.SMACOptions"/>
+					<arg value="ca.ubc.cs.beta.aeatk.smac.SMACOptions"/>
 					<arg value="--file-to-write"/>
 					<arg value="${doc.buildpath}/options-ref.tex"/>	
 		</java>

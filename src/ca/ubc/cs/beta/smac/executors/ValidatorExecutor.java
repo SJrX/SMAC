@@ -26,7 +26,7 @@ import com.beust.jcommander.ParameterException;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
 import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
-import ca.ubc.cs.beta.aeatk.misc.returnvalues.ACLibReturnValues;
+import ca.ubc.cs.beta.aeatk.misc.returnvalues.AEATKReturnValues;
 import ca.ubc.cs.beta.aeatk.misc.spi.SPIClassLoaderHelper;
 import ca.ubc.cs.beta.aeatk.misc.version.JavaVersionInfo;
 import ca.ubc.cs.beta.aeatk.misc.version.OSVersionInfo;
@@ -344,12 +344,12 @@ public class ValidatorExecutor {
 			
 			log.info("Validation Completed Successfully");
 			
-			System.exit(ACLibReturnValues.SUCCESS);
+			System.exit(AEATKReturnValues.SUCCESS);
 			
 		} catch(Throwable t)
 		{
 
-			int returnValue = ACLibReturnValues.OTHER_EXCEPTION;
+			int returnValue = AEATKReturnValues.OTHER_EXCEPTION;
 			if(log != null)
 			{
 				
@@ -367,7 +367,7 @@ public class ValidatorExecutor {
 					PrintWriter writer = new PrintWriter(sWriter);
 					t.printStackTrace(writer);
 					log.error(stackTrace, "StackTrace:{}",sWriter.toString());
-					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
+					returnValue = AEATKReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 				
@@ -378,11 +378,11 @@ public class ValidatorExecutor {
 			{
 				if(t instanceof ParameterException )
 				{
-					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
+					returnValue = AEATKReturnValues.PARAMETER_EXCEPTION;
 					System.err.println(t.getMessage());
 				} else
 				{
-					returnValue = ACLibReturnValues.OTHER_EXCEPTION;
+					returnValue = AEATKReturnValues.OTHER_EXCEPTION;
 					t.printStackTrace();
 				}
 				
