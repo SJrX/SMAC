@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.ParameterException;
 
 import ca.ubc.cs.beta.aeatk.acquisitionfunctions.AcquisitionFunctions;
+import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfigurationSpace;
 import ca.ubc.cs.beta.aeatk.configspace.ParamConfiguration.StringFormat;
@@ -27,7 +28,6 @@ import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.state.StateRestoredEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.handlers.LogRuntimeStatistics;
-import ca.ubc.cs.beta.aeatk.execconfig.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.initialization.classic.ClassicInitializationProcedure;
 import ca.ubc.cs.beta.aeatk.initialization.doublingcapping.DoublingCappingInitializationProcedure;
