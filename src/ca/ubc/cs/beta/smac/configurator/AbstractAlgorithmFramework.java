@@ -25,9 +25,9 @@ import org.slf4j.LoggerFactory;
 import com.beust.jcommander.ParameterException;
 
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
-import ca.ubc.cs.beta.aeatk.algorithmrun.AlgorithmRun;
-import ca.ubc.cs.beta.aeatk.algorithmrun.RunResult;
 import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
+import ca.ubc.cs.beta.aeatk.algorithmrunresult.AlgorithmRunResult;
+import ca.ubc.cs.beta.aeatk.algorithmrunresult.RunStatus;
 import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.AutomaticConfigurationEnd;
@@ -339,10 +339,10 @@ public class AbstractAlgorithmFramework {
 		}
 		
 		Set<ProblemInstanceSeedPair> allPisps = new HashSet<ProblemInstanceSeedPair>();
-		for(AlgorithmRun run : runHistory.getAlgorithmRunsExcludingRedundant())
+		for(AlgorithmRunResult run : runHistory.getAlgorithmRunsExcludingRedundant())
 		{
-			ProblemInstanceSeedPair pisp = run.getRunConfig().getProblemInstanceSeedPair();
-			allPisps.add(run.getRunConfig().getProblemInstanceSeedPair());
+			ProblemInstanceSeedPair pisp = run.getAlgorithmRunConfiguration().getProblemInstanceSeedPair();
+			allPisps.add(run.getAlgorithmRunConfiguration().getProblemInstanceSeedPair());
 			log.trace("Blacklisting problem instance seed pair: {} ", pisp);
 			this.instanceSeedGen.take(pisp.getProblemInstance(), pisp.getSeed());
 		}
@@ -356,7 +356,7 @@ public class AbstractAlgorithmFramework {
 		
 		tae.seek(runHistory.getAlgorithmRunsIncludingRedundant());
 		
-		for(AlgorithmRun run: runHistory.getAlgorithmRunsIncludingRedundant())
+		for(AlgorithmRunResult run: runHistory.getAlgorithmRunsIncludingRedundant())
 		{
 			termCond.notifyRun(run);
 		}
@@ -1231,9 +1231,9 @@ public class AbstractAlgorithmFramework {
 	 * 
 	 * @return the input parameter (unmodified, simply for syntactic convience)
 	 */
-	protected List<AlgorithmRun> updateRunHistory(List<AlgorithmRun> runs)
+	protected List<AlgorithmRunResult> updateRunHistory(List<AlgorithmRunResult> runs)
 	{
-		for(AlgorithmRun run : runs)
+		for(AlgorithmRunResult run : runs)
 		{
 			try {
 					runHistory.append(run);
@@ -1250,7 +1250,7 @@ public class AbstractAlgorithmFramework {
 	 * @param runConfig
 	 * @return
 	 */
-	protected List<AlgorithmRun> evaluateRun(AlgorithmRunConfiguration runConfig)
+	protected List<AlgorithmRunResult> evaluateRun(AlgorithmRunConfiguration runConfig)
 	{
 		return evaluateRun(Collections.singletonList(runConfig));
 	}
@@ -1260,7 +1260,7 @@ public class AbstractAlgorithmFramework {
 	 * @param runConfigs
 	 * @return
 	 */
-	protected List<AlgorithmRun> evaluateRun(List<AlgorithmRunConfiguration> runConfigs)
+	protected List<AlgorithmRunResult> evaluateRun(List<AlgorithmRunConfiguration> runConfigs)
 	{
 		if (have_to_stop(iteration)){
 			log.debug("Cannot schedule any more runs, out of time");
@@ -1274,12 +1274,12 @@ public class AbstractAlgorithmFramework {
 			log.debug("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
-		List<AlgorithmRun> completedRuns = tae.evaluateRun(runConfigs);
+		List<AlgorithmRunResult> completedRuns = tae.evaluateRun(runConfigs);
 		
-		for(AlgorithmRun run : completedRuns)
+		for(AlgorithmRunResult run : completedRuns)
 		{
-			AlgorithmRunConfiguration rc = run.getRunConfig();
-			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParameterConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParameterConfiguration()):"", rc.getParameterConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunResult(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
+			AlgorithmRunConfiguration rc = run.getAlgorithmRunConfiguration();
+			Object[] args = { iteration,  runHistory.getThetaIdx(rc.getParameterConfiguration())!=-1?" "+runHistory.getThetaIdx(rc.getParameterConfiguration()):"", rc.getParameterConfiguration(), rc.getProblemInstanceSeedPair().getProblemInstance().getInstanceID(),  rc.getProblemInstanceSeedPair().getSeed(), rc.getCutoffTime(), run.getRunStatus(), options.scenarioConfig.getRunObjective().getObjective(run), run.getWallclockExecutionTime()};
 
 			log.debug("Iteration {}: Completed run for config{} ({}) on instance {} with seed {} and captime {} => Result: {}, response: {}, wallclock time: {} seconds", args);
 		}

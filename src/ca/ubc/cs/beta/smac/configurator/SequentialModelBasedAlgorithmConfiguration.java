@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import ca.ubc.cs.beta.aeatk.acquisitionfunctions.AcquisitionFunction;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
-import ca.ubc.cs.beta.aeatk.algorithmrun.AlgorithmRun;
+import ca.ubc.cs.beta.aeatk.algorithmrunresult.AlgorithmRunResult;
 import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.misc.associatedvalue.ParamWithEI;
@@ -190,7 +190,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		
-		List<AlgorithmRun> runs = runHistory.getAlgorithmRunsExcludingRedundant();
+		List<AlgorithmRunResult> runs = runHistory.getAlgorithmRunsExcludingRedundant();
 		double[] runResponseValues = RunHistoryHelper.getRunResponseValues(runs, runHistory.getRunObjective());
 		boolean[] censored = RunHistoryHelper.getCensoredEarlyFlagForRuns(runs);
 		

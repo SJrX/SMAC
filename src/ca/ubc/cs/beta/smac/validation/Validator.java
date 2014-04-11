@@ -31,8 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
-import ca.ubc.cs.beta.aeatk.algorithmrun.AlgorithmRun;
 import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
+import ca.ubc.cs.beta.aeatk.algorithmrunresult.AlgorithmRunResult;
 import ca.ubc.cs.beta.aeatk.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aeatk.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
@@ -211,19 +211,19 @@ public class Validator {
 				{
 
 					@Override
-					public void onSuccess(List<AlgorithmRun> runs) {
+					public void onSuccess(List<AlgorithmRunResult> runs) {
 						
-						Map<AlgorithmRunConfiguration, AlgorithmRun> runsToRunConfig = new HashMap<AlgorithmRunConfiguration, AlgorithmRun>();
+						Map<AlgorithmRunConfiguration, AlgorithmRunResult> runsToRunConfig = new HashMap<AlgorithmRunConfiguration, AlgorithmRunResult>();
 						
-						for(AlgorithmRun run : runs)
+						for(AlgorithmRunResult run : runs)
 						{
-							runsToRunConfig.put(run.getRunConfig(),run);
+							runsToRunConfig.put(run.getAlgorithmRunConfiguration(),run);
 						}
 						
 						for(Entry<WaitableTAECallback, List<AlgorithmRunConfiguration>> ent : callbacksToSchedule.entrySet())
 						{
 						
-							List<AlgorithmRun> runsToNotify = new ArrayList<AlgorithmRun>();
+							List<AlgorithmRunResult> runsToNotify = new ArrayList<AlgorithmRunResult>();
 							for(AlgorithmRunConfiguration rc : ent.getValue())
 							{
 								runsToNotify.add(runsToRunConfig.get(rc));
@@ -484,7 +484,7 @@ public class Validator {
 		{
 
 			@Override
-			public void onSuccess(List<AlgorithmRun> runs) {
+			public void onSuccess(List<AlgorithmRunResult> runs) {
 				// TODO Auto-generated method stub
 				
 				
@@ -529,24 +529,24 @@ public class Validator {
 				
 				
 				try {
-					ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns = new ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>>();
+					ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRunResult>> matrixRuns = new ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRunResult>>();
 					
-					for(AlgorithmRun run : runs)
+					for(AlgorithmRunResult run : runs)
 					{
-						matrixRuns.putIfAbsent(run.getRunConfig().getParameterConfiguration(), new HashMap<ProblemInstanceSeedPair, AlgorithmRun>());
+						matrixRuns.putIfAbsent(run.getAlgorithmRunConfiguration().getParameterConfiguration(), new HashMap<ProblemInstanceSeedPair, AlgorithmRunResult>());
 						
-						Map<ProblemInstanceSeedPair, AlgorithmRun> configRuns = matrixRuns.get(run.getRunConfig().getParameterConfiguration());
+						Map<ProblemInstanceSeedPair, AlgorithmRunResult> configRuns = matrixRuns.get(run.getAlgorithmRunConfiguration().getParameterConfiguration());
 						
-						configRuns.put(run.getRunConfig().getProblemInstanceSeedPair(), run);
+						configRuns.put(run.getAlgorithmRunConfiguration().getProblemInstanceSeedPair(), run);
 					}
 					
 					
 					List<ParameterConfiguration> configs = new ArrayList<ParameterConfiguration>();
 					
-					for(AlgorithmRun run : runs)
+					for(AlgorithmRunResult run : runs)
 					{
-						if(configs.contains(run.getRunConfig().getParameterConfiguration())) continue;
-						configs.add(run.getRunConfig().getParameterConfiguration());
+						if(configs.contains(run.getAlgorithmRunConfiguration().getParameterConfiguration())) continue;
+						configs.add(run.getAlgorithmRunConfiguration().getParameterConfiguration());
 					}
 					
 					
@@ -773,7 +773,7 @@ endloop:
 	}
 
 	
-	private static void writeConfigurationMapFile(TrajectoryFile trajFile, ValidationOptions validationOptions,	Map<ParameterConfiguration, Integer> configToID, List<AlgorithmRun> runs) throws IOException {
+	private static void writeConfigurationMapFile(TrajectoryFile trajFile, ValidationOptions validationOptions,	Map<ParameterConfiguration, Integer> configToID, List<AlgorithmRunResult> runs) throws IOException {
 		// TODO Auto-generated method stub
 		File f = getFile(trajFile, "validationCallStrings",validationOptions.outputFileSuffix,"csv");
 		// new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
@@ -802,11 +802,11 @@ endloop:
 		{
 			AlgorithmRunConfiguration rc = null;
 			
-			for(AlgorithmRun run : runs)
+			for(AlgorithmRunResult run : runs)
 			{
-				if (run.getRunConfig().getParameterConfiguration().equals(ent.getKey()))
+				if (run.getAlgorithmRunConfiguration().getParameterConfiguration().equals(ent.getKey()))
 				{
-					rc = run.getRunConfig();
+					rc = run.getAlgorithmRunConfiguration();
 					break;
 				}
 			}
@@ -824,7 +824,7 @@ endloop:
 	 * @throws IOException 
 	 */
 	private static void writeConfigurationResultsMatrix( List<ParameterConfiguration> inOrderConfigs, 
-			ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRun>> matrixRuns,
+			ConcurrentHashMap<ParameterConfiguration, Map<ProblemInstanceSeedPair, AlgorithmRunResult>> matrixRuns,
 			List<TrajectoryFileEntry> tfes, ValidationOptions validationOptions,TrajectoryFile trajFile, RunObjective runObj, Map<ParameterConfiguration, Integer> idMap) throws IOException {
 
 
@@ -849,7 +849,7 @@ endloop:
 				
 				if(doneConfigs.contains(config)) continue;
 				doneConfigs.add(config);
-				Map<ProblemInstanceSeedPair, AlgorithmRun> runs = matrixRuns.get(config);
+				Map<ProblemInstanceSeedPair, AlgorithmRunResult> runs = matrixRuns.get(config);
 	
 				if(runs == null) continue;
 				if(pisps.isEmpty())
@@ -901,13 +901,13 @@ endloop:
 				
 				for(ProblemInstanceSeedPair pisp : pisps)
 				{
-					AlgorithmRun run = runs.get(pisp);
+					AlgorithmRunResult run = runs.get(pisp);
 					if(run == null)
 					{
 						throw new IllegalStateException("Expected all configurations to have the exact same pisps");
 					}
 					
-					if(!run.getRunConfig().getProblemInstanceSeedPair().equals(pisp))
+					if(!run.getAlgorithmRunConfiguration().getProblemInstanceSeedPair().equals(pisp))
 					{
 						throw new IllegalStateException("DataStructure corruption detected ");
 					}
@@ -947,7 +947,7 @@ endloop:
 	 * @return - Overall objective over test set (For convinence)
 	 * @throws IOException
 	 */
-	private static Map<ParameterConfiguration, Double> writeInstanceResultFile(List<AlgorithmRun> runs, ValidationOptions validationOptions, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, TrajectoryFile trajFile, Map<ParameterConfiguration, Integer> configIDToMap) throws IOException 
+	private static Map<ParameterConfiguration, Double> writeInstanceResultFile(List<AlgorithmRunResult> runs, ValidationOptions validationOptions, double cutoffTime,  RunObjective runObj, OverallObjective intraInstanceObjective, OverallObjective interInstanceObjective, TrajectoryFile trajFile, Map<ParameterConfiguration, Integer> configIDToMap) throws IOException 
 	{
 		
 		File f =  getFile(trajFile,  "validationPerformanceDebug",validationOptions.outputFileSuffix,"csv");
@@ -959,36 +959,36 @@ endloop:
 		Map<ParameterConfiguration, Double> calculatedOverallObjectives = new LinkedHashMap<ParameterConfiguration, Double>();
 	
 		
-		Map<ParameterConfiguration, List<AlgorithmRun>> configToRunMap = new LinkedHashMap<ParameterConfiguration, List<AlgorithmRun>>();
+		Map<ParameterConfiguration, List<AlgorithmRunResult>> configToRunMap = new LinkedHashMap<ParameterConfiguration, List<AlgorithmRunResult>>();
 		
-		for(AlgorithmRun run : runs)
+		for(AlgorithmRunResult run : runs)
 		{
-			ParameterConfiguration config = run.getRunConfig().getParameterConfiguration();
+			ParameterConfiguration config = run.getAlgorithmRunConfiguration().getParameterConfiguration();
 			if(configToRunMap.get(config) == null)
 			{
-				configToRunMap.put(config, new ArrayList<AlgorithmRun>(1000));
+				configToRunMap.put(config, new ArrayList<AlgorithmRunResult>(1000));
 			}
 			configToRunMap.get(config).add(run);
 			
 		}
 		
-		for(Entry<ParameterConfiguration, List<AlgorithmRun>> ent : configToRunMap.entrySet())
+		for(Entry<ParameterConfiguration, List<AlgorithmRunResult>> ent : configToRunMap.entrySet())
 		{
-			Map<ProblemInstance, List<AlgorithmRun>> map = new LinkedHashMap<ProblemInstance,List<AlgorithmRun>>();
+			Map<ProblemInstance, List<AlgorithmRunResult>> map = new LinkedHashMap<ProblemInstance,List<AlgorithmRunResult>>();
 			
 			runs = ent.getValue();
 			
 			
 			int maxRunLength =0;
-			for(AlgorithmRun run : runs)
+			for(AlgorithmRunResult run : runs)
 			{
-				ProblemInstance pi = run.getRunConfig().getProblemInstanceSeedPair().getProblemInstance();
+				ProblemInstance pi = run.getAlgorithmRunConfiguration().getProblemInstanceSeedPair().getProblemInstance();
 				if(map.get(pi) == null)
 				{
-					map.put(pi, new ArrayList<AlgorithmRun>());
+					map.put(pi, new ArrayList<AlgorithmRunResult>());
 				}
 				
-				List<AlgorithmRun> myRuns = map.get(pi);
+				List<AlgorithmRunResult> myRuns = map.get(pi);
 				
 				
 				myRuns.add(run);
@@ -1013,12 +1013,12 @@ endloop:
 			List<Double> overallObjectives = new ArrayList<Double>();
 			
 			
-			for(Entry<ProblemInstance, List<AlgorithmRun>> piRuns : map.entrySet())
+			for(Entry<ProblemInstance, List<AlgorithmRunResult>> piRuns : map.entrySet())
 			{
 				List<String> outputLine = new ArrayList<String>();
 				outputLine.add("");
 				outputLine.add(piRuns.getKey().getInstanceName());
-				List<AlgorithmRun> myRuns = piRuns.getValue();
+				List<AlgorithmRunResult> myRuns = piRuns.getValue();
 				
 				
 	
@@ -1033,7 +1033,7 @@ endloop:
 				outputLine.add(String.valueOf(overallResult));
 				
 				overallObjectives.add(overallResult);
-				for(AlgorithmRun run : piRuns.getValue())
+				for(AlgorithmRunResult run : piRuns.getValue())
 				{
 					outputLine.add(String.valueOf(runObj.getObjective(run)));
 				}
@@ -1139,10 +1139,10 @@ endloop:
 		
 }
 	
-	private static void writeLegacyStateFile( String suffix, List<AlgorithmRun> runs, TrajectoryFile trajFile, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
+	private static void writeLegacyStateFile( String suffix, List<AlgorithmRunResult> runs, TrajectoryFile trajFile, OverallObjective interRunObjective, OverallObjective intraRunObjective, RunObjective runObj)
 	{
 		RunHistory rh = new NewRunHistory( interRunObjective, intraRunObjective, runObj);
-		for(AlgorithmRun run : runs)
+		for(AlgorithmRunResult run : runs)
 		{
 			try {
 				rh.append(run);
