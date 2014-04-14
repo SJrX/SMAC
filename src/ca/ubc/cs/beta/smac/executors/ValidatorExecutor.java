@@ -5,10 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -18,8 +15,6 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
@@ -37,9 +32,9 @@ import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSp
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
 import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPoolConstants;
-import ca.ubc.cs.beta.aeatk.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.smac.ValidationExecutorOptions;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;

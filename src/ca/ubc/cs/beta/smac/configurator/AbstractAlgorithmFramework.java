@@ -3,20 +3,15 @@ package ca.ubc.cs.beta.smac.configurator;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.Set;
 import java.util.SortedMap;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -27,7 +22,6 @@ import com.beust.jcommander.ParameterException;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
 import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
 import ca.ubc.cs.beta.aeatk.algorithmrunresult.AlgorithmRunResult;
-import ca.ubc.cs.beta.aeatk.algorithmrunresult.RunStatus;
 import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.AutomaticConfiguratorEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.AutomaticConfigurationEnd;
@@ -38,29 +32,26 @@ import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.IterationStartEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildEndEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildStartEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.events.state.StateRestoredEvent;
-import ca.ubc.cs.beta.aeatk.exceptions.DeveloperMadeABooBooException;
 import ca.ubc.cs.beta.aeatk.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aeatk.exceptions.OutOfTimeException;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
-import ca.ubc.cs.beta.aeatk.misc.MapList;
 import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
 import ca.ubc.cs.beta.aeatk.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
 import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
-import ca.ubc.cs.beta.aeatk.objectives.RunObjective;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.random.RandomUtil;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistoryHelper;
 import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistoryWrapper;
-import ca.ubc.cs.beta.aeatk.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
 import ca.ubc.cs.beta.aeatk.state.StateDeserializer;
 import ca.ubc.cs.beta.aeatk.state.StateFactory;
@@ -70,6 +61,7 @@ import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aeatk.termination.TerminationCondition;
 import ca.ubc.cs.beta.aeatk.termination.standard.ConfigurationSpaceExhaustedCondition;
 import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFileEntry;
+import ca.ubc.cs.beta.smac.validation.ValidationResult;
 
 
 public class AbstractAlgorithmFramework {
@@ -623,7 +615,7 @@ public class AbstractAlgorithmFramework {
 	}
 
 	
-	public String logIncumbentPerformance(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
+	public String logIncumbentPerformance(SortedMap<TrajectoryFileEntry, ValidationResult> tfePerformance)
 	{
 		TrajectoryFileEntry tfe = null;
 		double testSetPerformance = Double.POSITIVE_INFINITY;
@@ -635,32 +627,40 @@ public class AbstractAlgorithmFramework {
 		
 		double lastTestSetPerformance = Double.POSITIVE_INFINITY;
 		
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder("Estimated " + this.getObjectiveToReport() + " on test set over time:\n");
 		
 		List<String> entries = new ArrayList<String>();
 		String lastEntry = "";
-		for(Entry<TrajectoryFileEntry, Double> ents : tfePerformance.entrySet())
+		for(Entry<TrajectoryFileEntry, ValidationResult> ents : tfePerformance.entrySet())
 		{
 			
 			
 			tfe = ents.getKey();
 			double empiricalPerformance = tfe.getEmpericalPerformance();
 			
-			testSetPerformance = ents.getValue();
+			testSetPerformance = ents.getValue().getPerformance();
 			double tunerTime = tfe.getTunerTime();
 			ParameterConfiguration formerIncumbent = tfe.getConfiguration();
 			
 			
-			if(formerIncumbent.equals(lastIncumbent) && empiricalPerformance == lastEmpericalPerformance && lastTestSetPerformance == testSetPerformance)
+			/*if(formerIncumbent.equals(lastIncumbent) && empiricalPerformance == lastEmpericalPerformance && lastTestSetPerformance == testSetPerformance)
 			{
 				continue;
-			} else
+			} else*/
 			{
 				lastIncumbent = formerIncumbent;
 				lastEmpericalPerformance = empiricalPerformance;
 				lastTestSetPerformance = testSetPerformance;
 			}
 			
+			Set<ProblemInstance> pis = new HashSet<>();
+			
+			int pispCount = 0;
+			for(ProblemInstanceSeedPair pisp : ents.getValue().getPISPS())
+			{
+				pis.add(pisp.getProblemInstance());
+				pispCount++;
+			}
 			
 			
 			if(Double.isInfinite(testSetPerformance))
@@ -673,9 +673,9 @@ public class AbstractAlgorithmFramework {
 			} else
 			{
 				Object[] args2 = {runHistory.getThetaIdx(formerIncumbent), formerIncumbent, tunerTime, empiricalPerformance, testSetPerformance };
-				entries.add("Time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +testSetPerformance + " on the test set");
+				entries.add("Time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +testSetPerformance + ", based on "+pispCount+" run(s) on the "+pis.size()+" test instance(s).");
 				
-				lastEntry = "Final time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +testSetPerformance + " on the test set";
+				lastEntry = "Final time: " +  tfe.getWallTime() + " config " +  runHistory.getThetaIdx(formerIncumbent) + " (internal ID: " +  formerIncumbent + "): " +testSetPerformance + ", based on "+pispCount+" run(s) on "+pis.size()+" test instance(s).";
 				//log.info("Minimized "+objectiveToReport + " of Incumbent {} ({}) at time {} on training set: {}; on test set: {}", args2 );
 			}
 			
@@ -697,54 +697,20 @@ public class AbstractAlgorithmFramework {
 	 * 
 	 * @param tfePerformance
 	 */
-	public String logSMACResult(SortedMap<TrajectoryFileEntry, Double> tfePerformance)
+	public String getCallString()
 	{
 		
 		
 
-		TrajectoryFileEntry tfe = null;
-		double testSetPerformance = Double.POSITIVE_INFINITY;
-		
-		//=== We want the last TFE
-		tfe = tfePerformance.lastKey();
-		testSetPerformance = tfePerformance.get(tfe);
-		
-		if(tfe != null)
-		{
-			if(!tfe.getConfiguration().equals(incumbent))
-			{
-				throw new IllegalStateException("Last TFE should be Incumbent");
-			}
-		}
+		StringBuilder sb = new StringBuilder();
 		
 		
 		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();
 	
 		AlgorithmRunConfiguration runConfig = new AlgorithmRunConfiguration(pisp, cutoffTime, incumbent, execConfig);
-	
 		String cmd = tae.getManualCallString(runConfig);
-		Object[] args = {runHistory.getThetaIdx(incumbent), incumbent, cmd };
-	
-
-		//log.info("**********************************************");
 		
-		if(Double.isInfinite(testSetPerformance))
-		{
-			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent, runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime) }; 
-			//log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}", args2 );
-		} else
-		{
-			Object[] args2 = { runHistory.getThetaIdx(incumbent), incumbent,runHistory.getEmpiricalCost(incumbent, runHistory.getUniqueInstancesRan(), cutoffTime), testSetPerformance };
-			//log.info("Final minimized " + objectiveToReport + " of Final Incumbent {} ({}) on training set: {}; on test set: {}", args2 );
-		}
-		StringBuilder sb = new StringBuilder();
-		
-		sb.append("Sample call for the final incumbent:\n" +  cmd ).append("\n");
-		return sb.toString();	
-		
-		//log.info("Complete Configuration (no inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX_NO_INACTIVE));
-		//log.info("Complete Configuration (including inactive conditionals):{}", incumbent.getFormattedParamString(StringFormat.STATEFILE_SYNTAX));
-		
+		return cmd;	
 	}
 
 	

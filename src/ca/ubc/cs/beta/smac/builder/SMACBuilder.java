@@ -40,6 +40,7 @@ import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.P
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aeatk.runhistory.NewRunHistory;
@@ -47,7 +48,6 @@ import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.TeeRunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistoryWrapper;
-import ca.ubc.cs.beta.aeatk.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.smac.ExecutionMode;
 import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
 import ca.ubc.cs.beta.aeatk.state.StateDeserializer;

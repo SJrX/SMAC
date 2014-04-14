@@ -8,8 +8,11 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -36,13 +39,13 @@ import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
 import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceOptions.TrainTestInstances;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
-import ca.ubc.cs.beta.aeatk.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
 import ca.ubc.cs.beta.aeatk.state.StateFactoryOptions;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
@@ -53,6 +56,7 @@ import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.builder.SMACBuilder;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
+import ca.ubc.cs.beta.smac.validation.ValidationResult;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
@@ -146,27 +150,31 @@ public class SMACExecutor {
 			TerminationCondition tc = smac.getTerminationCondition();
 			
 			final DecimalFormat df0 = new DecimalFormat("0"); 
+			String callString = smac.getCallString();
 			log.info("\n=======================================================================================\n"
-					+ "SMAC has finished. Reason: {}\n"
+					+ "SMAC has finished. Reason: {}\n" 
+					+ "Total number of runs performed: {}, total configurations tried: {}.\n"   
+					+ "Total CPU time used: {} s, total wallclock time used: {} s.\n"
 					+ "SMAC's final incumbent: config {} (internal ID: {}), with estimated {}: {}, based on {} run(s) on {} training instance(s).\n"
-					+ "Total number of runs performed: {}, total CPU time used: {} s, total wallclock time used: {} s, total configurations tried: {}.\n"
+					+ "Sample call for this final incumbent:\n{}\n"
+					//+ "Total number of runs performed: {}, total CPU time used: {} s, total wallclock time used: {} s, total configurations tried: {}.\n"
 					+ "=======================================================================================" ,
 					smac.getTerminationReason(), 
+					runHistory.getAlgorithmRunsIncludingRedundant().size(),
 					
+					runHistory.getAllParameterConfigurationsRan().size(),
+					df0.format(tc.getTunerTime()),
+					df0.format(tc.getWallTime()),
 					runHistory.getThetaIdx(incumbent), incumbent,
 					smac.getObjectiveToReport(),
 					smac.getEmpericalPerformance(incumbent),
 					runHistory.getAlgorithmRunsExcludingRedundant(incumbent).size(),
-					runHistory.getProblemInstanceSeedPairsRan(incumbent).size(),
-					runHistory.getAlgorithmRunsExcludingRedundant().size(),
-					df0.format(tc.getTunerTime()),
-					df0.format(tc.getWallTime()),
-					runHistory.getAllParameterConfigurationsRan().size()
-					);
+					runHistory.getProblemInstancesRan(incumbent).size(),
+					callString.trim());
 			List<TrajectoryFileEntry> tfes = smacBuilder.getTrajectoryFileLogger().getTrajectoryFileEntries();
 			
 			
-			SortedMap<TrajectoryFileEntry, Double> performance;
+			SortedMap<TrajectoryFileEntry, ValidationResult> performance;
 			options.doValidation = (options.validationOptions.numberOfValidationRuns > 0) ? options.doValidation : false;
 			if(options.doValidation)
 			{
@@ -227,32 +235,67 @@ public class SMACExecutor {
 				
 			} else
 			{
-				performance = new TreeMap<TrajectoryFileEntry, Double>();
-				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
+				performance = new TreeMap<TrajectoryFileEntry, ValidationResult>();
+				performance.put(tfes.get(tfes.size()-1), new ValidationResult(Double.POSITIVE_INFINITY, Collections.<ProblemInstanceSeedPair>emptyList()));
 				
 			}
 			
 			
 			
 			
-			String incumbentPerformance = smac.logIncumbentPerformance(performance);
+			String validationMessage = "";
+			if(options.doValidation)
+			{
+				if(options.validationOptions.validateOnlyLastIncumbent)
+				{
+					
+					
+					Set<ProblemInstance> pis = new HashSet<ProblemInstance>();
+					int pispCount = 0;
+					for(ProblemInstanceSeedPair pisp : performance.get(performance.lastKey()).getPISPS())
+					{
+						pispCount++;
+						pis.add(pisp.getProblemInstance());
+					}
+					
+					validationMessage= "Estimated mean quality of final incumbent config "+runHistory.getThetaIdx(incumbent)+" (internal ID: "+incumbent+") on test set: "+ performance.get(performance.lastKey()).getPerformance() + ", based on "+pispCount+" run(s) on "+pis.size()+" test instance(s).\n";
+					
+							/*
+							 * smac.getTerminationReason(), 
+					runHistory.getAlgorithmRunsIncludingRedundant().size(),
+					
+					runHistory.getAllParameterConfigurationsRan().size(),
+					df0.format(tc.getTunerTime()),
+					df0.format(tc.getWallTime()),
+					runHistory.getThetaIdx(incumbent), incumbent,
+					smac.getObjectiveToReport(),
+					smac.getEmpericalPerformance(incumbent),
+					runHistory.getAlgorithmRunsExcludingRedundant(incumbent).size(),
+					runHistory.getProblemInstancesRan(incumbent).size(),
+					callString.trim());
+					
+							 */
+					
+				} else
+				{
+					validationMessage = smac.logIncumbentPerformance(performance);
+				}
+				
+			}
+			
 			
 
-			String callString = smac.logSMACResult(performance);
+			
 			
 			
 			smacBuilder.getEventManager().shutdown();
 			
 			
-			log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-					+ "Minimized {}{}:\n"
-					+ "{}\n"
-					+ "{}\n"
-					+ "Additional information about run {} in: {}\n"
-					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-					,smac.getObjectiveToReport()
-					, (performance.size() > 1) ? " over time": ""
-				    ,incumbentPerformance,
+		log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+					+"{}Sample call for the final incumbent:\n{}\n"
+					+ "Additional information about run {} in:{}\n"
+					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+					validationMessage,
 				    callString,
 				    options.seedOptions.numRun,
 				    outputDir);

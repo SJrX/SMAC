@@ -41,11 +41,11 @@ import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.RandomInstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.SetInstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
-import ca.ubc.cs.beta.aeatk.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aeatk.seedgenerator.RandomInstanceSeedGenerator;
-import ca.ubc.cs.beta.aeatk.seedgenerator.SetInstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.smac.ValidationOptions;
 import ca.ubc.cs.beta.aeatk.smac.ValidationRoundingMode;
 import ca.ubc.cs.beta.aeatk.state.StateFactory;
@@ -71,7 +71,7 @@ public class Validator {
 	}
 		*/
 
-	public SortedMap<TrajectoryFileEntry, Double>  simpleValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
+	public SortedMap<TrajectoryFileEntry, ValidationResult>  simpleValidate(List<ProblemInstance> testInstances, final ValidationOptions options,final double cutoffTime,final InstanceSeedGenerator testInstGen,final TargetAlgorithmEvaluator validatingTae, 
 			final String outputDir,
 			final RunObjective runObj,
 			final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  TrajectoryFile trajFile, boolean waitForRuns, int cores, AlgorithmExecutionConfiguration execConfig) 
@@ -321,7 +321,7 @@ public class Validator {
 	
 	
 	
-	private ValidationRuns  validateStage(List<ProblemInstanceSeedPair> pisps, final ValidationOptions options,final double cutoffTime, 
+	private ValidationRuns  validateStage(final List<ProblemInstanceSeedPair> pisps, final ValidationOptions options,final double cutoffTime, 
 		final RunObjective runObj,
 
 //		final OverallObjective intraInstanceObjective, final OverallObjective interInstanceObjective,  final List<TrajectoryFileEntry> tfes, final long numRun, boolean waitForRuns, AlgorithmExecutionConfig execConfig,int cores) 
@@ -345,13 +345,13 @@ public class Validator {
 		if(options.validateOnlyIfWallTimeReached > maxWallTimeStamp)
 		{
 			log.info("Maximum walltime was {} but we required {} seconds to have passed validating ", maxWallTimeStamp, options.validateOnlyIfWallTimeReached );
-			return new ValidationRuns(new TreeMap<TrajectoryFileEntry,Double>());
+			return new ValidationRuns(new TreeMap<TrajectoryFileEntry,ValidationResult>());
 		}
 		
 		if(options.validateOnlyIfTunerTimeReached > maxTunerTimeStamp)
 		{
 			log.info("Maximum Tuner Time was {} but we required {} seconds to have passed before validating ", maxTunerTimeStamp, options.validateOnlyIfTunerTimeReached );
-			return new ValidationRuns(new TreeMap<TrajectoryFileEntry,Double>());
+			return new ValidationRuns(new TreeMap<TrajectoryFileEntry,ValidationResult>());
 		}
 		
 		
@@ -478,7 +478,7 @@ public class Validator {
 		
 		final AtomicReference<RuntimeException> exception = new AtomicReference<RuntimeException>();
 		
-		final SortedMap<TrajectoryFileEntry, Double> finalPerformance = new ConcurrentSkipListMap<TrajectoryFileEntry, Double>();
+		final SortedMap<TrajectoryFileEntry, ValidationResult> finalPerformance = new ConcurrentSkipListMap<TrajectoryFileEntry, ValidationResult>();
 		
 		WaitableTAECallback callback = new WaitableTAECallback(new TargetAlgorithmEvaluatorCallback()
 		{
@@ -512,7 +512,7 @@ public class Validator {
 					
 					for(TrajectoryFileEntry tfe : tfesToRun)
 					{
-						finalPerformance.put(tfe, testSetPerformance.get(tfe.getConfiguration()));
+						finalPerformance.put(tfe, new ValidationResult(testSetPerformance.get(tfe.getConfiguration()), pisps));
 					}
 					
 					if(runs.size() > 0)
@@ -654,7 +654,7 @@ public class Validator {
 	{
 		List<AlgorithmRunConfiguration> runConfigs;
 		WaitableTAECallback callback;
-		private SortedMap<TrajectoryFileEntry, Double> result;
+		private SortedMap<TrajectoryFileEntry, ValidationResult> result;
 		private AtomicReference<RuntimeException> exception;
 	
 		
@@ -662,14 +662,14 @@ public class Validator {
 		
 		public boolean done;
 		
-		public ValidationRuns(SortedMap<TrajectoryFileEntry, Double> result)
+		public ValidationRuns(SortedMap<TrajectoryFileEntry, ValidationResult> result)
 		{
 			this.result = result; 
 			this.runConfigs = Collections.emptyList();
 			done = true;
 		}
 		
-		public ValidationRuns(List<AlgorithmRunConfiguration> runConfigs, WaitableTAECallback callback, AtomicReference<RuntimeException> exception,SortedMap<TrajectoryFileEntry, Double> result)
+		public ValidationRuns(List<AlgorithmRunConfiguration> runConfigs, WaitableTAECallback callback, AtomicReference<RuntimeException> exception,SortedMap<TrajectoryFileEntry, ValidationResult> result)
 		{
 			this.runConfigs = runConfigs; 
 			this.callback = callback;
@@ -1083,7 +1083,7 @@ endloop:
 				
 	}
 	
-	private void appendInstanceResultFile(Map<TrajectoryFileEntry, Double> finalPerformance, TrajectoryFile trajFile, ValidationOptions validationOptions, boolean useWallTime,  Map<ParameterConfiguration, Integer> idMap) throws IOException {
+	private void appendInstanceResultFile(Map<TrajectoryFileEntry, ValidationResult> finalPerformance, TrajectoryFile trajFile, ValidationOptions validationOptions, boolean useWallTime,  Map<ParameterConfiguration, Integer> idMap) throws IOException {
 		
 		
 		File validationFile = getFile(trajFile,  "validationResults",validationOptions.outputFileSuffix,"csv");
@@ -1105,7 +1105,7 @@ endloop:
 		
 		StringBuilder sbValidation = new StringBuilder("\"Time\",\"Training (Empirical) Performance\",\"Test Set Performance\",\"AC Overhead Time\",\"Validation Configuration ID\",\n");
 		
-		for(Entry<TrajectoryFileEntry, Double > ent : finalPerformance.entrySet())
+		for(Entry<TrajectoryFileEntry, ValidationResult > ent : finalPerformance.entrySet())
 		{
 			double time;
 					
@@ -1118,7 +1118,7 @@ endloop:
 			}
 			
 			double empiricalPerformance = ent.getKey().getEmpericalPerformance();
-			double testSetPerformance = ent.getValue();
+			double testSetPerformance = ent.getValue().getPerformance();
 			double acOverhead = ent.getKey().getACOverhead();
 				
 			sbValidation.append(time).append(",").append(empiricalPerformance).append(",").append(testSetPerformance).append(",").append(acOverhead).append(",\"").append(idMap.get(ent.getKey().getConfiguration())).append("\",\n");
