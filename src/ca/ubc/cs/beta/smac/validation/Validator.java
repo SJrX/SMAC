@@ -778,7 +778,7 @@ endloop:
 		File f = getFile(trajFile, "validationCallStrings",validationOptions.outputFileSuffix,"csv");
 		// new File(outputDir + File.separator +  "validationInstanceSeedResult"+suffix+"-run" + numRun + ".csv");
 
-		log.debug("Instance Seed Result File Written to: {}", f.getAbsolutePath());
+		log.info("Validation Call Strings written to: {}", f.getAbsolutePath());
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
 		
@@ -829,13 +829,11 @@ endloop:
 
 
 		
-		File configurationObjective =  getFile(trajFile, "configurationObjectiveMatrix",validationOptions.outputFileSuffix,"csv");
-		File configurationRun =  getFile(trajFile, "configurationRunMatrix",validationOptions.outputFileSuffix,"csv");
+		File configurationObjective =  getFile(trajFile, "validationObjectiveMatrix",validationOptions.outputFileSuffix,"csv");
+		File configurationRun =  getFile(trajFile, "validationRunResultLineMatrix",validationOptions.outputFileSuffix,"csv");
 		
-		
-				// new File(outputDir +  File.separator + "configurationMatrix"+suffix+"-run" + numRun + ".csv");
-		log.debug("Validation Configuration/PISP Matrix of objectives Written to: {}", configurationObjective.getAbsolutePath());
-		log.debug("Validation Configuration/PISP Matrix of runs Written to: {}", configurationRun.getAbsolutePath());
+		log.info("Validation matrix of objectives for cross-product of configurations and (instance,seed) pairs written to: {}", configurationObjective.getAbsolutePath());
+		log.info("Validation matrix of complete run result line for cross-product of configurations and (instance,seed) pairs written to: {}", configurationRun.getAbsolutePath());
 		
 		CSVWriter objectiveMatrixCSV = new CSVWriter(new FileWriter(configurationObjective));
 		CSVWriter runMatrixCSV = new CSVWriter(new FileWriter(configurationRun));
@@ -952,7 +950,7 @@ endloop:
 		
 		File f =  getFile(trajFile,  "validationPerformanceDebug",validationOptions.outputFileSuffix,"csv");
 		//new File(outputDir +  File.separator + "validationResultsMatrix"+suffix+"-run" + numRun + ".csv");
-		log.debug("Instance Validation Matrix Result Written to: {}", f.getAbsolutePath());
+		log.info("Instance performance (for debug) written to: {}", f.getAbsolutePath());
 		
 		CSVWriter writer = new CSVWriter(new FileWriter(f));
 		
@@ -1088,7 +1086,7 @@ endloop:
 		
 		File validationFile = getFile(trajFile,  "validationResults",validationOptions.outputFileSuffix,"csv");
 		
-		log.debug("Validation Results File Written to: {}", validationFile.getAbsolutePath());
+		log.info("Main validation results file written to: {}", validationFile.getAbsolutePath());
 		
 		if(!validationFile.exists())
 		{

@@ -290,7 +290,8 @@ public class SMACExecutor {
 			
 			smacBuilder.getEventManager().shutdown();
 			
-			
+		if(options.doValidation)
+		{
 		log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
 					+"{}Sample call for the final incumbent:\n{}\n"
 					+ "Additional information about run {} in:{}\n"
@@ -299,6 +300,15 @@ public class SMACExecutor {
 				    callString,
 				    options.seedOptions.numRun,
 				    outputDir);
+		} else
+		{
+			log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+					+ "Additional information about run {} in:{}\n"
+					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+				    options.seedOptions.numRun,
+				    outputDir);
+			
+		}
 				    
 			//log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
 			//log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
