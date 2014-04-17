@@ -533,7 +533,7 @@ public class Validator {
 					
 					for(AlgorithmRunResult run : runs)
 					{
-						matrixRuns.putIfAbsent(run.getAlgorithmRunConfiguration().getParameterConfiguration(), new HashMap<ProblemInstanceSeedPair, AlgorithmRunResult>());
+						matrixRuns.putIfAbsent(run.getAlgorithmRunConfiguration().getParameterConfiguration(), new TreeMap<ProblemInstanceSeedPair, AlgorithmRunResult>());
 						
 						Map<ProblemInstanceSeedPair, AlgorithmRunResult> configRuns = matrixRuns.get(run.getAlgorithmRunConfiguration().getParameterConfiguration());
 						
@@ -837,7 +837,102 @@ endloop:
 		
 		CSVWriter objectiveMatrixCSV = new CSVWriter(new FileWriter(configurationObjective));
 		CSVWriter runMatrixCSV = new CSVWriter(new FileWriter(configurationRun));
+		
+		
 		try {
+			TreeMap<ProblemInstanceSeedPair, Map<ParameterConfiguration, AlgorithmRunResult>> transposedMap = new TreeMap<>();
+			
+			
+			for(Map<ProblemInstanceSeedPair, AlgorithmRunResult> ent : matrixRuns.values())
+			{
+				
+				for(AlgorithmRunResult run : ent.values())
+				{
+					if(transposedMap.get(run.getProblemInstanceSeedPair()) == null)
+					{
+						transposedMap.put(run.getProblemInstanceSeedPair(), new ConcurrentHashMap<ParameterConfiguration, AlgorithmRunResult>());
+					}
+					
+					
+					
+					transposedMap.get(run.getProblemInstanceSeedPair()).put(run.getParameterConfiguration(), run);
+				}
+			}
+			
+			ArrayList<String> runMatrixHeaderRow = new ArrayList<String>();
+			ArrayList<String> objectiveMatrixHeaderRow = new ArrayList<String>();
+			
+
+			runMatrixHeaderRow.add("Problem Instance");
+			runMatrixHeaderRow.add("Seed");
+			objectiveMatrixHeaderRow.add("Problem Instance");
+			objectiveMatrixHeaderRow.add("Seed");
+			
+			for(ParameterConfiguration config : inOrderConfigs)
+			{
+				runMatrixHeaderRow.add("Run result line of validation config #" + String.valueOf(idMap.get(config)));
+				objectiveMatrixHeaderRow.add("Objective of validation config #" + String.valueOf(idMap.get(config)));
+			}
+			
+			/*
+			for(ProblemInstanceSeedPair pisp : pisps)
+			{
+				headerRow.add(pisp.getProblemInstance().getInstanceName() + "," + pisp.getSeed());
+			}*/
+			
+			String[] header = objectiveMatrixHeaderRow.toArray(new String[0]);
+			
+			objectiveMatrixCSV.writeNext(header);
+			
+			header = runMatrixHeaderRow.toArray(new String[0]);
+			runMatrixCSV.writeNext(header);
+			
+			
+			for(Entry<ProblemInstanceSeedPair, Map<ParameterConfiguration, AlgorithmRunResult>> ent : transposedMap.entrySet())
+			{
+				
+				ArrayList<String> objectiveRow = new ArrayList<String>();
+				ArrayList<String> resultLineRow = new ArrayList<String>();
+				
+				objectiveRow.add(ent.getKey().getProblemInstance().getInstanceName());
+				
+				resultLineRow.add(ent.getKey().getProblemInstance().getInstanceName());
+				
+				
+				objectiveRow.add(String.valueOf(ent.getKey().getSeed()));
+				resultLineRow.add(String.valueOf(ent.getKey().getSeed()));
+				
+				
+				
+				for(ParameterConfiguration config : inOrderConfigs)
+				{
+					
+					AlgorithmRunResult run = ent.getValue().get(config);
+					if(run == null)
+					{
+						throw new IllegalStateException("Expected all configurations to have the exact same pisps");
+					}
+					
+					if(!run.getAlgorithmRunConfiguration().getProblemInstanceSeedPair().equals(ent.getKey()))
+					{
+						throw new IllegalStateException("DataStructure corruption detected ");
+					}
+					
+					objectiveRow.add(String.valueOf(runObj.getObjective(run)));
+					resultLineRow.add(run.getResultLine());
+				}
+				
+				
+				
+				
+				String[] nextRow = objectiveRow.toArray(new String[0]);
+				String[] nextRunRow = resultLineRow.toArray(new String[0]);
+				
+				objectiveMatrixCSV.writeNext(nextRow);
+				runMatrixCSV.writeNext(nextRunRow);
+				
+			}
+			/*
 			List<ProblemInstanceSeedPair> pisps = new ArrayList<ProblemInstanceSeedPair>();
 
 			Set<ParameterConfiguration> doneConfigs = new HashSet<ParameterConfiguration>();
@@ -921,7 +1016,7 @@ endloop:
 				objectiveMatrixCSV.writeNext(nextRow);
 				runMatrixCSV.writeNext(nextRunRow);
 			}
-			
+			*/
 			
 		} finally
 		{
