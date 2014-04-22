@@ -1,0 +1,1 @@
+This file exists because the version folder needs to be on the classpath in Eclipse, but only contains .gitignore files.
