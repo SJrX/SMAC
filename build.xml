@@ -1,34 +1,43 @@
 <?xml version="1.0"?>
-<project name="SMAC" default="compile">
-	<description>
-		Sequential Model-based Automatic Configurator
-	</description>
+<project name="smac" default="deploy">
 	<property name="private.buildfile" value="build-resources/private/user-antbuild.properties"/>
-	<property file="${private.buildfile}"/>
-	<property file="build-resources/antbuild.properties"/>
-	
-	<!-- If you don't specify a buildnumber file we will use this -->
+			<property file="${private.buildfile}"/>
+			<property file="build-resources/antbuild.properties"/>
+			
+			
+			<touch file="${private.buildfile}" mkdirs="true"/>
+			<fail message="${line.separator}================[ ERROR ] ==============${line.separator}
+	You must specify the software.dir property in the file ${private.buildfile}${line.separator}
+	If you are running eclipse you should right click on this project and hit refresh,
+	so that the file appears.${line.separator}
+	${line.separator}
+	You should then put the following two lines in the file:${line.separator}
+	software.dir=[path to place completed packages]${line.separator}
+	buildnumberpath=[path to store build numbers]${line.separator}
+	#Windows users should use \\ or / as path seperators.
+				
+				">
+				<condition>
+					<not>
+							<isset property="software.dir"/>
+					</not>
+				</condition>
+			</fail>
+		
+		<mkdir dir="${software.dir}"/>
+		<mkdir dir="${buildnumberpath}"/>
+
+		<property name="version.file" value="${ant.project.name}-version.txt"/>
+		<property name="version.file.dev" value="version/${version.file}"/>
+
+		
+		
+		<!-- If you don't specify a buildnumber file we will use this -->
 		<property name="buildnumberpath" value="build/classes/"/>
-	
-	<property name="version.file.dev" value="version/${version.file}"/>
-	
-	
 	
 	<property name="doc.buildpath" value="doc/build" />
 	<property name="buildnumberfile" value="${buildnumberpath}/buildnumber-${ant.project.name}"/>
-	<fail message="No Software Directory specified, a private build file should exist in ${private.buildfile} this should specify at the very least 'software.dir'">
-		<condition>
-			<not>
-					<isset property="software.dir"/>
-			</not>
-		</condition>
-	</fail>
-	
-	
-	
-	<!--<property name="software.dir" value="/ubc/cs/home/s/seramage/arrowspace/software/"/>-->
 
-	
 	<target name="git-status-init" description="Initialize Git variables">
 		
 						<exec executable="git" outputproperty="git.branch">
@@ -48,7 +57,7 @@
 											<arg value="HEAD"/>
 								</exec>
 					
-						<exec executable="git" resultproperty="git.dirty" output="/dev/null">
+						<exec executable="git" resultproperty="git.dirty" outputproperty="git.dirty.output">
 									<arg value="diff"/>
 									<arg value="--exit-code"/>
 						</exec>
@@ -56,7 +65,7 @@
 	commit: ${git.commit}
 	shortcommit: ${git.shortcommit}
 	dirty: ${git.dirty}</echo>
-	</target>
+		</target>
 		
 	
 	<target name="init" description="Initialize the project directories" depends="git-status-init"> 
@@ -66,18 +75,22 @@
 		<mkdir dir="zip/"/>		
 		<mkdir dir="${doc.buildpath}"/>
 		
+		<property file="${software.dir}${file.separator}aeatk-${git.branch}.latest"/>
+			
+		<fail unless="aeatk.location" message="${line.separator}================[ ERROR ] ==============${line.separator}You must check out and build the aeatk project on this branch (${git.branch}) first${line.separator}Expected to find file:${software.dir}${file.separator}aeatk-${git.branch}.latest${line.separator}This file should contain the location of aeatk"/> 
+				
+		
 
 		<path id="compile.classpath">
 			<fileset dir="lib" id="lib">
 				<include name="*.jar"/>
 			</fileset>
-			<!--<fileset dir="${software.dir}/fastrf/" id="fastrf">
-				<include name="fastrf.jar"/>
-			</fileset>-->
-			<fileset dir="${software.dir}/aeatk-${git.branch}/" id="aeatk">
+		
+			<fileset dir="${aeatk.location}/" id="aeatk">
 				<include name="**/*"/>
-				
 			</fileset>
+			
+			
 		</path>	
 			
 	</target>
@@ -142,7 +155,9 @@
 		</copy>
 		
 		<move file="dist/lib/example_scripts/" todir="dist/" force="true"/>
-		
+		<move file="dist/lib/git-hashes.tex" todir="dist/"/>
+		<move file="dist/lib/git-hashes.txt" todir="dist/"/>
+				
 		
 		
 		<echo file="dist/git-hashes.txt" append="true">${ant.project.name} ${git.commit} ${git.dirty}${line.separator}</echo>
@@ -290,69 +305,34 @@
 		</chmod>
 	</target>	
 	
-	<target name="zip" depends="archive, manual" description="Makes tarball for this release">
-
-		<tar destFile="zip/${outputfilename}.tar.gz" longfile="gnu" compression="gzip">
-					
-					<tarfileset dir="dist/" filemode="640" dirmode="750" prefix="${outputfilename}/">
-						<include name="**/*"/>
-						
-						<!-- All the excludes should match with files below -->
-						<exclude name="${lastdeployfile}"/> <!--The previous exclude didn't work so maybe try here-->
-						<exclude name="smac"/>
-						<exclude name="util/bash_autocomplete.sh"/>
-						<exclude name="smac-possible-restores"/>
-						<exclude name="smac-validate"/>
-						<exclude name="algo-test"/>
-						<exclude name="sat-check"/>
-						<exclude name="state-merge"/>
-						<exclude name="verify-scenario"/>
-						<exclude name="example_scenarios/cplex/runsolver*"/>
-						<exclude name="example_scenarios/saps/ubcsat*"/>
-						<exclude name="example_scenarios/spear/Spear-32_1.2.1"/>
-					</tarfileset>
-					<tarfileset dir="dist/" filemode="750" prefix="${outputfilename}/">
-						<!-- Exclude any file you include here from above, these are all executable files -->
-						<include name="smac"/>
-						<include name="util/bash_autocomplete.sh"/>
-						<include name="smac-possible-restores"/>
-						<include name="smac-validate"/>
-						<include name="algo-test"/>
-						<include name="sat-check"/>
-						<include name="state-merge"/>
-						<include name="verify-scenario"/>
-						<include name="example_scenarios/cplex/runsolver*"/>
-						<include name="example_scenarios/saps/ubcsat*"/>
-						<include name="example_scenarios/spear/Spear-32_1.2.1*"/>
-					</tarfileset>
-		</tar>
-		<copy file="zip/${outputfilename}.tar.gz" tofile="${software.dir}/${outputfilename}.tar.gz"/>
+	
+		
+	<target name="zip" depends="archive" description="Makes tarball for this release">
+			<fail message="Cannot deploy a build for the git master branch if it is dirty, please commit all changes">
+				<condition>
+					<and>
+					<equals arg1="${git.branch}" arg2="master" casesensitive="false" trim="true"/>
+					<equals arg1="${git.dirty}" arg2="1" casesensitive="false" trim="true"/>
+					</and>
+				</condition>
+			</fail>
+			<tar destFile="${software.dir}/${outputfilename}.tar.gz" longfile="gnu" compression="gzip">
+				<tarfileset dir="dist/" filemode="755" dirmode="755" prefix="${outputfilename}/">
+							<include name="**/*"/>
+							<exclude name="${lastdeployfile}"/> 
+				</tarfileset>
+			</tar>
+		</target>
+	<target name="deploy-release" depends="zip" description="untars tarball in software.dir and creates symlink">
+		<untar src="${software.dir}${file.separator}${outputfilename}.tar.gz" dest="${software.dir}" compression="gzip"/>
+		<propertyfile file="${software.dir}${file.separator}${ant.project.name}-${git.branch}.latest" comment="Contains location of most recent ${ant.project.name}">
+		<entry key="${ant.project.name}.location" value="${software.dir}${file.separator}${outputfilename}"/>
+		</propertyfile>
+		<echo>Untar Successful to ${software.dir}${file.separator}${outputfilename}</echo>
 	</target>
 	
-	<target name="deploy-release" depends="archive" description="untars tarball in software.dir and creates symlink">
-	
-		<fail message="Cannot deploy a build for the git master branch if it is dirty, please commit all changes">
-					<condition>
-						<and>
-						<equals arg1="${git.branch}" arg2="master" casesensitive="false" trim="true"/>
-						<equals arg1="${git.dirty}" arg2="1" casesensitive="false" trim="true"/>
-						</and>
-					</condition>
-		</fail>
-						
-		
-		<exec executable="tar" dir="${software.dir}" failonerror="true">
-			<arg value="-xzf"/>
-			<arg value="${software.dir}/${outputfilename}.tar.gz"/>
-		</exec>
 		
 	
-		
-		<echo file="${lastdeployfile}" append="false">${software.dir}/${outputfilename}</echo>
-			
-		<symlink link="${deploy.dir}-${git.branch}" overwrite="true" resource="${software.dir}/smac-${version.string}" failonerror="false"/>
-		<echo>Untar Successful to ${software.dir}/${outputfilename}</echo>
-	</target>
 	<target name="deploy" depends="zip, deploy-release"/>
 	
 	
