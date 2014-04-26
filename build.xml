@@ -39,32 +39,32 @@
 	<property name="buildnumberfile" value="${buildnumberpath}/buildnumber-${ant.project.name}"/>
 
 	<target name="git-status-init" description="Initialize Git variables">
+		<echo>If this next call fails, it means you haven't installed git and/or it's not in your PATH</echo>
+		<exec executable="git" outputproperty="git.branch">
+			<arg value="rev-parse"/>
+			<arg value="--abbrev-ref"/>
+			<arg value="HEAD"/>
+		</exec>
 		
-						<exec executable="git" outputproperty="git.branch">
+		<exec executable="git" outputproperty="git.commit">
+					<arg value="rev-parse"/>
+					<arg value="HEAD"/>
+		</exec>
+	
+		<exec executable="git" outputproperty="git.shortcommit">
 							<arg value="rev-parse"/>
-							<arg value="--abbrev-ref"/>
+							<arg value="--short=12"/>
 							<arg value="HEAD"/>
-						</exec>
-						
-						<exec executable="git" outputproperty="git.commit">
-									<arg value="rev-parse"/>
-									<arg value="HEAD"/>
-						</exec>
-			
-						<exec executable="git" outputproperty="git.shortcommit">
-											<arg value="rev-parse"/>
-											<arg value="--short=12"/>
-											<arg value="HEAD"/>
-								</exec>
-					
-						<exec executable="git" resultproperty="git.dirty" outputproperty="git.dirty.output">
-									<arg value="diff"/>
-									<arg value="--exit-code"/>
-						</exec>
-						<echo>Git properties loaded, branch: ${git.branch}
-	commit: ${git.commit}
-	shortcommit: ${git.shortcommit}
-	dirty: ${git.dirty}</echo>
+				</exec>
+	
+		<exec executable="git" resultproperty="git.dirty" outputproperty="git.dirty.output">
+					<arg value="diff"/>
+					<arg value="--exit-code"/>
+		</exec>
+		<echo>Git properties loaded, branch: ${git.branch}
+commit: ${git.commit}
+shortcommit: ${git.shortcommit}
+dirty: ${git.dirty}</echo>
 		</target>
 		
 	
