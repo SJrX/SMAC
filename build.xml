@@ -307,7 +307,7 @@
 	
 	
 		
-	<target name="zip" depends="archive" description="Makes tarball for this release">
+	<target name="zip" depends="archive,manual" description="Makes tarball for this release">
 			<fail message="Cannot deploy a build for the git master branch if it is dirty, please commit all changes">
 				<condition>
 					<and>
@@ -320,6 +320,8 @@
 				<tarfileset dir="dist/" filemode="755" dirmode="755" prefix="${outputfilename}/">
 							<include name="**/*"/>
 							<exclude name="${lastdeployfile}"/> 
+							<exclude name="git-hashes.tex"/>
+							<exclude name="git-hashes.txt"/>
 				</tarfileset>
 			</tar>
 		</target>
@@ -337,7 +339,36 @@
 	
 	
 	
-	<target name="manual" depends="init" description="Make the manual">
+	<target name="manual" depends="setmanualprop,doc, init" description="Make Javadoc"/>
+		
+		<target name="setmanualprop">
+			<!--<property name="build.manual" value="false"/>-->
+		</target>
+		
+		<target name="doc" depends="manual-internal,nodoc"/>
+		
+		<target name="javadoc-internal"  if="build.javadoc">
+			<path id="doc.classpath">
+				<fileset dir="doclib" id="doclib">
+					<include name="*.jar"/>
+					<exclude name="*sources.jar"/>
+				</fileset>
+				<fileset dir="${fastrf.location}" id="fastrf">
+	                <include name="fastrf.jar"/>
+					<include name="fastrf-src.jar"/>
+		       </fileset>
+				<path refid="compile.classpath"/>
+			</path>	
+			<javadoc sourcepath="src/" author="true" destdir="doc/" classpathref="doc.classpath" excludepackagenames="ca.ubc.cs.beta.hal.startup,ca.ubc.cs.beta.hal" />
+		</target>
+		
+		<target name="nodoc" unless="build.manual">
+			<echo>build.manual property not set so manual will not be built. Add the following to your ${private.buildfile} to build the manual ${line.separator}build.manual=true</echo>
+		</target>
+		
+		
+	
+	<target name="manual-internal" depends="init" description="Make the manual" if="build.manual">
 		<copy todir="${doc.buildpath}">
 			<fileset dir="doc/tex/"/>
 		</copy>
@@ -419,7 +450,7 @@
 		<echo></echo>
 		<echo>FAQ Phase 2 Complete</echo>
 		<echo></echo>
-			
+		<!--	
 		<exec dir="${doc.buildpath}" executable="pdflatex" failonerror="true">
 					<arg value="quickstart.tex"/>
 		</exec>
@@ -434,7 +465,7 @@
 		<echo></echo>
 		<echo>Quickstart Phase 2 Complete</echo>
 		<echo></echo>
-		
+		-->
 		
 		<!-- For some reason a file-formats.pdf gets built we will nuke it -->
 		<delete file="${doc.buildpath}/file-formats.pdf" failonerror="true"/>
@@ -446,6 +477,17 @@
 			<include name="*.pdf"/>
 		</fileset>
 		</copy>
+		<loadfile property="quickstart.footer" srcFile="doc/text/quickstart_footer.txt"/>
+				<loadfile property="quickstart.header" srcFile="doc/text/quickstart_header.txt"/>
+			<echo file="dist/doc/quickstart.txt">
+${quickstart.header}
+-------------------------------------------------------------------------------
+| wget http://www.cs.ubc.ca/labs/beta/Projects/SMAC/${outputfilename}.tar.gz
+| tar -xzvf ${outputfilename}.tar.gz
+| cd ${outputfilename}
+-------------------------------------------------------------------------------
+${quickstart.footer}
+</echo>
 	</target>	
 
 	

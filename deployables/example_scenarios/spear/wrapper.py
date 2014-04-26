@@ -19,7 +19,7 @@ params = sys.argv[6:]
 configMap = dict((name, value) for name, value in zip(params[::2], params[1::2]))
 
 # Construct the call string to Spear.
-spear_binary = "./examples/spear/Spear-32_1.2.1"
+spear_binary = os.path.dirname(os.path.realpath(__file__))+"/Spear-32_1.2.1"
 cmd = "%s --seed %d --model-stdout --dimacs %s --tmout %d" %(spear_binary, seed, instance, cutoff)       
 for name, value in configMap.items():
     cmd += " -%s %s" %(name,  value)

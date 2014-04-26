@@ -86,10 +86,10 @@ format\footnote{Other strings are also permissible, but will one day be replaced
 %that is used in this version is: \textbf{\^\textbackslash{}s{*}(Final)?%\textbackslash{}s{*}{[}Rr{]}esult\textbackslash{}s+(?:([Ff]or)|([oO]f))\textbackslash{}s+(?:(HAL)|(ParamILS)|(SMAC)|([Tt]his
 %[wW]rapper))}}:%
 
-\texttt{Result of this algorithm run: <solved>, <runtime>, <runlength>, <quality>, <seed>, <additional rundata>} 
+\texttt{Result of this algorithm run: <status>, <runtime>, <runlength>, <quality>, <seed>, <additional rundata>} 
 \begin{description}
 
-\item [{solved}] Must be one of \texttt{SAT} (signifying a successful run that was satisfiable), \texttt{UNSAT} (signifying a successful run that was unsatisfiable), \texttt{TIMEOUT} if the algorithm didn't finish within the allotted time, \texttt{CRASHED} if something untoward happened during the algorithm run, or \texttt{ABORT} if something prevents the target algorithm for successfully executing and it is believed that further attempts would be futile. 
+\item [{status}] Must be one of \texttt{SAT} (signifying a successful run that was satisfiable), \texttt{UNSAT} (signifying a successful run that was unsatisfiable), \texttt{TIMEOUT} if the algorithm didn't finish within the allotted time, \texttt{CRASHED} if something untoward happened during the algorithm run, or \texttt{ABORT} if something prevents the target algorithm for successfully executing and it is believed that further attempts would be futile. 
 
 SMAC does not differentiate between \texttt{SAT} and \texttt{UNSAT} responses, and the primary use of these is historical and serves as a check that the algorithm is executing correctly by outputting whether the instance in question is satisfiable or not. See the \textbf{-$\!~$-verify-sat} option for information on how to utilize this feature. 
 \\
@@ -151,7 +151,7 @@ ensure that constraints with respect to the cutoff and runlength are enforced. O
 \begin{center}
 \begin{tabular}{|l | l | l  ||  c | c | c |}
 \hline
-\textbf{solved} & \textbf{cutoff} ($\kappa$) & \textbf{runtime} ($r$) & Tuner Time & PAR10 Score & Model \\
+\textbf{status} & \textbf{cutoff} ($\kappa$) & \textbf{runtime} ($r$) & Tuner Time & PAR10 Score & Model \\
 \hline
 \hline
 * & *  & $(-\infty, 0)$ & \multicolumn{3}{c|}{\textbf{EXCEPTION THROWN}} \\ %%Enforced by AbstractAlgorithmRun
@@ -205,8 +205,8 @@ projects.
 
 \textsc{Note:} When writing wrappers it is important not to poll the output stream of the target algorithm, especially if there is lots of output. Doing so often results in lock-contention and significantly modifies the runtime performance of the algorithm enough that the resulting configuration is not well tuned to the real algorithm's performance.
 
-\item [{Native~Libraries~Augmentation}] Libraries exist (See: \textbf{TBD}) for C and Java currently that facilitate adding the required functionality directly to the code. While
-parsing the arguments into the necessary data structures is still required, they do manage the timing and output requirements in most cases. Unlike the previous approach however, certain crashes may not allow the the values to be outputted (\eg{ a segmentation fault occurs}).
+%\item [{Native~Libraries~Augmentation}] Libraries exist (See: \textbf{TBD}) for C and Java currently that facilitate adding the required functionality directly to the code. While
+%parsing the arguments into the necessary data structures is still required, they do manage the timing and output requirements in most cases. Unlike the previous approach however, certain crashes may not allow the the values to be outputted (\eg{ a segmentation fault occurs}).
 
 \item [Inter~Process~Communication] Introduced in SMAC v2.06.02, the \textbf{IPC} TAE can be selected via the \textbf{-$~\!$-tae} option. It will essentially use various forms of interprocess communication to notify some other process about the run to do, and will wait for it to respond. Presently the only existing mechanism is over UDP, but other methods are possible. For example:
 
@@ -216,7 +216,7 @@ parsing the arguments into the necessary data structures is still required, they
 --ipc-remote-host localhost
 \end{verbatim}
 
-Will use sent the required information to localhost on port 5050. It will then wait for a response, and parse that response as a string. For more details see the section "Inter-Process Communication Target Algorithm Evaluator Options", in the appendix.
+Will use sent the required information to localhost on port 5050. It will then wait for a response, and parse that response as a string. For more details see the section "Inter-Process Communication Target Algorithm Evaluator Options", in the Appendix.
 
 
 \item [{Target~Algorithm~Evaluators}]	This is probably the most powerful, but also the most complicated approach. SMAC is architected in a way that makes it fairly simple to replace the mechanism for execution with something completely custom. This can be done without even recompiling SMAC by creating a new implementation of the \texttt{TargetAlgorithmEvalutor} interface, which is responsible for converting run requests (\texttt{RunConfig} objects) into run results (\texttt{AlgorithmRun} objects). Both the input and output objects are simple \emph{Value Objects} so the coupling between SMAC and the rest of your code is almost zero with this approach.  For more information see \ref{sec:target-algorithm-evaluators}
