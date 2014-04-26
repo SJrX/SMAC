@@ -10,13 +10,13 @@ Comments are allowed throughout the file; they begin with a \#, and run to the e
 %When a PCS file is parsed the first step in parsing a line should be to strip away everything from the first \# onwards.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Parameter Declaration Clauses}\label{sec:param_decl_clauses}
+\subsubsection{Parameter Declaration Clauses}\label{sec:param_decl_clauses}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The PCS format supports two types of parameters: categorical and numeric. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Categorical parameters}
+\subsubsection*{Categorical parameters} \label{sec:categorical-params}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Categorical parameters take one of a finite set of values. Each line specifying a categorical parameter should be of the form:
 
@@ -52,7 +52,7 @@ random-variable-frequency {0, 0.05, 0.1, 0.2} [0.05]
 Finally, as this example shows, numerical parameters can trivially be treated as categorical ones by simply discretizing their domain (selecting a subset of reasonable values).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Numerical parameters} \label{sec:numerical-params}
+\subsubsection*{Numerical parameters} \label{sec:numerical-params}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Numerical parameters (both real and integer) are specified as follows:
 
@@ -68,7 +68,7 @@ and the `\texttt{l}' means that the parameter domain should be log-transformed f
 sp-rand-var-dec-scaling [0.3, 1.1] [1]
 \end{verbatim}
 Parameter \texttt{sp-rand-var-dec-scaling} is real-valued with a default value of 1, and we can choose values for it from the (closed) interval \texttt{[0.3, 1.1]}.
-Note that there may be other parameter values outside this interval that are in principle legal values for the parameter (e.g., your solver might accept any positive floating point value for the parameter). What you specify here is the range that automated configuration procedures should search (i.e., a range you expect a priori to contain good values); of course, every value in the specified range must be legal. There is a tradeoff in choosing the best range size; see Section \ref{sec:tips} for some tips on defining a `good' parameter space.
+Note that there may be other parameter values outside this interval that are in principle legal values for the parameter (e.g., your solver might accept any positive floating point value for the parameter). What you specify here is the range that automated configuration procedures should search (i.e., a range you expect a priori to contain good values); of course, every value in the specified range must be legal. There is a tradeoff in choosing the best range size.%; see Section \ref{sec:tips} for some tips on defining a `good' parameter space.
 
 \paragraph{Example 2:}
 \begin{verbatim}
@@ -85,7 +85,7 @@ DLSc [0.00001, 0.1] [0.01]l
 Parameter \texttt{DLSc} is real-valued with a default value of \texttt{0.01}, and we can choose values for it from the (closed) interval \texttt{[0.00001, 0.1]}.
 The trailing `\texttt{l}' denotes that this parameter naturally varies on a log scale. If we were to discretize the parameter, a natural choice would be
 \texttt{\{0.00001, 0.0001, 0.001, 0.01, 0.1\}}. That means, a priori the distance between parameter values \texttt{0.001} and \texttt{0.01} is identical to that between \texttt{0.01} and \texttt{0.1} (after a log$_{10}$ transformation, \texttt{0.001}, \texttt{0.01}, and \texttt{0.1} become -3, -2, and -1, respectively).
-We express this natural variation on a log scale by the `\texttt{l}' flag. See Section \ref{sec:tips} for further tips on transformations.
+We express this natural variation on a log scale by the `\texttt{l}' flag. %See Section \ref{sec:tips} for further tips on transformations.
 
 \paragraph{Example 4:}
 \begin{verbatim}
@@ -102,7 +102,7 @@ It also varies naturally on a logarithmic scale. For example, due to this logari
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Conditional Parameter Clause}
+\subsubsection{Conditional Parameter Clauses}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Depending on the instantiation of some `higher-level' parameters, certain `lower-level' parameters may not be active.
@@ -123,15 +123,15 @@ of each such clause are met.
 \paragraph{Example:}
 
 \begin{verbatim}
-sort-algo{quick,insertion,merge,heap,stooge,bogo} [bogo]
-quick-revert-to-insertion{1,2,4,8,16,32,64} [16]
-quick-revert-to-insertion|sort-algo in {quick}
+sort-algo {quick,insertion,merge,heap,stooge,bogo} [bogo]
+quick-selection-method {first, random, median-of-medians} [random]
+quick-selection-method | sort-algo in {quick}
 \end{verbatim}
-In this example, \texttt{quick-revert-to-insertion} is conditional on the \texttt{sort-algo} parameter being set to \texttt{quick}, and will be ignored otherwise.
+In this example, \texttt{quick-selection-method} is conditional on the \texttt{sort-algo} parameter being set to \texttt{quick}, and will be ignored otherwise.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Forbidden Parameter Clauses}
+\subsubsection{Forbidden Parameter Clauses}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Forbidden Parameters are combinations of parameter values which are invalid (e.g., a certain data structure may be incompatible with a lazy heuristic that does not update the data structure, resulting in incorrect algorithm behaviour).
@@ -149,7 +149,7 @@ The syntax for forbidden parameter combinations is as follows:
 DSF {DataStructure1, DataStructure2, DataStructure3}[DataStructure1]
 PreProc {NoPreProc, SimplePreproc, ComplexPreproc}[ComplexPreproc]
 {DSF=DataStructure2, PreProc=ComplexPreproc}
-{DSF=DataStructure3, PreProc=SimplePreproc}
+{DSF=DataStructure2, PreProc=SimplePreproc}
 {DSF=DataStructure3, PreProc=ComplexPreproc}
 \end{verbatim}
 

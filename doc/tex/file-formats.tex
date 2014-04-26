@@ -26,19 +26,21 @@ in section \ref{sec:exec-spec}. The string here should be invokable via the syst
 \texttt{<execdir>}; \texttt{<algo>}'' })
 \item [{deterministic}] A boolean that governs whether or not the algorithm should be treated as deterministic. For backwards compatibility with ParamILS, this option also supports using 0 for false, and 1 for true. SMAC will never invoke the target algorithm more than once for any given instance, seed and configuration. If this is set to \texttt{true}, SMAC will never invoke the target algorithm more than once for any given instance and configuration.
 
-\item [{run\_obj}] Determines how to convert the resulting output line
-into a scalar quantifying how ``good'' a single algorithm execution
+\item [{run\_obj}] Determines how to convert the resulting output line (as defined in Section
+ \ref{sec:wrapper_output}) into a scalar quantifying how ``good'' a single algorithm execution
 is, (\eg{ how long it took to execute, how good of a solution it found,
-etc...}). SMAC will attempt to \textit{minimize} this objective. Currently implemented objectives are the following:
+etc...}). SMAC will attempt to \emph{minimize} this objective. 
+
+ Currently implemented objectives are the following:
 \item [{
 \begin{tabular}{|c|c|}
 \hline 
 Name & Description\tabularnewline
 \hline 
 \hline 
-RUNTIME & The reported runtime of the algorithm.\tabularnewline
+RUNTIME & Minimize the reported runtime of the algorithm.\tabularnewline
 \hline 
-QUALITY & The reported quality of the algorithm.\tabularnewline
+QUALITY & Minimize the reported quality of the algorithm.\tabularnewline
 \hline 
 \end{tabular}}]~
 \item [{overall\_obj}] While \textbf{run\_obj} defines the objective function
@@ -54,20 +56,21 @@ Name & Description\tabularnewline
 \hline 
 MEAN & The mean of the values\tabularnewline
 \hline
-MEAN1000 & Unsuccessful runs are counted as 1000 $\times$ \textbf{cutoff\_time}\tabularnewline
+MEAN1000 & Unsuccessful runs are counted as 1000 $\times$ \textbf{target\_run\_cputime\_limit}\tabularnewline
 \hline 
-MEAN10 & Unsuccessful runs are counted as 10 $\times$ \textbf{cutoff\_time}\tabularnewline
+MEAN10 & Unsuccessful runs are counted as 10 $\times$ \textbf{target\_run\_cputime\_limit}\tabularnewline
 \hline 
 \hline 
 \end{tabular}}]~
-\item [{cutoff\_time}] The CPU time after which a single algorithm execution
+\item [{target\_run\_cputime\_limit}] The CPU time after which a single algorithm execution
 will be terminated as unsuccess (and treated as a \textbf{TIMEOUT}). This is an important parameter: If chosen too high, lots of time will be wasted with unsuccessful
 runs. If chosen too low the optimization is biased to perform well
 on easy instances only. 
 %\item [{cutoff\_length}] The runlength after which a single algorithm execution
 %will be terminated unsuccesfully. The actual semantic meaning of this
 %value is up to the target algorithm. NOT SUPPORTED IN THIS VERSION)
-\item [{tunerTimeout}] The limit of the CPU time allowed for configuration (\ie{The sum of all algorithm runtimes, and by default the sum of the CPU time of SMAC itself}).
+\item [{cputime\_limit}] The limit of the CPU time allowed for configuration (\ie{The sum of all algorithm runtimes, and by default the sum of the CPU time of SMAC itself}).
+\item [{wallclock\_limit}] The limit of the amount of wallclock (or real) time allowed for configuration. 
 \item [{paramfile}] Specifies the file with the parameters of the algorithm.
 The format of this file is covered in Section \ref{sec:paramfile}.
 \item [{outdir}] Specifies the directory SMAC should write its results
@@ -116,7 +119,7 @@ The \textbf{feature\_file} specifies features that are to be used for instances.
 At the top of the file there \textsc{must} appear a header row, the cell that appears above the instance names is unimportant, but for each feature a unique and \emph{non-numeric} (\ie{ it must contain atleast one letter}) feature name must be specified.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Algorithm Parameter File} \label{sec:paramfile}
+\subsection{Parameter Configuration Space Format} \label{sec:paramfile}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
  \subfile{pcs-subfile}

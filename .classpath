@@ -4,24 +4,24 @@
 	<classpathentry kind="src" path="conf"/>
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="src" path="version"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/commons-math-2.2/commons-math-2.2-sources.jar"/>
 	<classpathentry kind="lib" path="lib/commons-math-2.2/commons-math-2.2.jar"/>
 	<classpathentry kind="lib" path="lib/Jama-1.0.2.jar" sourcepath="/ubc/cs/home/s/seramage/Jama"/>
 	<classpathentry kind="lib" path="lib/commons-collections-3.2.1.jar" sourcepath="lib/commons-collections-3.2.1-sources.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" path="/RandomForests"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/AutomaticConfiguratorLibrary"/>
-	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/jcommander.jar"/>
-	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/spi-0.2.4.jar"/>
-	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/opencsv-2.3.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/AEATK"/>
 	<classpathentry kind="lib" path="testlib/testng-6.8.jar"/>
-	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/jcip-annotations.jar" sourcepath="/AutomaticConfiguratorLibrary/lib/jcip-annotations-src.jar"/>
 	<classpathentry kind="src" path=".apt_generated">
 		<attributes>
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="/AutomaticConfiguratorLibrary/lib/slf4j-api-1.7.5.jar"/>
+	<classpathentry kind="lib" path="/AEATK/lib/jcip-annotations.jar" sourcepath="/AEATK/lib/jcip-annotations-src.jar"/>
+	<classpathentry kind="lib" path="/AEATK/lib/jcommander.jar"/>
+	<classpathentry kind="lib" path="/AEATK/lib/opencsv-2.3.jar"/>
+	<classpathentry kind="lib" path="/AEATK/lib/slf4j-api-1.7.5.jar"/>
+	<classpathentry kind="lib" path="/AEATK/lib/spi-0.2.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

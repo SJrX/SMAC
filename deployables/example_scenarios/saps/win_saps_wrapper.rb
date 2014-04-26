@@ -20,7 +20,7 @@ end
 paramstring = ARGV[5...ARGV.length].join(" ")
 
 #=== Build algorithm command and execute it.
-cmd = "ubcsat.exe -alg saps #{paramstring} -inst #{cnf_filename} -cutoff #{cutoff_length} -timeout #{cutoff_time} -target #{qual} -seed #{seed} -r stats stdout default,best"
+cmd = "#{File.absolute_path(File.dirname(__FILE__))}\\ubcsat.exe -alg saps #{paramstring} -inst #{cnf_filename} -cutoff #{cutoff_length} -timeout #{cutoff_time} -target #{qual} -seed #{seed} -r stats stdout default,best"
 
 filename = "ubcsat_output#{rand}.txt"
 exec_cmd = "#{cmd} > #{filename}"

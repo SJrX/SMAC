@@ -7,8 +7,12 @@ import java.io.StringWriter;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -18,32 +22,41 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
-import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
-import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
-import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
-import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
-import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
-import ca.ubc.cs.beta.aclib.options.AbstractOptions;
-import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
-
-import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aclib.smac.SMACOptions;
-import ca.ubc.cs.beta.aclib.state.StateFactoryOptions;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
-
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
-
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
-
+import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
+import ca.ubc.cs.beta.aeatk.exceptions.StateSerializationException;
+import ca.ubc.cs.beta.aeatk.exceptions.TrajectoryDivergenceException;
+import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
+import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aeatk.misc.returnvalues.AEATKReturnValues;
+import ca.ubc.cs.beta.aeatk.misc.spi.SPIClassLoaderHelper;
+import ca.ubc.cs.beta.aeatk.misc.version.JavaVersionInfo;
+import ca.ubc.cs.beta.aeatk.misc.version.OSVersionInfo;
+import ca.ubc.cs.beta.aeatk.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aeatk.misc.watch.AutoStartStopWatch;
+import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
+import ca.ubc.cs.beta.aeatk.options.AbstractOptions;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceOptions.TrainTestInstances;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
+import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
+import ca.ubc.cs.beta.aeatk.state.StateFactoryOptions;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aeatk.termination.TerminationCondition;
+import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFile;
+import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.builder.SMACBuilder;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
+import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
+import ca.ubc.cs.beta.smac.validation.ValidationResult;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
@@ -92,7 +105,7 @@ public class SMACExecutor {
 		
 		if(log != null)
 		{
-			log.info("Returning with value: {}",returnValue);
+			log.debug("Returning with value: {}",returnValue);
 		}
 		
 		System.exit(returnValue);
@@ -116,44 +129,105 @@ public class SMACExecutor {
 			
 			SMACBuilder smacBuilder = new SMACBuilder();
 			
-			
 			//EventManager eventManager = smacBuilder.getEventManager();
-			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
+			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
 			AbstractAlgorithmFramework smac;
 			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
 			
+			StopWatch watch = new AutoStartStopWatch();
 			
 			smac.run();
 			
-			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
+			watch.stop();
+			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
+			
 			
 			pool.logUsage();
 			
+			ParameterConfiguration incumbent = smac.getIncumbent();
+			RunHistory runHistory = smac.runHistory();
+			TerminationCondition tc = smac.getTerminationCondition();
+			
+			final DecimalFormat df0 = new DecimalFormat("0"); 
+			String callString = smac.getCallString();
+			log.info("\n=======================================================================================\n"
+					+ "SMAC has finished. Reason: {}\n" 
+					+ "Total number of runs performed: {}, total configurations tried: {}.\n"   
+					+ "Total CPU time used: {} s, total wallclock time used: {} s.\n"
+					+ "SMAC's final incumbent: config {} (internal ID: {}), with estimated {}: {}, based on {} run(s) on {} training instance(s).\n"
+					+ "Sample call for this final incumbent:\n{}\n"
+					//+ "Total number of runs performed: {}, total CPU time used: {} s, total wallclock time used: {} s, total configurations tried: {}.\n"
+					+ "=======================================================================================" ,
+					smac.getTerminationReason(), 
+					runHistory.getAlgorithmRunsIncludingRedundant().size(),
+					
+					runHistory.getAllParameterConfigurationsRan().size(),
+					df0.format(tc.getTunerTime()),
+					df0.format(tc.getWallTime()),
+					runHistory.getThetaIdx(incumbent), incumbent,
+					smac.getObjectiveToReport(),
+					smac.getEmpericalPerformance(incumbent),
+					runHistory.getAlgorithmRunsExcludingRedundant(incumbent).size(),
+					runHistory.getProblemInstancesRan(incumbent).size(),
+					callString.trim());
 			List<TrajectoryFileEntry> tfes = smacBuilder.getTrajectoryFileLogger().getTrajectoryFileEntries();
 			
-			SortedMap<TrajectoryFileEntry, Double> performance;
+			
+			SortedMap<TrajectoryFileEntry, ValidationResult> performance;
 			options.doValidation = (options.validationOptions.numberOfValidationRuns > 0) ? options.doValidation : false;
 			if(options.doValidation)
 			{
+				
+				log.info("Now starting offline validation.");
 			
 				//Don't use the same TargetAlgorithmEvaluator as above as it may have runhashcode and other crap that is probably not applicable for validation
 				
 				if(options.validationOptions.maxTimestamp == -1)
 				{
-					options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
+					if(options.validationOptions.useWallClockTime)
+					{
+						if(options.scenarioConfig.limitOptions.runtimeLimit < Integer.MAX_VALUE)
+						{
+							options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.runtimeLimit;
+						} else
+						{
+							options.validationOptions.maxTimestamp = watch.time() / 1000.0;
+						}
+					} else
+					{
+						options.validationOptions.maxTimestamp = options.scenarioConfig.limitOptions.tunerTimeout;
+					}
+					
+					
 				}
 				
 				
 				options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
 				
-				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
+				int coreHint = 1;
+				if(options.validationCores != null && options.validationCores > 0)
+				{
+					log.debug("Validation will use {} cores", options.validationCores);
+					options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs = options.validationCores;
+					((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores = options.validationCores;
+					coreHint = options.validationCores;
+				}
+				
+				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts,  false, taeOptions);
 				try {
 					
 					List<ProblemInstance> testInstances = testingILWS.getInstances();
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
-					performance  = (new Validator()).validate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.runObj, options.scenarioConfig.intraInstanceObj, options.scenarioConfig.interInstanceObj, tfes, options.seedOptions.numRun,true);
+
+					TrajectoryFile trajFile = new TrajectoryFile(new File(outputDir + File.separator + "traj-run-" + options.seedOptions.numRun + ".txt"),tfes);
+					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile, true, coreHint, execConfig);
+
+
+					
+//					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile,true, coreHint,execConfig);
+
 				} finally
 				{
 					validatingTae.notifyShutdown();
@@ -161,29 +235,103 @@ public class SMACExecutor {
 				
 			} else
 			{
-				performance = new TreeMap<TrajectoryFileEntry, Double>();
-				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
+				performance = new TreeMap<TrajectoryFileEntry, ValidationResult>();
+				performance.put(tfes.get(tfes.size()-1), new ValidationResult(Double.POSITIVE_INFINITY, Collections.<ProblemInstanceSeedPair>emptyList()));
 				
 			}
-			smac.logIncumbentPerformance(performance);
-
-			smac.logSMACResult(performance);
 			
-			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
+			
+			
+			
+			String validationMessage = "";
+			if(options.doValidation)
+			{
+				if(options.validationOptions.validateOnlyLastIncumbent)
+				{
+					
+					
+					Set<ProblemInstance> pis = new HashSet<ProblemInstance>();
+					int pispCount = 0;
+					for(ProblemInstanceSeedPair pisp : performance.get(performance.lastKey()).getPISPS())
+					{
+						pispCount++;
+						pis.add(pisp.getProblemInstance());
+					}
+					
+					validationMessage= "Estimated mean quality of final incumbent config "+runHistory.getThetaIdx(incumbent)+" (internal ID: "+incumbent+") on test set: "+ performance.get(performance.lastKey()).getPerformance() + ", based on "+pispCount+" run(s) on "+pis.size()+" test instance(s).\n";
+					
+							/*
+							 * smac.getTerminationReason(), 
+					runHistory.getAlgorithmRunsIncludingRedundant().size(),
+					
+					runHistory.getAllParameterConfigurationsRan().size(),
+					df0.format(tc.getTunerTime()),
+					df0.format(tc.getWallTime()),
+					runHistory.getThetaIdx(incumbent), incumbent,
+					smac.getObjectiveToReport(),
+					smac.getEmpericalPerformance(incumbent),
+					runHistory.getAlgorithmRunsExcludingRedundant(incumbent).size(),
+					runHistory.getProblemInstancesRan(incumbent).size(),
+					callString.trim());
+					
+							 */
+					
+				} else
+				{
+					validationMessage = smac.logIncumbentPerformance(performance);
+				}
+				
+			}
+			
+			
+
+			
+			
 			
 			smacBuilder.getEventManager().shutdown();
 			
-			log.info("SMAC Termination Reason: {}",smac.getTerminationReason() );
-			log.info("SMAC Completed Successfully. Log: " + logLocation);
+		if(options.doValidation)
+		{
+		log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+					+"{}Sample call for the final incumbent:\n{}\n"
+					+ "Additional information about run {} in:{}\n"
+					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+					validationMessage,
+				    callString,
+				    options.seedOptions.numRun,
+				    outputDir);
+		} else
+		{
+			log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+					+ "Additional information about run {} in:{}\n"
+					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+				    options.seedOptions.numRun,
+				    outputDir);
+			
+		}
+				    
+			//log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
+			//log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
+			/*
+			log.info("----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"+
+			"SMAC's final incumbent: {}.\n"+
+			/*
+			[INFO ] Training performance: estimated mean quality 0.4236244493298802, based on 1 run(s) on 1 instance(s).
+			[INFO ] Test performance: estimated mean quality 0.4236244493298802, based on 1 run(s) on 1 instance(s).
+			[INFO ] Sample call for this final incumbent:
+			cd /home/hutter/smac-v2.06.02-development-665; examples/branin/wrapper.rb no_instance 0 1.7976931348623157E308 2147483647 -1 -x2 '2.9229911729079787' -x1 '5.134529068134288'
+			*/
+			//For additional information, see run 1 in: /home/hutter/smac-v2.06.02-development-665/smac-output/scenario-SMAC-ac-false-cores1-cutoff1.7976931348623157E308-2014-03-31
 			
 			
-			return ACLibReturnValues.SUCCESS;
+			
+			return AEATKReturnValues.SUCCESS;
 		} catch(Throwable t)
 		{
 			System.out.flush();
 			System.err.flush();
 			
-			System.err.println("Error occured running SMAC ( " + t.getClass().getSimpleName() + " : "+ t.getMessage() +  ")\nError Log: " + logLocation);
+			System.err.println("Error occurred while running SMAC\n>Error Message:"+  t.getMessage() +  "\n>Encountered Exception:" + t.getClass().getSimpleName() +"\n>Error Log Location: " + logLocation);
 			System.err.flush();
 			
 				if(log != null)
@@ -194,21 +342,22 @@ public class SMACExecutor {
 					
 					if(t instanceof ParameterException)
 					{
-						log.info("Don't forget that some options are set by default from files in ~/.aclib/");
+						log.info("Note that some options are read from files in ~/.aeatk/");
 						log.debug("Exception stack trace", t);
 						
 						
 					} else if(t instanceof TargetAlgorithmAbortException)
 					{
-						log.error("A serious problem occured during target algorithm execution and we are aborting execution ",t );
+						
+						log.error(CommonMarkers.SKIP_CONSOLE_PRINTING, "A serious problem occured during target algorithm execution and we are aborting execution ",t );
+						
 						
 						
 						log.error("We tried to call the target algorithm wrapper, but this call failed.");
-						log.error("The problem is (most likely) somewhere in the wrapper.");
-						log.error("There is also possibly additional error information above (in this log)");
+						log.error("The problem is (most likely) somewhere in the wrapper or with the arguments to SMAC.");
 						log.error("The easiest way to debug this problem is to manually execute the call we tried and see why it did not return the correct result");
-						log.error("The required syntax is something like \"Final Result for ParamILS: x,x,x,x,x\".);");
-						log.error("Specifically the regex we are matching is {}", CommandLineAlgorithmRun.AUTOMATIC_CONFIGURATOR_RESULT_REGEX);
+						log.error("The required output of the wrapper is something like \"Result for ParamILS: x,x,x,x,x\".);");
+						//log.error("Specifically the regex we are matching is {}", CommandLineAlgorithmRun.AUTOMATIC_CONFIGURATOR_RESULT_REGEX);
 					}	else
 					{
 						log.info("Maybe try running in DEBUG mode if you are missing information");
@@ -222,11 +371,12 @@ public class SMACExecutor {
 						
 					log.info("Exiting SMAC with failure. Log: " + logLocation);
 					log.info("For a list of available commands use:  --help");
-					log.info("Please see above for the available options. Further information is available in the following documents:");
-					log.info("- The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
-					log.info("- The Quickstart Guide (doc/quickstart.pdf) gives a simple example for getting up and running.");
-					log.info("- The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
-
+					//log.info("Please see above for the available options. Further information is available in the following documents:");
+					log.info("The Quickstart guide at available at: http://www.cs.ubc.ca/labs/beta/Projects/SMAC/ or alternatively (doc/quickstart.html) gives simple examples for getting up and running.");
+					log.info("The FAQ (doc/faq.pdf) contains commonly asked questions regarding troubleshooting, and usage.");
+					log.info("The Manual (doc/manual.pdf) contains detailed information on file format semantics.");
+					log.info("If you are stuck, please ask a question in the SMAC forum: https://groups.google.com/forum/#!forum/smac-forum");
+					
 					
 					
 					t = t.getCause();
@@ -247,20 +397,20 @@ public class SMACExecutor {
 				
 				if(t instanceof ParameterException)
 				{
-					return ACLibReturnValues.PARAMETER_EXCEPTION;
+					return AEATKReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 				if(t instanceof StateSerializationException)
 				{
-					return ACLibReturnValues.SERIALIZATION_EXCEPTION;
+					return AEATKReturnValues.SERIALIZATION_EXCEPTION;
 				}
 				
 				if(t instanceof TrajectoryDivergenceException)
 				{
-					return ACLibReturnValues.TRAJECTORY_DIVERGENCE;
+					return AEATKReturnValues.TRAJECTORY_DIVERGENCE;
 				}
 				
-				return ACLibReturnValues.OTHER_EXCEPTION;
+				return AEATKReturnValues.OTHER_EXCEPTION;
 		}
 		
 		
@@ -300,7 +450,7 @@ public class SMACExecutor {
 
 				if(options.adaptiveCapping == null)
 				{
-					switch(options.scenarioConfig.runObj)
+					switch(options.scenarioConfig.getRunObjective())
 					{
 					case RUNTIME:
 						options.adaptiveCapping = true;
@@ -318,13 +468,16 @@ public class SMACExecutor {
 				
 				if(options.randomForestOptions.logModel == null)
 				{
-					switch(options.scenarioConfig.runObj)
+					switch(options.scenarioConfig.getRunObjective())
 					{
 					case RUNTIME:
 						options.randomForestOptions.logModel = true;
 						break;
 					case QUALITY:
 						options.randomForestOptions.logModel = false;
+						break;
+					default:
+						throw new IllegalStateException("Unsure what to do with new run objective");
 					}
 				}
 
@@ -363,20 +516,23 @@ public class SMACExecutor {
 				stackTrace = MarkerFactory.getMarker("STACKTRACE");
 				
 				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
+				
 				VersionTracker.logVersions();
+				SMACVersionInfo s = new SMACVersionInfo();
+				JavaVersionInfo j = new JavaVersionInfo();
+				OSVersionInfo o = new OSVersionInfo();
+				log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
+				
 				
 				for(String name : jcom.getParameterFilesToRead())
 				{
-					log.info("Parsing (default) options from file: {} ", name);
+					log.debug("Parsing (default) options from file: {} ", name);
 				}
 				
 			}
 			
-			log.trace("Command Line Options Parsed");
 			
-	
-			
-			JCommanderHelper.logCallString(args, SMACExecutor.class);
+			JCommanderHelper.logCallString(args, "smac");
 			
 
 			 if(log.isDebugEnabled())
@@ -429,7 +585,7 @@ public class SMACExecutor {
 				//We don't handle this more gracefully because this seems like a super rare incident.
 				if(ManagementFactory.getThreadMXBean().isThreadCpuTimeEnabled())
 				{
-					log.debug("JVM Supports CPU Timing Measurements");
+					log.trace("JVM Supports CPU Timing Measurements");
 				} else
 				{
 					log.warn("This Java Virtual Machine has CPU Time Measurements disabled, tunerTimeout will not contain any SMAC Execution Time.");

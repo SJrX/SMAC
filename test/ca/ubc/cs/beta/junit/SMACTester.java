@@ -21,9 +21,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.junit.*;
-import static org.junit.Assert.*;
 
-import ca.ubc.cs.beta.aclib.options.scenario.ScenarioOptions;
+import static org.junit.Assert.*;
+import ca.ubc.cs.beta.aeatk.options.scenario.ScenarioOptions;
 
 import com.beust.jcommander.JCommander;
 

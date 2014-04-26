@@ -1,15 +1,14 @@
 \begin{thebibliography}{}
 
+\bibitem[Hutter et~al., 2012]{HutHooLey12-ParallelAC}
+Hutter, F., Hoos, H.~H., and K.Leyton-Brown (2012).
+\newblock Parallel algorithm configuration.
+\newblock In {\em {Proc.~of LION-6}}, pages 55--70.
+
 \bibitem[Hutter et~al., 2011]{HutHooLey11-SMAC}
 Hutter, F., Hoos, H.~H., and Leyton-Brown, K. (2011).
 \newblock Sequential model-based optimization for general algorithm
   configuration.
-\newblock In {\em {Proc.~of LION-5}}, {LNCS}, pages 507--523.
-
-\bibitem[Hutter et~al., 2012]{HutHooLey12-ParallelAC}
-Hutter, F., Hoos, H.~H., and Leyton-Brown, K. (2012).
-\newblock Parallel algorithm configuration.
-\newblock In {\em {Proc.~of LION-6}}, {LNCS}.
-\newblock To appear.
+\newblock In {\em {Proc.~of LION-5}}, pages 507--523.
 
 \end{thebibliography}

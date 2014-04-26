@@ -7,13 +7,13 @@ import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.NormalDistribution;
 import org.apache.commons.math.distribution.NormalDistributionImpl;
 
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
-import ca.ubc.cs.beta.aclib.eventsystem.EventHandler;
-import ca.ubc.cs.beta.aclib.eventsystem.events.AutomaticConfiguratorEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.EventHandler;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.AutomaticConfiguratorEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.ChallengeStartEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildEndEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
 
@@ -35,8 +35,8 @@ public class ChallengePredictionHandler implements EventHandler<AutomaticConfigu
 		{
 			if(forest != null)
 			{
-				ParamConfiguration incumbent = smac.getIncumbent();
-				ParamConfiguration challenger = ((ChallengeStartEvent) event).getChallenger();
+				ParameterConfiguration incumbent = smac.getIncumbent();
+				ParameterConfiguration challenger = ((ChallengeStartEvent) event).getChallenger();
 				
 				double[] incumbentMeanVar = applyMarginalModel(incumbent)[0];
 				double[] challengerMeanVar = applyMarginalModel(challenger)[0];
@@ -136,13 +136,13 @@ public class ChallengePredictionHandler implements EventHandler<AutomaticConfigu
 	 * @param configs
 	 * @return
 	 */
-	protected double[][] applyMarginalModel(ParamConfiguration configtoCheck)
+	protected double[][] applyMarginalModel(ParameterConfiguration configtoCheck)
 	{
-		List<ParamConfiguration> configs = Collections.singletonList(configtoCheck);
+		List<ParameterConfiguration> configs = Collections.singletonList(configtoCheck);
 		//=== Translate into array format, and call method for that format.
 		double[][] configArrays = new double[configs.size()][];
 		int i=0; 
-		for(ParamConfiguration config: configs)
+		for(ParameterConfiguration config: configs)
 		{
 			configArrays[i] = config.toValueArray();
 			i++;
