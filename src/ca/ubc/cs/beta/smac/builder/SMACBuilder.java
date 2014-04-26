@@ -1,7 +1,6 @@
 package ca.ubc.cs.beta.smac.builder;
 
 import java.io.File;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -10,54 +9,53 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 import com.beust.jcommander.ParameterException;
 
-import ca.ubc.cs.beta.aclib.acquisitionfunctions.AcquisitionFunctions;
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
-import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.AutomaticConfigurationEnd;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeEndEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.ChallengeStartEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.ac.IterationStartEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.basic.AlgorithmRunCompletedEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildEndEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.model.ModelBuildStartEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.events.state.StateRestoredEvent;
-import ca.ubc.cs.beta.aclib.eventsystem.handlers.LogRuntimeStatistics;
-import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
-import ca.ubc.cs.beta.aclib.initialization.classic.ClassicInitializationProcedure;
-import ca.ubc.cs.beta.aclib.initialization.doublingcapping.DoublingCappingInitializationProcedure;
-import ca.ubc.cs.beta.aclib.initialization.table.UnbiasChallengerInitializationProcedure;
-import ca.ubc.cs.beta.aclib.misc.cputime.CPUTime;
-import ca.ubc.cs.beta.aclib.objectives.ObjectiveHelper;
-import ca.ubc.cs.beta.aclib.objectives.OverallObjective;
-import ca.ubc.cs.beta.aclib.objectives.RunObjective;
-import ca.ubc.cs.beta.aclib.options.AbstractOptions;
-import ca.ubc.cs.beta.aclib.options.scenario.ScenarioOptions;
-import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPoolConstants;
-import ca.ubc.cs.beta.aclib.runhistory.NewRunHistory;
-import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
-import ca.ubc.cs.beta.aclib.runhistory.TeeRunHistory;
-import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
-import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
-import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aclib.smac.ExecutionMode;
-import ca.ubc.cs.beta.aclib.smac.SMACOptions;
-import ca.ubc.cs.beta.aclib.state.StateDeserializer;
-import ca.ubc.cs.beta.aclib.state.StateFactory;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.decorators.helpers.TargetAlgorithmEvaluatorNotifyTerminationCondition;
-import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileLogger;
+import ca.ubc.cs.beta.aeatk.acquisitionfunctions.AcquisitionFunctions;
+import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
+import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.AutomaticConfigurationEnd;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.ChallengeEndEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.ChallengeStartEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.IncumbentPerformanceChangeEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.ac.IterationStartEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.basic.AlgorithmRunCompletedEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildEndEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.model.ModelBuildStartEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.events.state.StateRestoredEvent;
+import ca.ubc.cs.beta.aeatk.eventsystem.handlers.LogRuntimeStatistics;
+import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
+import ca.ubc.cs.beta.aeatk.initialization.classic.ClassicInitializationProcedure;
+import ca.ubc.cs.beta.aeatk.initialization.doublingcapping.DoublingCappingInitializationProcedure;
+import ca.ubc.cs.beta.aeatk.initialization.table.UnbiasChallengerInitializationProcedure;
+import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
+import ca.ubc.cs.beta.aeatk.objectives.ObjectiveHelper;
+import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
+import ca.ubc.cs.beta.aeatk.objectives.RunObjective;
+import ca.ubc.cs.beta.aeatk.options.AbstractOptions;
+import ca.ubc.cs.beta.aeatk.options.scenario.ScenarioOptions;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurationOriginTracker;
+import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPoolConstants;
+import ca.ubc.cs.beta.aeatk.runhistory.NewRunHistory;
+import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
+import ca.ubc.cs.beta.aeatk.runhistory.TeeRunHistory;
+import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistory;
+import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistoryWrapper;
+import ca.ubc.cs.beta.aeatk.smac.ExecutionMode;
+import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
+import ca.ubc.cs.beta.aeatk.state.StateDeserializer;
+import ca.ubc.cs.beta.aeatk.state.StateFactory;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.decorators.helpers.TargetAlgorithmEvaluatorNotifyTerminationCondition;
+import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
+import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFileLogger;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.configurator.SequentialModelBasedAlgorithmConfiguration;
 import ca.ubc.cs.beta.smac.handler.ChallengePredictionHandler;
@@ -86,13 +84,25 @@ public class SMACBuilder {
 		return eventManager;
 	}	
 	
-	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfig execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool)
+	public volatile TAEWrapper taeWrapper = new TAEWrapper()
+	{
+
+		@Override
+		public TargetAlgorithmEvaluator wrap(TargetAlgorithmEvaluator tae) {
+			return tae;
+		}
+		
+	};
+	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfiguration execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool)
+	{
+		return this.getAutomaticConfigurator(execConfig, trainingILWS, options, taeOptions, outputDir, pool, null, null);
+	}
+	
+	public AbstractAlgorithmFramework getAutomaticConfigurator(AlgorithmExecutionConfiguration execConfig, InstanceListWithSeeds trainingILWS, SMACOptions options,Map<String, AbstractOptions> taeOptions, String outputDir, SeedableRandomPool pool, TargetAlgorithmEvaluator oTAE, RunHistory oRHModel)
 	{	
 		CPUTime cpuTime = new CPUTime();
 		
 		StateFactory restoreSF = options.getRestoreStateFactory(outputDir);
-		
-		
 
 		if(options.adaptiveCapping == null)
 		{
@@ -128,7 +138,7 @@ public class SMACBuilder {
 		}
 		
 		
-		ParamConfigurationSpace configSpace = execConfig.getParamFile();
+		ParameterConfigurationSpace configSpace = execConfig.getParameterConfigurationSpace();
 		
 		double configSpaceSize = configSpace.getUpperBoundOnSize();
 	
@@ -148,47 +158,62 @@ public class SMACBuilder {
 		
 		options.checkProblemInstancesCompatibleWithVerifySAT(instances);
 		
-		ParamConfiguration initialIncumbent = configSpace.getConfigurationFromString(options.initialIncumbent, StringFormat.NODB_SYNTAX, pool.getRandom(SeedableRandomPoolConstants.INITIAL_INCUMBENT_SELECTION));
+		ParameterConfiguration initialIncumbent = configSpace.getParameterConfigurationFromString(options.initialIncumbent, ParameterStringFormat.NODB_SYNTAX, pool.getRandom(SeedableRandomPoolConstants.INITIAL_INCUMBENT_SELECTION));
 	
 		
 		if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
 		{
-			log.debug("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			log.debug("Initial Incumbent set to \"{}\" ", initialIncumbent.getFormattedParameterString(ParameterStringFormat.NODB_SYNTAX));
 		} else
 		{
-			log.debug("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParamString(StringFormat.NODB_SYNTAX));
+			log.debug("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParameterString(ParameterStringFormat.NODB_SYNTAX));
 		}
 		
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 		
-		TargetAlgorithmEvaluator tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator(execConfig, taeOptions, outputDir, options.seedOptions.numRun);
+		TargetAlgorithmEvaluator tae;
+		if(oTAE == null)
+		{
+			tae = options.scenarioConfig.algoExecOptions.taeOpts.getTargetAlgorithmEvaluator( taeOptions, outputDir, options.seedOptions.numRun);
+		} else
+		{
+			tae = oTAE;
+		}
 		
+		tae = taeWrapper.wrap(tae);
 		AbstractAlgorithmFramework smac;
 
+
+
 		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective());
-		RunHistory rhModel = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective());
 		
+		
+		RunHistory rhModel;
+		
+		if(oRHModel == null)
+		{
+			rhModel= new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective());
+		} else
+		{
+			rhModel = oRHModel;
+		}
+
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
 		
 		
 		CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions(cpuTime);
 		
-		
-
-		
 		tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent, cpuTime);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
 		eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
-		
-
 		
 		Set onEvents = new HashSet();
 		
 		onEvents.add(IterationStartEvent.class);
 		onEvents.add(AutomaticConfigurationEnd.class);
 		
-		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmCutoffTime(),tae,false, cpuTime, onEvents);
+		logRT = new LogRuntimeStatistics(rh, termCond, execConfig.getAlgorithmMaximumCutoffTime(),tae,false, cpuTime, onEvents);
 		termCond.registerWithEventManager(eventManager);	
 		eventManager.registerHandler(ModelBuildStartEvent.class, logRT);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class,logRT);
@@ -208,32 +233,25 @@ public class SMACBuilder {
 		
 		InitializationProcedure initProc;
 		
-		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmCutoffTime());
+		ObjectiveHelper objHelper = new ObjectiveHelper(options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, execConfig.getAlgorithmMaximumCutoffTime());
 		
 		switch(options.initializationMode)
 		{
 			case CLASSIC:
-				
-				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering);
+				initProc = new ClassicInitializationProcedure(rh, initialIncumbent, acTae, options.classicInitModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, execConfig);
 				break;
 			
 			case ITERATIVE_CAPPING:
-				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
+				initProc = new DoublingCappingInitializationProcedure(rh, initialIncumbent, acTae, options.dciModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper, execConfig);
 				break;
 				
 			case UNBIASED_TABLE:
-				initProc = new UnbiasChallengerInitializationProcedure(rh, initialIncumbent, acTae, options.ucip, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
+				initProc = new UnbiasChallengerInitializationProcedure(rh, initialIncumbent, acTae, execConfig, options.ucip, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
 				break;
 				
 			default:
 				throw new IllegalStateException("Not sure what this initialization mode is");
 		}
-		
-		
-		
-		
-		
-		
 		
 		if(options.expFunc == null)
 		{
@@ -282,11 +300,15 @@ public class SMACBuilder {
 		switch(options.execMode)
 		{
 			case ROAR:
-				smac = new AbstractAlgorithmFramework(options,instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc, cpuTime);
+
+				smac = new AbstractAlgorithmFramework(options,execConfig, instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc,cpuTime);
+
 				break;
 			case SMAC:
+				
 				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, execConfig, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
+
 				break;
 			case PSEL:
 				throw new ParameterException("This version of SMAC does not support " + options.execMode + " at this time");
@@ -325,7 +347,7 @@ public class SMACBuilder {
 	}
 	
 	
-	private void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParamConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfig execConfig, RunHistory rh) {
+	private void restoreState(SMACOptions options, StateFactory sf, AbstractAlgorithmFramework smac,  ParameterConfigurationSpace configSpace, List<ProblemInstance> instances, AlgorithmExecutionConfiguration execConfig, RunHistory rh) {
 		
 		if(options.stateOpts.restoreIteration < 0)
 		{

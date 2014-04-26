@@ -8,8 +8,11 @@ import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
@@ -19,40 +22,41 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aclib.exceptions.StateSerializationException;
-import ca.ubc.cs.beta.aclib.exceptions.TrajectoryDivergenceException;
-import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.logging.CommonMarkers;
-import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
-import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
-import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
-import ca.ubc.cs.beta.aclib.misc.version.JavaVersionInfo;
-import ca.ubc.cs.beta.aclib.misc.version.OSVersionInfo;
-import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
-import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
-import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
-import ca.ubc.cs.beta.aclib.options.AbstractOptions;
-import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstanceOptions.TrainTestInstances;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
-import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
-import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aclib.smac.SMACOptions;
-import ca.ubc.cs.beta.aclib.state.StateFactoryOptions;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineAlgorithmRun;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
-import ca.ubc.cs.beta.aclib.termination.TerminationCondition;
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
+import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
+import ca.ubc.cs.beta.aeatk.exceptions.StateSerializationException;
+import ca.ubc.cs.beta.aeatk.exceptions.TrajectoryDivergenceException;
+import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
+import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aeatk.misc.returnvalues.AEATKReturnValues;
+import ca.ubc.cs.beta.aeatk.misc.spi.SPIClassLoaderHelper;
+import ca.ubc.cs.beta.aeatk.misc.version.JavaVersionInfo;
+import ca.ubc.cs.beta.aeatk.misc.version.OSVersionInfo;
+import ca.ubc.cs.beta.aeatk.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aeatk.misc.watch.AutoStartStopWatch;
+import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
+import ca.ubc.cs.beta.aeatk.options.AbstractOptions;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceOptions.TrainTestInstances;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
+import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
+import ca.ubc.cs.beta.aeatk.state.StateFactoryOptions;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.exceptions.TargetAlgorithmAbortException;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aeatk.termination.TerminationCondition;
+import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFile;
+import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.builder.SMACBuilder;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
 import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
+import ca.ubc.cs.beta.smac.validation.ValidationResult;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
 import com.beust.jcommander.JCommander;
@@ -126,7 +130,7 @@ public class SMACExecutor {
 			SMACBuilder smacBuilder = new SMACBuilder();
 			
 			//EventManager eventManager = smacBuilder.getEventManager();
-			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
+			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
 			AbstractAlgorithmFramework smac;
 			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
@@ -141,32 +145,36 @@ public class SMACExecutor {
 			
 			pool.logUsage();
 			
-			ParamConfiguration incumbent = smac.getIncumbent();
+			ParameterConfiguration incumbent = smac.getIncumbent();
 			RunHistory runHistory = smac.runHistory();
 			TerminationCondition tc = smac.getTerminationCondition();
 			
 			final DecimalFormat df0 = new DecimalFormat("0"); 
+			String callString = smac.getCallString();
 			log.info("\n=======================================================================================\n"
-					+ "SMAC has finished. Reason: {}\n"
+					+ "SMAC has finished. Reason: {}\n" 
+					+ "Total number of runs performed: {}, total configurations tried: {}.\n"   
+					+ "Total CPU time used: {} s, total wallclock time used: {} s.\n"
 					+ "SMAC's final incumbent: config {} (internal ID: {}), with estimated {}: {}, based on {} run(s) on {} training instance(s).\n"
-					+ "Total number of runs performed: {}, total CPU time used: {} s, total wallclock time used: {} s, total configurations tried: {}.\n"
+					+ "Sample call for this final incumbent:\n{}\n"
+					//+ "Total number of runs performed: {}, total CPU time used: {} s, total wallclock time used: {} s, total configurations tried: {}.\n"
 					+ "=======================================================================================" ,
 					smac.getTerminationReason(), 
+					runHistory.getAlgorithmRunsIncludingRedundant().size(),
 					
+					runHistory.getAllParameterConfigurationsRan().size(),
+					df0.format(tc.getTunerTime()),
+					df0.format(tc.getWallTime()),
 					runHistory.getThetaIdx(incumbent), incumbent,
 					smac.getObjectiveToReport(),
 					smac.getEmpericalPerformance(incumbent),
 					runHistory.getAlgorithmRunsExcludingRedundant(incumbent).size(),
-					runHistory.getProblemInstanceSeedPairsRan(incumbent).size(),
-					runHistory.getAlgorithmRunsExcludingRedundant().size(),
-					df0.format(tc.getTunerTime()),
-					df0.format(tc.getWallTime()),
-					runHistory.getAllParameterConfigurationsRan().size()
-					);
+					runHistory.getProblemInstancesRan(incumbent).size(),
+					callString.trim());
 			List<TrajectoryFileEntry> tfes = smacBuilder.getTrajectoryFileLogger().getTrajectoryFileEntries();
 			
 			
-			SortedMap<TrajectoryFileEntry, Double> performance;
+			SortedMap<TrajectoryFileEntry, ValidationResult> performance;
 			options.doValidation = (options.validationOptions.numberOfValidationRuns > 0) ? options.doValidation : false;
 			if(options.doValidation)
 			{
@@ -206,14 +214,20 @@ public class SMACExecutor {
 					coreHint = options.validationCores;
 				}
 				
-				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false, taeOptions);
+				TargetAlgorithmEvaluator validatingTae =TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts,  false, taeOptions);
 				try {
 					
 					List<ProblemInstance> testInstances = testingILWS.getInstances();
 					InstanceSeedGenerator testInstanceSeedGen = testingILWS.getSeedGen();
 					
+
 					TrajectoryFile trajFile = new TrajectoryFile(new File(outputDir + File.separator + "traj-run-" + options.seedOptions.numRun + ".txt"),tfes);
-					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile,true, coreHint,execConfig);
+					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile, true, coreHint, execConfig);
+
+
+					
+//					performance  = (new Validator()).simpleValidate(testInstances,options.validationOptions,options.scenarioConfig.algoExecOptions.cutoffTime, testInstanceSeedGen, validatingTae, outputDir, options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, trajFile,true, coreHint,execConfig);
+
 				} finally
 				{
 					validatingTae.notifyShutdown();
@@ -221,35 +235,80 @@ public class SMACExecutor {
 				
 			} else
 			{
-				performance = new TreeMap<TrajectoryFileEntry, Double>();
-				performance.put(tfes.get(tfes.size()-1), Double.POSITIVE_INFINITY);
+				performance = new TreeMap<TrajectoryFileEntry, ValidationResult>();
+				performance.put(tfes.get(tfes.size()-1), new ValidationResult(Double.POSITIVE_INFINITY, Collections.<ProblemInstanceSeedPair>emptyList()));
 				
 			}
 			
 			
 			
 			
-			String incumbentPerformance = smac.logIncumbentPerformance(performance);
+			String validationMessage = "";
+			if(options.doValidation)
+			{
+				if(options.validationOptions.validateOnlyLastIncumbent)
+				{
+					
+					
+					Set<ProblemInstance> pis = new HashSet<ProblemInstance>();
+					int pispCount = 0;
+					for(ProblemInstanceSeedPair pisp : performance.get(performance.lastKey()).getPISPS())
+					{
+						pispCount++;
+						pis.add(pisp.getProblemInstance());
+					}
+					
+					validationMessage= "Estimated mean quality of final incumbent config "+runHistory.getThetaIdx(incumbent)+" (internal ID: "+incumbent+") on test set: "+ performance.get(performance.lastKey()).getPerformance() + ", based on "+pispCount+" run(s) on "+pis.size()+" test instance(s).\n";
+					
+							/*
+							 * smac.getTerminationReason(), 
+					runHistory.getAlgorithmRunsIncludingRedundant().size(),
+					
+					runHistory.getAllParameterConfigurationsRan().size(),
+					df0.format(tc.getTunerTime()),
+					df0.format(tc.getWallTime()),
+					runHistory.getThetaIdx(incumbent), incumbent,
+					smac.getObjectiveToReport(),
+					smac.getEmpericalPerformance(incumbent),
+					runHistory.getAlgorithmRunsExcludingRedundant(incumbent).size(),
+					runHistory.getProblemInstancesRan(incumbent).size(),
+					callString.trim());
+					
+							 */
+					
+				} else
+				{
+					validationMessage = smac.logIncumbentPerformance(performance);
+				}
+				
+			}
+			
 			
 
-			String callString = smac.logSMACResult(performance);
+			
 			
 			
 			smacBuilder.getEventManager().shutdown();
 			
-			
-			log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
-					+ "Minimized {}{}:\n"
-					+ "{}\n"
-					+ "{}\n"
-					+ "Additional information about run {} in: {}\n"
-					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------"
-					,smac.getObjectiveToReport()
-					, (performance.size() > 1) ? " over time": ""
-				    ,incumbentPerformance,
+		if(options.doValidation)
+		{
+		log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+					+"{}Sample call for the final incumbent:\n{}\n"
+					+ "Additional information about run {} in:{}\n"
+					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+					validationMessage,
 				    callString,
 				    options.seedOptions.numRun,
 				    outputDir);
+		} else
+		{
+			log.info("\n----------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n"
+					+ "Additional information about run {} in:{}\n"
+					+ "----------------------------------------------------------------------------------------------------------------------------------------------------------------------------",
+				    options.seedOptions.numRun,
+				    outputDir);
+			
+		}
 				    
 			//log.info("SMAC has finished. Reason: {}",smac.getTerminationReason() );
 			//log.info("SMAC"+ (options.doValidation ? " & Validation" : "" ) +  " Completed Successfully. Log: " + logLocation);
@@ -266,7 +325,7 @@ public class SMACExecutor {
 			
 			
 			
-			return ACLibReturnValues.SUCCESS;
+			return AEATKReturnValues.SUCCESS;
 		} catch(Throwable t)
 		{
 			System.out.flush();
@@ -338,20 +397,20 @@ public class SMACExecutor {
 				
 				if(t instanceof ParameterException)
 				{
-					return ACLibReturnValues.PARAMETER_EXCEPTION;
+					return AEATKReturnValues.PARAMETER_EXCEPTION;
 				}
 				
 				if(t instanceof StateSerializationException)
 				{
-					return ACLibReturnValues.SERIALIZATION_EXCEPTION;
+					return AEATKReturnValues.SERIALIZATION_EXCEPTION;
 				}
 				
 				if(t instanceof TrajectoryDivergenceException)
 				{
-					return ACLibReturnValues.TRAJECTORY_DIVERGENCE;
+					return AEATKReturnValues.TRAJECTORY_DIVERGENCE;
 				}
 				
-				return ACLibReturnValues.OTHER_EXCEPTION;
+				return AEATKReturnValues.OTHER_EXCEPTION;
 		}
 		
 		

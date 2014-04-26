@@ -100,9 +100,7 @@ Total number of runs performed: 171, total CPU time used: 604 s,
 The first line indicates why SMAC terminated, in this case the CPU time limit
 was exceeded. It provides an updated estimate of the objective, in this case 0.12. 
 
-
 \item Offline Validation Phase, depending on the options used this can also take a large fraction of SMAC's runtime. The logic here is actually quite simple, as it largely only requires running many algorithm runs and computing the objectives from them.
-
 
 \scriptsize{
 \begin{verbatim}
@@ -119,8 +117,6 @@ Additional information about run 1 in: smac-output/run1/
 \end{verbatim}
 }
 \normalsize
-
-
 
 \end{itemize}
 
@@ -139,13 +135,13 @@ The state is saved for every iteration $m$, where $m=2^{n}$ $n \in \mathbb{N}$, 
 The following files are saved in this state directory (ignoring the suffix):
 
 \begin{description}
-\item[java\_obj\_dump] Stores (Java) serialized versions of the the incumbent and the random object state. In general there is no need to look at this file, and it is not human readable.
+\item[java\_obj\_dump-v2-it$M$.obj] Stores (Java) serialized versions of the the incumbent and the random object state. In general there is no need to look at this file, and it is not human readable.
 
-\item[paramstrings]	  Stores a human readable setting of each configuration ran, with a prefix of the numeric id of the configuration (as used in the logs, and other state files).
+\item[paramstrings-it$M$.txt]	  Stores a human readable setting of each configuration ran, with a prefix of the numeric id of the configuration (as used in the logs, and other state files).
 
-\item[uniq\_configurations] Stores the configurations ran in a more concise but effectively un-human readable form. The first column again is the numeric id of the configuration (as used in the logs, and other state files).
+\item[uniq\_configurations-$M$.csv] Stores the configurations ran in a more concise but effectively un-human readable form. The first column again is the numeric id of the configuration (as used in the logs, and other state files).
 
-\item[run\_and\_results] Stores the result of every run of the target algorithm that SMAC has done. The first 13 columns (after the header row are designed to be backwards compatible with SMAC versions 1.xx. Each column is labelled with what data it contains, the following columns deserve some description.
+\item[runs\_and\_results-it$M$.csv] Stores the result of every run of the target algorithm that SMAC has done. The first 13 columns (after the header row are designed to be backwards compatible with SMAC versions 1.xx. Each column is labelled with what data it contains, the following columns deserve some description.
 	\begin{enumerate}
 	\item[\texttt{Instance ID}]	This is the instance used, and is the $n^{th}$ \textbf{Instance Name} specified in the \textbf{instance\_file} option.
 	\item[\texttt{Response Value(y)}]  This is the value determined by the \textbf{run\_obj} on the run.
@@ -160,10 +156,7 @@ The following files are saved in this state directory (ignoring the suffix):
 	\item[instance-features] If \textbf{-$~\!$-save-context} is enabled, and SMAC is running with features, then a copy of the \textbf{feature\_file} will be in the state folder.
 
 	\item[scenario] If \textbf{-$~\!$-save-context} is enabled, and SMAC is using a scenario file, then a copy of the  \textbf{-$~\!$-scenario-file} will be in the state folder.
-	
-	
-		
-	
+
 \end{description}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

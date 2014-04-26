@@ -13,38 +13,37 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import ca.ubc.cs.beta.aclib.acquisitionfunctions.AcquisitionFunction;
-import ca.ubc.cs.beta.aclib.algorithmrun.AlgorithmRun;
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aclib.configspace.tracking.ParamConfigurationOriginTracker;
-import ca.ubc.cs.beta.aclib.eventsystem.EventManager;
-import ca.ubc.cs.beta.aclib.initialization.InitializationProcedure;
-import ca.ubc.cs.beta.aclib.misc.associatedvalue.ParamWithEI;
-import ca.ubc.cs.beta.aclib.misc.cputime.CPUTime;
-import ca.ubc.cs.beta.aclib.misc.watch.AutoStartStopWatch;
-import ca.ubc.cs.beta.aclib.misc.watch.StopWatch;
-import ca.ubc.cs.beta.aclib.model.builder.AdaptiveCappingModelBuilder;
-import ca.ubc.cs.beta.aclib.model.builder.BasicModelBuilder;
-import ca.ubc.cs.beta.aclib.model.builder.ModelBuilder;
-import ca.ubc.cs.beta.aclib.model.data.MaskCensoredDataAsUncensored;
-import ca.ubc.cs.beta.aclib.model.data.MaskInactiveConditionalParametersWithDefaults;
-import ca.ubc.cs.beta.aclib.model.data.PCAModelDataSanitizer;
-import ca.ubc.cs.beta.aclib.model.data.SanitizedModelData;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
-import ca.ubc.cs.beta.aclib.runhistory.RunHistory;
-import ca.ubc.cs.beta.aclib.runhistory.RunHistoryHelper;
-import ca.ubc.cs.beta.aclib.runhistory.TeeRunHistory;
-import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistory;
-import ca.ubc.cs.beta.aclib.runhistory.ThreadSafeRunHistoryWrapper;
-import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aclib.smac.SMACOptions;
-import ca.ubc.cs.beta.aclib.state.StateFactory;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.termination.CompositeTerminationCondition;
+import ca.ubc.cs.beta.aeatk.acquisitionfunctions.AcquisitionFunction;
+import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
+import ca.ubc.cs.beta.aeatk.algorithmrunresult.AlgorithmRunResult;
+import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
+import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
+import ca.ubc.cs.beta.aeatk.misc.associatedvalue.ParamWithEI;
+import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
+import ca.ubc.cs.beta.aeatk.misc.watch.AutoStartStopWatch;
+import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
+import ca.ubc.cs.beta.aeatk.model.builder.AdaptiveCappingModelBuilder;
+import ca.ubc.cs.beta.aeatk.model.builder.BasicModelBuilder;
+import ca.ubc.cs.beta.aeatk.model.builder.ModelBuilder;
+import ca.ubc.cs.beta.aeatk.model.data.MaskCensoredDataAsUncensored;
+import ca.ubc.cs.beta.aeatk.model.data.MaskInactiveConditionalParametersWithDefaults;
+import ca.ubc.cs.beta.aeatk.model.data.PCAModelDataSanitizer;
+import ca.ubc.cs.beta.aeatk.model.data.SanitizedModelData;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurationOriginTracker;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
+import ca.ubc.cs.beta.aeatk.runhistory.RunHistoryHelper;
+import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistory;
+import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
+import ca.ubc.cs.beta.aeatk.state.StateFactory;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
-import static ca.ubc.cs.beta.aclib.misc.math.ArrayMathOps.*;
+import static ca.ubc.cs.beta.aeatk.misc.math.ArrayMathOps.*;
 
 public class SequentialModelBasedAlgorithmConfiguration extends
 		AbstractAlgorithmFramework {
@@ -76,8 +75,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	private final RunHistory modelRunHistory;
 
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParamConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParamConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
-		super(smacConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc, cpuTime);
+
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
+		super(smacConfig,execConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc,cpuTime);
+
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
@@ -108,7 +109,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	 * Learns a model from the data in runHistory.
 	 */
 	@Override
-	protected void learnModel(RunHistory runHistory, ParamConfigurationSpace configSpace) 
+	protected void learnModel(RunHistory runHistory, ParameterConfigurationSpace configSpace) 
 	{
 		
 		
@@ -147,7 +148,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		//=== The following two sets are required to be sorted by instance and paramConfig ID.
 		Set<ProblemInstance> all_instances = new LinkedHashSet<ProblemInstance>(instances);
-		Set<ParamConfiguration> paramConfigs = runHistory.getUniqueParamConfigurations();
+		Set<ParameterConfiguration> paramConfigs = runHistory.getUniqueParamConfigurations();
 		
 		Set<ProblemInstance> runInstances=runHistory.getUniqueInstancesRan();
 		ArrayList<Integer> runInstancesIdx = new ArrayList<Integer>(all_instances.size());
@@ -168,7 +169,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//=== Get the parameter configuration matrix (Theta).
 		double[][] thetaMatrix = new double[paramConfigs.size()][];
 		i = 0;
-		for(ParamConfiguration pc : paramConfigs)
+		for(ParameterConfiguration pc : paramConfigs)
 		{
 			if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
 			{
@@ -187,7 +188,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		
-		List<AlgorithmRun> runs = runHistory.getAlgorithmRunsExcludingRedundant();
+		List<AlgorithmRunResult> runs = runHistory.getAlgorithmRunsExcludingRedundant();
 		double[] runResponseValues = RunHistoryHelper.getRunResponseValues(runs, runHistory.getRunObjective());
 		boolean[] censored = RunHistoryHelper.getCensoredEarlyFlagForRuns(runs);
 		
@@ -250,26 +251,26 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	}
 	
 	//private int selectionCount = 0;
-	protected List<ParamConfiguration> selectConfigurations()
+	protected List<ParameterConfiguration> selectConfigurations()
 	{
 		Random configSpaceRandomInterleave = pool.getRandom("SMAC_RANDOM_INTERLEAVED_CONFIG_PRNG");
 		AutoStartStopWatch t = new AutoStartStopWatch();
-		List<ParamConfiguration> eichallengers = selectChallengersWithEI(smacConfig.numberOfChallengers);
+		List<ParameterConfiguration> eichallengers = selectChallengersWithEI(smacConfig.numberOfChallengers);
 		
 		log.debug("Selecting {} challengers based on EI took {} seconds", eichallengers.size(), t.stop() / 1000.0);
 		
-		List<ParamConfiguration> randomChallengers = new ArrayList<ParamConfiguration>(eichallengers.size());
+		List<ParameterConfiguration> randomChallengers = new ArrayList<ParameterConfiguration>(eichallengers.size());
 		
 		
 		 t = new AutoStartStopWatch();
 		for(int i=0; i < eichallengers.size(); i++)
 		{
-			randomChallengers.add(configSpace.getRandomConfiguration(configSpaceRandomInterleave));
+			randomChallengers.add(configSpace.getRandomParameterConfiguration(configSpaceRandomInterleave));
 		}
 		log.trace("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
 		
 		//=== Interleave the EI and random challengers.
-		List<ParamConfiguration> challengers = new ArrayList<ParamConfiguration>(eichallengers.size()*2);
+		List<ParameterConfiguration> challengers = new ArrayList<ParameterConfiguration>(eichallengers.size()*2);
 		for(int i=0; i < eichallengers.size(); i++)
 		{
 			challengers.add(eichallengers.get(i));
@@ -279,7 +280,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//=== Convert to array form for debug hash code.
 		double[][] configArrayToDebug = new double[challengers.size()][];
 		int j=0; 
-		for(ParamConfiguration c : challengers)
+		for(ParameterConfiguration c : challengers)
 		{
 			configArrayToDebug[j++] = c.toValueArray();
 		}
@@ -293,13 +294,13 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	}
 	
 	@SuppressWarnings("unused")
-	public List<ParamConfiguration> selectChallengersWithEI(int numChallengers)
+	public List<ParameterConfiguration> selectChallengersWithEI(int numChallengers)
 	{
 		Set<ProblemInstance> instanceSet = new HashSet<ProblemInstance>();
 		instanceSet.addAll(runHistory.getProblemInstancesRan(incumbent));
 		
 		//=== Get predictions for all configurations we have run thus far.
-		List<ParamConfiguration> paramConfigs = runHistory.getAllParameterConfigurationsRan();
+		List<ParameterConfiguration> paramConfigs = runHistory.getAllParameterConfigurationsRan();
 		double[][] predictions = transpose(applyMarginalModel(paramConfigs));
 		double[] predmean = predictions[0];
 		double[] predvar = predictions[1];
@@ -354,7 +355,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		log.debug("Compute negEI for all conf. seen at valdata.iteration {}: took {} s",getIteration(), ((double) watch.time()) / 1000.0 );
 
 		//=== Put these EIs into a map for each configuration.
-		Map<ParamConfiguration, double[]> configPredMeanVarEIMap = new LinkedHashMap<ParamConfiguration, double[]>();
+		Map<ParameterConfiguration, double[]> configPredMeanVarEIMap = new LinkedHashMap<ParameterConfiguration, double[]>();
 		for(int i=0; i < paramConfigs.size(); i++)
 		{
 			double[] val = { predmean[i], predvar[i], negativeExpectedImprovementOfTheta[i] };
@@ -421,10 +422,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		Random configSpaceEIRandom = pool.getRandom("SMAC_RANDOM_EI_CONFIG_PRNG");
 		AutoStartStopWatch t = new AutoStartStopWatch();
-		List<ParamConfiguration> randomConfigs = new ArrayList<ParamConfiguration>(numberOfRandomConfigsInEI);
+		List<ParameterConfiguration> randomConfigs = new ArrayList<ParameterConfiguration>(numberOfRandomConfigsInEI);
 		for(int i=0; i < numberOfRandomConfigsInEI; i++)
 		{
-			randomConfigs.add(configSpace.getRandomConfiguration(configSpaceEIRandom));
+			randomConfigs.add(configSpace.getRandomParameterConfiguration(configSpaceEIRandom));
 		} 
 		
 		log.trace("Generating {} Random Configurations for EI took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
@@ -500,7 +501,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		//=== Make result list of configurations. 
-		List<ParamConfiguration> results = new ArrayList<ParamConfiguration>(bestResults.size());
+		List<ParameterConfiguration> results = new ArrayList<ParameterConfiguration>(bestResults.size());
 		for(ParamWithEI eic : bestResults)
 		{
 			results.add(eic.getValue());
@@ -558,7 +559,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			}
 			
 			//=== Get EI of current configuration.
-			ParamConfiguration c = incumbentEIC.getValue();
+			ParameterConfiguration c = incumbentEIC.getValue();
 			double currentMinEI = incumbentEIC.getAssociatedValue();
 			
 			//System.out.println("minEI: " + currentMinEI + " incumbent: " + c.hashCode());
@@ -568,7 +569,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.trace("Local Search HashCode: {}", LSHashCode);
 			
 			//=== Get neighbourhood of current options and compute EI for all of it.
-			List<ParamConfiguration> neighbourhood = c.getNeighbourhood(configRandLS, options.scenarioConfig.algoExecOptions.paramFileDelegate.continuousNeighbours);
+			List<ParameterConfiguration> neighbourhood = c.getNeighbourhood(configRandLS, options.scenarioConfig.algoExecOptions.paramFileDelegate.continuousNeighbours);
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];
 			double[] vars = prediction[1];
@@ -603,7 +604,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 
 				//== Move to random element of the best neighbours.
 				int nextIdx = minIdx.get(configRandLS.nextInt(minIdx.size()));
-				ParamConfiguration best = neighbourhood.get(nextIdx);
+				ParameterConfiguration best = neighbourhood.get(nextIdx);
 				incumbentEIC = new ParamWithEI(eiVal[nextIdx], best);
 				
 				//==== Matlab code always uses the min even if we didn't select it.
@@ -653,12 +654,12 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	 * @param configs
 	 * @return
 	 */
-	protected double[][] applyMarginalModel(List<ParamConfiguration> configs)
+	protected double[][] applyMarginalModel(List<ParameterConfiguration> configs)
 	{
 		//=== Translate into array format, and call method for that format.
 		double[][] configArrays = new double[configs.size()][];
 		int i=0; 
-		for(ParamConfiguration config: configs)
+		for(ParameterConfiguration config: configs)
 		{
 			configArrays[i] = config.toValueArray();
 			i++;

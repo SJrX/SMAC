@@ -5,10 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -18,36 +15,34 @@ import java.util.TreeSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
-
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration;
-import ca.ubc.cs.beta.aclib.configspace.ParamConfigurationSpace;
-import ca.ubc.cs.beta.aclib.configspace.ParamConfiguration.StringFormat;
-import ca.ubc.cs.beta.aclib.execconfig.AlgorithmExecutionConfig;
-import ca.ubc.cs.beta.aclib.logging.CommonMarkers;
-import ca.ubc.cs.beta.aclib.misc.jcommander.JCommanderHelper;
-import ca.ubc.cs.beta.aclib.misc.returnvalues.ACLibReturnValues;
-import ca.ubc.cs.beta.aclib.misc.spi.SPIClassLoaderHelper;
-import ca.ubc.cs.beta.aclib.misc.version.JavaVersionInfo;
-import ca.ubc.cs.beta.aclib.misc.version.OSVersionInfo;
-import ca.ubc.cs.beta.aclib.misc.version.VersionTracker;
-import ca.ubc.cs.beta.aclib.options.AbstractOptions;
-import ca.ubc.cs.beta.aclib.probleminstance.InstanceListWithSeeds;
-import ca.ubc.cs.beta.aclib.probleminstance.ProblemInstance;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPoolConstants;
-import ca.ubc.cs.beta.aclib.seedgenerator.InstanceSeedGenerator;
-import ca.ubc.cs.beta.aclib.smac.ValidationExecutorOptions;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.TargetAlgorithmEvaluator;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
-import ca.ubc.cs.beta.aclib.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFile;
-import ca.ubc.cs.beta.aclib.trajectoryfile.TrajectoryFileEntry;
+import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
+import ca.ubc.cs.beta.aeatk.logging.CommonMarkers;
+import ca.ubc.cs.beta.aeatk.misc.jcommander.JCommanderHelper;
+import ca.ubc.cs.beta.aeatk.misc.returnvalues.AEATKReturnValues;
+import ca.ubc.cs.beta.aeatk.misc.spi.SPIClassLoaderHelper;
+import ca.ubc.cs.beta.aeatk.misc.version.JavaVersionInfo;
+import ca.ubc.cs.beta.aeatk.misc.version.OSVersionInfo;
+import ca.ubc.cs.beta.aeatk.misc.version.VersionTracker;
+import ca.ubc.cs.beta.aeatk.options.AbstractOptions;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
+import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration.ParameterStringFormat;
+import ca.ubc.cs.beta.aeatk.probleminstance.InstanceListWithSeeds;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPoolConstants;
+import ca.ubc.cs.beta.aeatk.smac.ValidationExecutorOptions;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorFactory;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.base.cli.CommandLineTargetAlgorithmEvaluatorOptions;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorBuilder;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.init.TargetAlgorithmEvaluatorLoader;
+import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFile;
+import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFileEntry;
 import ca.ubc.cs.beta.smac.misc.version.SMACVersionInfo;
 import ca.ubc.cs.beta.smac.validation.Validator;
 
@@ -190,9 +185,9 @@ public class ValidatorExecutor {
 			//ParamConfigurationSpace configSpace = null;
 			Random configSpacePRNG = pool.getRandom(SeedableRandomPoolConstants.VALIDATE_RANDOM_CONFIG_POOL);
 			
-			AlgorithmExecutionConfig execConfig = options.getAlgorithmExecutionConfig();
+			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
-			ParamConfigurationSpace configSpace = execConfig.getParamFile();
+			ParameterConfigurationSpace configSpace = execConfig.getParameterConfigurationSpace();
 			
 			Set<TrajectoryFile> tfes = new TreeSet<TrajectoryFile>();
 			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
@@ -229,13 +224,13 @@ public class ValidatorExecutor {
 				
 				File trajectoryFile = new File("cli");
 				
-				List<ParamConfiguration> configToValidate = new ArrayList<ParamConfiguration>(); 
+				List<ParameterConfiguration> configToValidate = new ArrayList<ParameterConfiguration>(); 
 				//==== Parse the supplied configuration;
 				int optionsSet=0;
 				if(options.incumbent != null)
 				{					
 					log.debug("Parsing Supplied Configuration");
-					configToValidate.add(configSpace.getConfigurationFromString(options.incumbent, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
+					configToValidate.add(configSpace.getParameterConfigurationFromString(options.incumbent, ParameterStringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
 					optionsSet++;
 				}
 				if(options.randomConfigurations > 0)
@@ -250,7 +245,7 @@ public class ValidatorExecutor {
 							configToValidate.add(configSpace.getDefaultConfiguration());
 						} else
 						{
-							configToValidate.add(configSpace.getRandomConfiguration(configSpacePRNG));
+							configToValidate.add(configSpace.getRandomParameterConfiguration(configSpacePRNG));
 						}
 					}
 					optionsSet++;
@@ -270,7 +265,7 @@ public class ValidatorExecutor {
 						{
 							continue;
 						}
-						configToValidate.add(configSpace.getConfigurationFromString(line, StringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
+						configToValidate.add(configSpace.getParameterConfigurationFromString(line, ParameterStringFormat.NODB_OR_STATEFILE_SYNTAX, configSpacePRNG));
 					}
 					
 					optionsSet++;
@@ -293,7 +288,7 @@ public class ValidatorExecutor {
 				
 				List<TrajectoryFileEntry> tfeList = new ArrayList<TrajectoryFileEntry>();
 				int i=0;
-				for(ParamConfiguration config : configToValidate)
+				for(ParameterConfiguration config : configToValidate)
 				{
 					tfeList.add(new TrajectoryFileEntry(config, options.tunerTime + i,options.wallTime, options.empiricalPerformance, options.tunerOverheadTime + i));
 					
@@ -315,7 +310,7 @@ public class ValidatorExecutor {
 			
 			options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
 			
-			TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts, execConfig, false,taeOptions);
+			TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts,  false,taeOptions);
 			
 			
 			
@@ -335,6 +330,7 @@ public class ValidatorExecutor {
 					options.scenarioConfig.interInstanceObj,
 					tfes,
 					options.waitForPersistedRunCompletion, coreHint, execConfig);
+
 			
 			} finally
 			{
@@ -343,12 +339,12 @@ public class ValidatorExecutor {
 			
 			log.info("Validation Completed Successfully");
 			
-			System.exit(ACLibReturnValues.SUCCESS);
+			System.exit(AEATKReturnValues.SUCCESS);
 			
 		} catch(Throwable t)
 		{
 
-			int returnValue = ACLibReturnValues.OTHER_EXCEPTION;
+			int returnValue = AEATKReturnValues.OTHER_EXCEPTION;
 			if(log != null)
 			{
 				
@@ -366,11 +362,8 @@ public class ValidatorExecutor {
 					PrintWriter writer = new PrintWriter(sWriter);
 					t.printStackTrace(writer);
 					log.error(stackTrace, "StackTrace:{}",sWriter.toString());
-					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
+					returnValue = AEATKReturnValues.PARAMETER_EXCEPTION;
 				}
-				
-					
-				
 				
 				
 				log.info("Exiting Application with failure");
@@ -380,11 +373,11 @@ public class ValidatorExecutor {
 			{
 				if(t instanceof ParameterException )
 				{
-					returnValue = ACLibReturnValues.PARAMETER_EXCEPTION;
+					returnValue = AEATKReturnValues.PARAMETER_EXCEPTION;
 					System.err.println(t.getMessage());
 				} else
 				{
-					returnValue = ACLibReturnValues.OTHER_EXCEPTION;
+					returnValue = AEATKReturnValues.OTHER_EXCEPTION;
 					t.printStackTrace();
 				}
 				

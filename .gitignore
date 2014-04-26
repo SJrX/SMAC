@@ -12,6 +12,6 @@
 *.aux
 *.tex.bak
 .directory
-/version
+/version/smac-version.txt
 /zip
 /.apt_generated

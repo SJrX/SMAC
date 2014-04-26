@@ -1,0 +1,3 @@
+Quickstart guide to SMAC
+
+You're looking for a parameter setting that minimizes some performance metric of your algorithm (such as runtime, error, or cost). To use SMAC for this purpose you need to tell it about your parameters and how to evaluate your algorithm's performance. Here, we'll show how to do this. Let's first download SMAC:

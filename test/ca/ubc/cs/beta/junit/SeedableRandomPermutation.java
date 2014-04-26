@@ -10,9 +10,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import ca.ubc.cs.beta.aclib.misc.debug.DebugUtil;
-import ca.ubc.cs.beta.aclib.random.RandomUtil;
-import ca.ubc.cs.beta.aclib.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aeatk.misc.debug.DebugUtil;
+import ca.ubc.cs.beta.aeatk.random.RandomUtil;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
 
 
 public class SeedableRandomPermutation {
