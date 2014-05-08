@@ -1171,8 +1171,14 @@ endloop:
 		}
 	
 		
-		File f = new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + baseName + suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
-		return f;
+		if(trajFile.getLocation().getParent() != null)
+		{
+			return new File(trajFile.getLocation().getParent() + File.separator + filename +"-" + baseName + suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
+		} else
+		{
+			return new File(filename +"-" + baseName + suffix+"."+extension.replaceAll(Matcher.quoteReplacement("\\."), ""));
+		}
+		
 				
 	}
 	

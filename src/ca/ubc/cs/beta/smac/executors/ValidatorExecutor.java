@@ -221,8 +221,7 @@ public class ValidatorExecutor {
 				//We are explicitly setting configurations so validate all
 				options.validationOptions.validateAll = true;
 				
-				
-				File trajectoryFile = new File("cli");
+				File trajectoryFile = new File("cli-" + options.seedOptions.numRun);
 				
 				List<ParameterConfiguration> configToValidate = new ArrayList<ParameterConfiguration>(); 
 				//==== Parse the supplied configuration;
