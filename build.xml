@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <project name="smac" default="deploy">
 	<property name="private.buildfile" value="build-resources/private/user-antbuild.properties"/>
-			<property file="${private.buildfile}"/>
-			<property file="build-resources/antbuild.properties"/>
-			
-			
-			<touch file="${private.buildfile}" mkdirs="true"/>
-			<fail message="${line.separator}================[ ERROR ] ==============${line.separator}
+	<property file="${private.buildfile}"/>
+	<property file="build-resources/antbuild.properties"/>
+	
+	
+	<touch file="${private.buildfile}" mkdirs="true"/>
+	<fail message="${line.separator}================[ ERROR ] ==============${line.separator}
 	You must specify the software.dir property in the file ${private.buildfile}${line.separator}
 	If you are running eclipse you should right click on this project and hit refresh,
 	so that the file appears.${line.separator}
@@ -116,7 +116,7 @@ dirty: ${git.dirty}</echo>
 	<target name="archive" depends="compile">
 		<buildnumber file="${buildnumberfile}"/>
 		<property name="version.string" value="v${version.major}.${version.minor}.${version.revision}${version.beta}-${git.branch}-${build.number}"/>
-		<property name="outputfilename" value="smac-${version.string}"/>
+		<property name="outputfilename" value="${ant.project.name}-${version.string}"/>
 		<property name="version.devstring" value="v${version.major}.${version.minor}.${version.revision}dev-${git.branch}-${build.number}"/>
 		<echo file="${version.file.dev}">${version.devstring} (${git.shortcommit})</echo>
 		<echo file="build/classes/${version.file}">${version.string} (${git.shortcommit})</echo>
@@ -125,9 +125,9 @@ dirty: ${git.dirty}</echo>
 		<delete dir="dist"/>
 		<mkdir dir="dist"/>
 		<mkdir dir="dist/lib"/>
-		<jar destfile="dist/lib/smac.jar" basedir="build/classes"/>
+		<jar destfile="dist/lib/${ant.project.name}.jar" basedir="build/classes"/>
 		
-		<jar destfile="dist/lib/smac-src.jar">
+		<jar destfile="dist/lib/${ant.project.name}-src.jar">
 					<fileset dir="src/">
 						 <include name="**/*.java"/>
 					</fileset>
@@ -478,14 +478,14 @@ dirty: ${git.dirty}</echo>
 		</fileset>
 		</copy>
 		<loadfile property="quickstart.footer" srcFile="doc/text/quickstart_footer.txt"/>
-				<loadfile property="quickstart.header" srcFile="doc/text/quickstart_header.txt"/>
-			<echo file="dist/doc/quickstart.txt">
+		<loadfile property="quickstart.header" srcFile="doc/text/quickstart_header.txt"/>
+		<echo file="dist/doc/quickstart.html">
 ${quickstart.header}
--------------------------------------------------------------------------------
-| wget http://www.cs.ubc.ca/labs/beta/Projects/SMAC/${outputfilename}.tar.gz
-| tar -xzvf ${outputfilename}.tar.gz
-| cd ${outputfilename}
--------------------------------------------------------------------------------
+
+ wget http://www.cs.ubc.ca/labs/beta/Projects/SMAC/${outputfilename}.tar.gz
+ tar -xzvf ${outputfilename}.tar.gz
+ cd ${outputfilename}
+
 ${quickstart.footer}
 </echo>
 	</target>	
