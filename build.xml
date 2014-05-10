@@ -478,14 +478,14 @@ dirty: ${git.dirty}</echo>
 		</fileset>
 		</copy>
 		<loadfile property="quickstart.footer" srcFile="doc/text/quickstart_footer.txt"/>
-				<loadfile property="quickstart.header" srcFile="doc/text/quickstart_header.txt"/>
-			<echo file="dist/doc/quickstart.txt">
+		<loadfile property="quickstart.header" srcFile="doc/text/quickstart_header.txt"/>
+		<echo file="dist/doc/quickstart.html">
 ${quickstart.header}
--------------------------------------------------------------------------------
-| wget http://www.cs.ubc.ca/labs/beta/Projects/SMAC/${outputfilename}.tar.gz
-| tar -xzvf ${outputfilename}.tar.gz
-| cd ${outputfilename}
--------------------------------------------------------------------------------
+
+ wget http://www.cs.ubc.ca/labs/beta/Projects/SMAC/${outputfilename}.tar.gz
+ tar -xzvf ${outputfilename}.tar.gz
+ cd ${outputfilename}
+
 ${quickstart.footer}
 </echo>
 	</target>	
