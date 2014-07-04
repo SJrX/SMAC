@@ -546,7 +546,7 @@ public class SMACExecutor {
 		        }
 			
 			
-				 
+			 log.info(CommonMarkers.SKIP_CONSOLE_PRINTING, "********** The next bit of output can be ignored, it is merely useful for debugging **********");	 
 			 log.info(CommonMarkers.SKIP_CONSOLE_PRINTING,"==========Enviroment Variables===========\n{}", sb.toString());
 			 
 			 
