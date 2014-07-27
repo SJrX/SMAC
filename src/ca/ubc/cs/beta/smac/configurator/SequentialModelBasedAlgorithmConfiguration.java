@@ -84,9 +84,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		this.smacConfig = smacConfig;
 		this.ei = ei;
 		
-		if(modelRH.getAlgorithmRunData().size() > 0)
+		if(modelRH.getAlgorithmRunDataExcludingRedundant().size() > 0)
 		{
-			log.debug("Model warmstart payload detected with {} runs ", modelRH.getAlgorithmRunData().size());
+			log.debug("Model warmstart payload detected with {} runs ", modelRH.getAlgorithmRunDataExcludingRedundant().size());
 		}
 		this.modelRunHistory = modelRH;
 	 
@@ -214,7 +214,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 	
 		//=== Sanitize the data.
-		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndex(), censored, configSpace);
+		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndexExcludingRedundant(), censored, configSpace);
 		
 		
 		if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
