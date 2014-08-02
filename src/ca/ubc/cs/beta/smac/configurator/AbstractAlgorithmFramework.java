@@ -702,7 +702,7 @@ public class AbstractAlgorithmFramework {
 		
 		
 
-		StringBuilder sb = new StringBuilder();
+//		StringBuilder sb = new StringBuilder();
 		
 		
 		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();

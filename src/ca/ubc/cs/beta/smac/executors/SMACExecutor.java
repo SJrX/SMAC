@@ -535,45 +535,44 @@ public class SMACExecutor {
 			JCommanderHelper.logCallString(args, "smac");
 			
 
-			 if(log.isDebugEnabled())
-			 {
-				Map<String, String> env = new TreeMap<String, String>(System.getenv());
-					
-				StringBuilder sb = new StringBuilder();
-				 for (String envName : env.keySet()) {
-					 sb.append(envName).append("=").append(env.get(envName)).append("\n");
-					 
-			           
-			        }
+			 
+			Map<String, String> env = new TreeMap<String, String>(System.getenv());
 				
-				
-					 
-				 log.debug("==========Enviroment Variables===========\n{}", sb.toString());
+			StringBuilder sb = new StringBuilder();
+			 for (String envName : env.keySet()) {
+				 sb.append(envName).append("=").append(env.get(envName)).append("\n");
 				 
-				 
-				 Map<Object,Object > props = new TreeMap<Object, Object>(System.getProperties());
-				 sb = new StringBuilder();
-				 for (Entry<Object, Object> ent : props.entrySet())
-				 {
-					 
-					 sb.append(ent.getKey().toString()).append("=").append(ent.getValue().toString()).append("\n");
-					 
-			           
-			     }
-				
-				 String hostname = "[UNABLE TO DETERMINE HOSTNAME]";
-				try {
-					hostname = InetAddress.getLocalHost().getHostName();
-				} catch(UnknownHostException e)
-				{ //If this fails it's okay we just use it to output to the log
-					
-				}
-				
-				log.debug("Hostname:{}", hostname);
-				log.debug("==========System Properties==============\n{}", sb.toString() );
-			 }
+		           
+		        }
 			
-			JCommanderHelper.logConfiguration(jcom);
+			
+			 log.info(CommonMarkers.SKIP_CONSOLE_PRINTING, "********** The next bit of output can be ignored, it is merely useful for debugging **********");	 
+			 log.info(CommonMarkers.SKIP_CONSOLE_PRINTING,"==========Enviroment Variables===========\n{}", sb.toString());
+			 
+			 
+			 Map<Object,Object > props = new TreeMap<Object, Object>(System.getProperties());
+			 sb = new StringBuilder();
+			 for (Entry<Object, Object> ent : props.entrySet())
+			 {
+				 
+				 sb.append(ent.getKey().toString()).append("=").append(ent.getValue().toString()).append("\n");
+				 
+		           
+		     }
+			
+			 String hostname = "[UNABLE TO DETERMINE HOSTNAME]";
+			try {
+				hostname = InetAddress.getLocalHost().getHostName();
+			} catch(UnknownHostException e)
+			{ //If this fails it's okay we just use it to output to the log
+				
+			}
+			
+			log.info(CommonMarkers.SKIP_CONSOLE_PRINTING,"Hostname:{}", hostname);
+			log.info(CommonMarkers.SKIP_CONSOLE_PRINTING,"==========System Properties==============\n{}", sb.toString() );
+		 
+			
+			JCommanderHelper.logConfigurationInfoToFile(jcom);
 			pool = options.seedOptions.getSeedableRandomPool();
 			
 

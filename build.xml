@@ -155,6 +155,7 @@ dirty: ${git.dirty}</echo>
 		</copy>
 		
 		<move file="dist/lib/example_scripts/" todir="dist/" force="true"/>
+		<move file="dist/lib/util/" todir="dist/" force="true"/>
 		<move file="dist/lib/git-hashes.tex" todir="dist/"/>
 		<move file="dist/lib/git-hashes.txt" todir="dist/"/>
 				
@@ -165,7 +166,7 @@ dirty: ${git.dirty}</echo>
 	
 		<echo>I am probably copying the lastdeployfile as well, this should be fixed one day :)</echo>
 		
-		<mkdir dir="dist/util"/>
+		
 		<mkdir dir="dist/patches"/>
 		<mkdir dir="dist/plugins"/>
 				
@@ -234,24 +235,7 @@ dirty: ${git.dirty}</echo>
 			<arg value="--print-mem"/>
 			<arg value="false"/>
 		</java>
-		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
-			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aeatk.example.tae.TargetAlgorithmEvaluatorRunner"/>
-			<arg value="--name"/>
-			<arg value="algo-test"/>
-			<arg value="--file-to-write"/>
-			<arg value="dist/"/>	
-		</java>
-		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
-			<arg value="--class"/>
-			<arg value="ca.ubc.cs.beta.aeatk.example.satisfiabilitychecker.SatisfiabilityChecker"/>
-			<arg value="--name"/>
-			<arg value="sat-check"/>
-			<arg value="--file-to-write"/>
-			<arg value="dist/"/>	
-			<arg value="--default-mem"/>
-			<arg value="1024"/>
-		</java>
+	
 		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
 			<arg value="--class"/>
 			<arg value="ca.ubc.cs.beta.smac.executors.ValidatorExecutor"/>
@@ -270,29 +254,14 @@ dirty: ${git.dirty}</echo>
 			<arg value="--name"/>
 			<arg value="state-merge"/>
 			<arg value="--file-to-write"/>
-			<arg value="dist/"/>	
+			<arg value="dist/util/"/>	
 			<arg value="--default-mem"/>
 			<arg value="1024"/>
 		</java>
-		
-		
-		<java classname="ca.ubc.cs.beta.aeatk.ant.execscript.ExecScriptCreator" failonerror="true" classpathref="build.classpath" fork="true">
-					<arg value="--class"/>
-					<arg value="ca.ubc.cs.beta.aeatk.example.verifyscenario.VerifyScenarioExecutor"/>
-					<arg value="--name"/>
-					<arg value="verify-scenario"/>
-					<arg value="--file-to-write"/>
-					<arg value="dist/"/>	
-					<arg value="--default-mem"/>
-					<arg value="1024"/>
-		</java>
-				
-				
-		
-		
+	
 		
 						
-		<chmod perm="750">
+		<chmod perm="755">
 			<fileset dir="dist/">
 				<include name="smac"/>
 				<include name="smac-possible-restores"/>

@@ -43,6 +43,7 @@ import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPoolConstants;
+import ca.ubc.cs.beta.aeatk.runhistory.FileSharingRunHistoryDecorator;
 import ca.ubc.cs.beta.aeatk.runhistory.NewRunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.TeeRunHistory;
@@ -198,6 +199,7 @@ public class SMACBuilder {
 			rhModel = oRHModel;
 		}
 
+		rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode);
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
 		

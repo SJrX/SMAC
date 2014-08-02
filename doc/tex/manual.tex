@@ -192,7 +192,7 @@ Value & Error Name & Description \\
                      \item Fixed typo in error message that mistakenly reported that instances where missing, when in fact it was the test instances that were missing.                     
                   \end{enumerate}
                   
-          \item[Version 2.08.00 (May-2014)] Usability and Validation Changes
+          \item[Version 2.08.00 (Aug-2014)] Usability and Validation Changes
           	\begin{enumerate}
           		\item SMAC is now more picky about instance names and feature names matching.
           		\item New \texttt{sat-check} utility allows determination of the satisfiability for each instance of a instance file.
@@ -202,7 +202,7 @@ Value & Error Name & Description \\
           		
           		\item \textbf{-$~\!$-exec-dir} option now defaults to current working directory.
           		\item New option \textbf{-$~\!$-use-instances} will use a dummy instance instead of the instance file (useful for black box optimization).
-          		
+          		\item New advanced option \textbf{-$~\!$-shared-model-mode} may improve performance in some cases, see Section \ref{subsec:sharedModelMode}.
           		\item \textbf{[BETA]} Target Algorithm Evaluator implementation allows integrating with a TAE using UDP/TCP (more to come).
           		\item Implemented a work around to a bug where configurations with censored early runs could become the incumbent erroneously. It's still suboptimal, but in fact it probably would never happen. See Known Issue \#1 in section \ref{known-issues}.
           		\item Validation rounding mode now changes the number of runs on deterministic runs, or runs with set problem instance seed pairs.

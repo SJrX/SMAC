@@ -53,12 +53,18 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 	Consider using the \textbf{-~$\!$-wallClockLimit} option to limit the amount of wall clock time that SMAC will execute for. Additionally consider looking at the \texttt{run\_and\_results} file for the run (see \emph{State Files} in the SMAC Manual) and see how large the difference between the recorded wall clock time and the reported runtime is.
 
 \subsection{How can I report a bug or documentation error?}
- Please e-mail both of the developers above.
+
+	Please make a post on the SMAC forum: \texttt{https://groups.google.com/forum/\#!forum/smac-forum}.
 
 \subsection{My environment can be flaky, I don't want to ABORT but don't want to blindly continue with CRASHED}
 
 	Consider using the \textbf{-$~\!$-abortOnCrash} option in conjunction with \textbf{-$~\!$-retryTargetAlgorithmRunCount}. This will allow you to retry several times before ultimately giving up.
 
+\subsection{SMAC occasionally experiences a SEGFAULT in the garbage collector}
+	
+	We experienced this problem as well with SMAC and other applications, due to the rarity we don't know what exactly is causing it. This occurred on Java 1.7.0\_45 and earlier. We can't comment directly other versions of Java but running with Java 1.8.0\_11 seemed to have mitigated this. For Java 7 we recommend you try using version 1.7.0\_65 or later.
+	
+	
 
 \section{Usage Questions}
 
@@ -67,13 +73,11 @@ SMAC outputs a dump of the environment variables to console when DEBUG logging i
 
 	We have done our best to ensure that SMAC works on windows. SMAC includes \texttt{.bat} files for execution that behave similarly to the unix shell scripts. Most wrappers require that you have ruby (which is available from: ruby http://rubyinstaller.org/). 
 	
-	Most of the included scenarios will not work but those in the \texttt{analytic} folder and the \\texttt{saps/saps-scenario-windows.txt} should work out of the box.
+	The only scenarios that will work on Windows is the \texttt{saps/saps-scenario-windows.txt} scenario, which requires ruby, and the \texttt{branin/branin-scenario.txt} which requires python.
 
 \subsubsection{Can I run SMAC on Mac OS X or other Unix environments?}
 
-	SMAC should work on any Unix environment that supports Java 6. Unfortunately the only scenarios that are completely portable are those in the analytic folder.
- 
- 
+	SMAC should work on any Unix environment that supports Java 7. The only included scenario that will support Mac OS X is \texttt{branin/branin-scenario.txt} which requires python.
  
 \subsection{I don't have any instance features, is there any benefit I can get from running SMAC?}
 
@@ -131,6 +135,11 @@ Not at this time.
 	In the above case the best way to handle it, is probably to encode the parameters differently. For instance in the above, encoding the parameter $b$ as normal (that is $b$ [0,10] [5]i) for instance. Then for the $a$ parameter instead encode $aScaleOfb$ [0,1.0] [0.5]i.  The idea is that you simply scale the value of $b$ between 0 and 100\% to get the value of $a$. For example, it would take the value of $b$ say 8, and the value of $aScaleOfb$ say 0.25 and then pass to the algorithm the decoded value of $a$ as $8\times0.25=2$.
 
 	Using forbidden parameters in the PCS file is discouraged, as SMAC must loop over each of the settings for each configuration it generates, and it may slow SMAC down immensely. If the relation is particularly complicated, or the above doesn't work for some other reason then modifying the code to encode the relation in a more compact form is certainly feasible..
+
+\subsection{What are the best options for running SMAC?}
+\label{question:sharedModelMode}
+
+	The defaults have been set intelligently enough and some settings will have their defaults changed based on the setting of others. The only setting disabled by default that might actually improved performance is \textbf{-~$\!$-share-run-data}. It is an advanced option that fundamentally changes how SMAC works. You should look in the manual for a discussion of how this mode works under the \emph{Shared Model Model} section. In short if you are trying to tune your algorithm for best performance, it is appropriate to use, but if you are conducting a scientific inquiry into your algorithms performance there are some caveats that you should be aware of. 
 
 \subsection{Saving and Restoring State}
 
@@ -191,22 +200,26 @@ You can use the \texttt{smac-algotest} utility. It provides the same options tha
 
 \subsection{What is the difference between SAT and UNSAT in the algorithm responses?}
 
-The short answer is you can use either, as SMAC makes no distinction. The reason two responses are used is a historical hold over for debugging. Essentially it was used as a cross check to ensure that some unknown bug didn't crop up, as a result of the running configuration that would break the solver. SMAC itself doesn't do anything with this information, but it's possible to use the \texttt{run\_and\_results} file to check the responses against the instances, and ensure that no errors were made.
+The short answer is you can use either, as SMAC makes no distinction. The reason two responses are used is a historical hold over for debugging. Essentially it was used as a cross check to ensure that some unknown bug didn't crop up, as a result of the running configuration that would break the solver. SMAC itself doesn't do anything with this information, but it's possible to use the \texttt{run\_and\_results} file to check the responses against the instances, and ensure that no errors were made. If your instance specific information file follows the conventions outlined in the \textbf{-$~\!$-verifySAT} option SMAC will report an error if the algorithm ever reports differently. Additionally SMAC internally will keep track of this output and if it is ever inconsistent for a given instance it will report it.
 
-\subsection{What does the RANDOM Target Algorithm Evaluator do?}
+%\subsection{What does the RANDOM Target Algorithm Evaluator do?}
 
-This Target Algorithm Evaluator basically outputs random responses, it is useful for debugging SMAC in conjunction with the \textbf{example\_random} scenario.
+%This Target Algorithm Evaluator basically outputs random responses, it is useful for debugging SMAC in conjunction with the \textbf{example\_random} scenario.
 
 \subsection{What are the performance consequences of executing in parallel (i.e. setting \textbf{-~$\!$-maxConcurrentAlgoExecs} $>$ 1)?}
 	
+		We don't feel that this option is likely to give you much bang for the buck, and a better option of utilizing multiple cores see \emph{Shared Model Mode} in the manual for more information.
+		
 	It largely depends on how SMAC ends up exploring the configuration space. The largest change one could expect for a series of $N$ algorithm executions, given infinite concurrent processors would be from $O(N)$ to $O(\lg(N))$. \textsc{Note:} This case would generally occur when we have lots of runs for the incumbent, and challengers perform very close to the incumbent's performance. If the configurations SMAC finds can be shown to perform poorly fairly quickly, then the runtime would still be about $O(N)$, and there would be no significant improvement.
 	
 	Additionally when using adaptive capping with $M$ processors, all parallel runs will be scheduled as if the other runs took 0 seconds. In other words, if we want to exploit the parallelism of running on $M$ processors, we have to run each algorithm for $M$ times as long, thus nullifying any advantage.
 	
-	For validation however, given infinite processors the runtime would be $O(1)$, and depending on the scenario validation can be more than 50\% of the runtime.
-
-
+	For validation however, given infinite processors the runtime would be $O(1)$, and depending on the scenario validation can be more than 50\% of the runtime. 
 	
+	\vspace{10pt}
+	
+	\textcolor{red}{\textbf{Note:}} If you execute SMAC on a multi-core system using 1 core, and then validate using many cores you are likely to skew the results. The reasons are that multi-core systems typically share some level of caches, and when SMAC is executing by itself it gets the full cache, but when validating it gets cut into a much smaller fraction. This is also a problem when running SMAC on a cluster, but it is presently an open problem of how to best utilize cores.
+
 \section{Customization and Developer Questions}
 
 \subsection{There is a lack of logging options available, I need something more specific}
@@ -217,7 +230,7 @@ This Target Algorithm Evaluator basically outputs random responses, it is useful
 	
 \subsection{I'd like to make some changes to SMAC where should I start?}
 
-	The manual contains a \emph{Developer Reference} section which should hopefully give you enough overview to start looking at the code. At the class and public method level most of SMAC's components are well documented. If you have any questions please e-mail the developers above.
+	The manual contains a \emph{Developer Reference} section which should hopefully give you enough overview to start looking at the code. At the class and public method level most of SMAC's components are well documented. Internally much of SMACs functionality is implemented by a library called AEATK, and a manual is under development for it as well. You can e-mail the developers above to get a copy of the current edition.
 
 \subsection{I would like to optimize something that doesn't lend itself to simple command line execution, and/or would like to use something more advanced (\eg{, database caching, running on remote machines, etc...})}
 
