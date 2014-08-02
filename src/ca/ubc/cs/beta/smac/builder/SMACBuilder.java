@@ -199,10 +199,8 @@ public class SMACBuilder {
 			rhModel = oRHModel;
 		}
 
-		if (options.shareRunData)
-		{
-			rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000);
-		}
+		rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode);
+		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
 		
 		

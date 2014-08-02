@@ -142,6 +142,56 @@ Name  & Description \\
 
 At some future point a better guide will be available, in the interim please e-mail the authors above for a draft.
 
+\subsection{Running SMAC in Eclipse}
+
+Depending on what you would like to do it might be better to ask for git repository access, which contains ant build scripts and an existing eclipse project. The following procedure however will get you a working installation in eclipse. 
+
+\textbf{NOTE:} This guide is pretty straight forward except for step 10 \& 11, so if you are comfortable with Eclipse you should just skip to those steps.
+
+To start the smac project project in eclipse do the following:
+\begin{enumerate}
+
+\item Create a new project in Eclipse, ensure that the JDK is 1.7 or higher.
+
+\item Create a new source folder: \texttt{aeatk}
+
+\item Create a new source folder: \texttt{smac}
+
+\item Create a new source folder: \texttt{fastrf}
+
+\item Create a new folder: \texttt{lib}
+
+\item Copy all the jar files from the \texttt{lib} folder of the SMAC release into the lib folder of the eclipse project, except for \texttt{smac.jar}, \texttt{smac-src.jar}, \texttt{aeatk.jar}, \texttt{aeatk-src.jar}, \texttt{fastrf.jar} and \texttt{fastrf-src.jar}.
+
+\item Unzip the \texttt{smac-src.jar} into the smac source folder
+
+\item Unzip the \texttt{aeatk-src.jar} into the aeatk source folder
+
+\item Unzip the \texttt{fastrf-src.jar} into the fastrf source folder.
+
+\item Right click on the project and go to Properties $\rightarrow$ Java Compiler $\rightarrow$ Annotation Processing and check the \emph{Enable project specific settings} and \emph{Enable annotation processing}.
+
+\item Then in the project properties navigate to Java Compiler $\rightarrow$ Annotation Processing $\rightarrow$ Factory Path and hit \emph{Add Jars} then select \texttt{lib/spi-0.2.4.jar} and hit OK.
+
+The entry point of any application can be retrieved from the shell script folder, for instance by opening the smac file we can see that the entry point is: \texttt{ca.ubc.cs.beta.smac.executors.SMACExecutor} and smac-validate is : \texttt{ca.ubc.cs.beta.smac.executors.ValidatorExecutor}
+
+Many of the helper utilities are contained in the \texttt{ca.ubc.cs.beta.aeatk.example.} subpackages.
+
+\end{enumerate}
+
+\textbf{NOTE:} If you try and run existing scenarios packaged with SMAC they contain paths relative to the root of the smac dir. So in your \emph{Run Configuration} you should set the \emph{Working Directory} to the root of some smac release to run it as you would on the command line.
+
+
+If when running SMAC you see either of the following errors:
+
+\textcolor{red}{WARNING: I could not find ANY Target Algorithm Evaluators on the classpath. If you made this JAR yourself chances are you did not setup SPI correctly. See the AEATK Manual / Developer Reference for more information}
+
+\textcolor{red}{No Target Algorithm Evalutor found for name: CLI}
+
+\vspace{10pt}
+
+This means you did not follow steps 10 \& 11 properly.
+
 %
 %
 %{\Large\textbf{\textsc{\textcolor{red}{Warning:}}}  The Target Algorithm Evaluator API has changed a bit since this section was written, you are encouraged to look in the code for an example of how it now works. Much of this is still relevant, and this section will be fixed for v2.08.00, but for v2.06.00 it will contain some inaccuracies.}\\

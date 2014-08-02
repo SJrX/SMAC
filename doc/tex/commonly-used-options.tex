@@ -8,7 +8,7 @@ need to execute smac as follows:
 \end{verbatim}
 
 This will execute SMAC with the default options on the scenario specified in the file. 
-Some commonly-used non-default options of SMAC are described in this section. The \textbf{-~$\!$-seed} argument controls the seed and names of output files (to support parallel independent runs). The \textbf{-~$\!$-seed-offset} argument lets you keep the output folders names simple while varying the actual seed of SMAC.
+Some commonly-used non-default options of SMAC are described in this section. The \textbf{-~$\!$-seed} argument controls the seed and names of output files (to support parallel independent runs). The \textbf{-~$\!$-seed-offset} argument lets you keep the output folders names simple while varying the actual seed of SMAC. The seed argument is also optional and will automatically be chosen if not set.
 
 \subsection{Testing the Wrapper} \label{sec:test}
 SMAC includes a method of Testing Algorithm Execution, via the \texttt{algotest} utility. It takes the required scenario options \footnote{Unfortunately it cannot read scenario files currently}
@@ -42,24 +42,24 @@ The utility has some limitations however:
 
 
 
-\subsection{ROAR Mode}
+%\subsection{ROAR Mode}
 
-\begin{verbatim}
-./smac --scenarioFile <file> --exec-mode ROAR --seed 1
-\end{verbatim}
+%\begin{verbatim}
+%./smac --scenarioFile <file> --exec-mode ROAR --seed 1
+%\end{verbatim}
 
-This will execute the ROAR algorithm, a special case of SMAC that uses an empty model and random selection of 
-configurations. See \cite{HutHooLey11-SMAC} for details on ROAR.
+%This will execute the ROAR algorithm, a special case of SMAC that uses an empty model and random selection of 
+%configurations. See \cite{HutHooLey11-SMAC} for details on ROAR.
 
-\subsection{Adaptive Capping}
-\begin{verbatim}
-./smac --scenarioFile <file> --adaptive-capping true --seed 1
-\end{verbatim}
-Adaptive Capping (originally introduced for ParamILS~\cite{ParamILS-JAIR}, but also applicable in SMAC~\cite{HutHooLey11-censoring}) will cause SMAC to only schedule algorithm runs for as long as is needed to determine whether they are better than the current incumbent. Without this option, each target algorithm runs up to the runtime specified in the configuration scenario file \textbf{-~$\!$-algo-cutoff-time}.
+%\subsection{Adaptive Capping}
+%\begin{verbatim}
+%./smac --scenarioFile <file> --adaptive-capping true --seed 1
+%\end{verbatim}
+%Adaptive Capping (originally introduced for ParamILS~\cite{ParamILS-JAIR}, but also applicable in SMAC~\cite{HutHooLey11-censoring}) will cause SMAC to only schedule algorithm runs for as long as is needed to determine whether they are better than the current incumbent. Without this option, each target algorithm runs up to the runtime specified in the configuration scenario file \textbf{-~$\!$-algo-cutoff-time}.
 
-\noindent{}\textsc{Note:} Adaptive Capping should only be used when the \textbf{-~$\!$-run-obj} is RUNTIME.
-Adaptive capping can drastically improve SMAC's performance for scenarios with a large difference between 
-\textbf{-~$\!$-algo-cutoff-time} and the runtime of the best-performing configurations.
+%\noindent{}\textsc{Note:} Adaptive Capping should only be used when the \textbf{-~$\!$-run-obj} is RUNTIME.
+%Adaptive capping can drastically improve SMAC's performance for scenarios with a large difference between 
+%\textbf{-~$\!$-algo-cutoff-time} and the runtime of the best-performing configurations.
 
 
 \subsection{Wall-Clock Limit}\label{sec:wall-clock}
@@ -71,7 +71,7 @@ This option does not override \textbf{-~$\!$-tunertime-limit} or other options t
 
 \subsection{Change Initial Incumbent}\label{sec:initial-incumbent}
 \begin{verbatim}
-./smac --scenario-file <file> --seed 1 --initial-incumbent <config string>
+./smac --scenario-file <file>  --initial-incumbent <config string>
 \end{verbatim}
 
 SMAC offers the option to specify the initial incumbent, and by default uses the default configuration specified in the parameter file. The argument to \textbf{-~$\!$-initial-incumbent} follows the same conventions as in Section \ref{sec:test}.
@@ -79,7 +79,7 @@ SMAC offers the option to specify the initial incumbent, and by default uses the
 \subsection{State Restoration}\label{sec:state-restoration}
 \begin{verbatim}
 ./smac --scenario-file <file> --restore-scenario <dir> 
- --seed 0
+
 \end{verbatim}
 SMAC will read the files in the specified directory and restore 
 its state to that of the saved SMAC run at the specified iteration.
@@ -99,7 +99,7 @@ directory, use:
 
 \subsection{Warm-Starting the Model}
 \begin{verbatim}
-./smac --scenario-file <file> --seed 0 --warmstart <foldername>
+./smac --scenario-file <file> --warmstart <foldername>
 \end{verbatim}
 Using the same state data as in Section \ref{sec:state-restoration}, you can also just choose to warm-up the model with previous runs. Instead of the \textbf{-~$\!$-restore-scenario} option use \textbf{-~$\!$-warmstart} instead. SMAC will operate normally, but when building the model the above data will also be used. Please keep in mind the following.\\
 
@@ -111,7 +111,7 @@ Using the same state data as in Section \ref{sec:state-restoration}, you can als
 
 \subsection{Named Rungroups}
 \begin{verbatim}
-./smac --scenario-file <file> --rungroup <foldername> --seed 1
+./smac --scenario-file <file> --rungroup <foldername> 
 \end{verbatim}
 All output is written to the folder \texttt{$<$foldername$>$}; runs differing in \textbf{-~$\!$-seed} will yield different output files in that folder.
 
@@ -121,6 +121,51 @@ By default SMAC only displays BASIC usage options, other options are INTERMEDIAT
 \begin{verbatim}
 ./smac --help-level INTERMEDIATE
 \end{verbatim}
+
+
+\subsection{Shared Model Mode}
+\label{subsec:sharedModelMode}
+\textcolor{red}{\textbf{NOTE:}} \textbf{Please read this full section before deciding to use this option.}
+\vspace{5pt}
+
+SMAC has an advanced option that essentially allows multiple runs of SMAC to share data and construct better models quickly. 
+
+\begin{verbatim}
+./smac --scenario-file <file> --shared-model-mode true
+\end{verbatim}
+
+There are a couple of things to keep in mind when running with this option:
+
+\begin{enumerate}
+
+\item The first is that the different SMAC runs need to be using the exact same scenario, that MUST have different seeds. Even small inconsequential differences may cause this to fail (for instance if the location on different machines and the path to execute the target algorithm is different). SMAC should in most cases recover gracefully and just ignore the incompatible run data, but it is possible that the SMAC run may be corrupted. 
+
+\item The shared file system between clusters needs to allow a file that is being written on one machine to be read on another machine. We've had reports that on some file systems (AFS) with some locking policies you cannot do this. In this case you can still benefit from this mode but it might need to be a little more coarse. After doing a first set of runs, you can then do a second batch with the --share-run-data, they won't be able to read the second batches data, but they should be able to read the first batches.
+
+\item The frequency with which runs are re-read is controlled via the \textbf{-~$\!$-shared-model-mode-frequency} which defaults to 5 minutes, depending on your scenario and the amount of data you need you may want to set it lower. If your runs take considerably longer than 5 minutes there is no need to increase this, the data is only re-read at most once for every local algorithm run, and the above is designed to prevent hitting the file system too frequently
+
+\item You probably will need to increase the amount of memory you give to SMAC, using the \texttt{SMAC\_MEMORY} environment variable.
+
+\item This mode turns N independent SMAC runs into N dependent runs of SMAC. This mode is designed to help get better performing configurations, it be inappropriate to treat these runs as independent samples from the same distribution for experimental purposes. What may be appropriate is to compare the experimental protocols, selecting the best performing run of independent SMAC on the training set, versus the best performing run of dependent SMAC on the training set, and reporting their values on the testing set.
+
+\item This mode does not require that different runs of SMAC execute concurrently at all. At one other extreme case runs could happen sequentially, this mode would just be an easier way of running SMAC, flushing the run data, but warm starting the model with the previous. At the other  extreme case, and the case we have some preliminary experiments for, all the runs are started at the exact same time. In this case, there was a substantial boost in median performance (but see previous point why this is misleading), but also selecting the run with the best training instance over time generally resulted in as good or better performance. Another possibility is to have some runs not use this mode and have other runs with this enabled. Depending on the scenario, this might allow the models to maintain more diversity. Unfortunately the benefits and best practices of this option is unexplored at this time.
+ 	
+ 	 One advantage of this approach is that if you only care about getting a good configuration quickly (without worrying about reproducibility), you can schedule the runs of SMAC to the cluster independently, which should make them quicker to dispatch and yet still benefit from the shared data.
+ 
+\end{enumerate}
+
+At the end of a run you will see a line like:
+
+\begin{verbatim}
+[INFO ] At shutdown: ./smac-output/branin-scenario/live-rundata-3.json 
+had 10 runs added to it
+[INFO ] At shutdown: we retrieved atleast 20 runs and added them to
+ our current data set [live-rundata-1.json=>10, live-rundata-2.json=>10]
+
+\end{verbatim}
+
+
+
 
 
 \subsection{Offline Validation}
