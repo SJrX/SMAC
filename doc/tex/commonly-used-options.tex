@@ -123,12 +123,12 @@ By default SMAC only displays BASIC usage options, other options are INTERMEDIAT
 \end{verbatim}
 
 
-\subsection{Shared Model Mode}
+\subsection{Shared Model Mode (Experimental)}
 \label{subsec:sharedModelMode}
-\textcolor{red}{\textbf{NOTE:}} \textbf{Please read this full section before deciding to use this option.}
+\textcolor{red}{\textbf{NOTE:}} \textbf{Please read this full section before deciding to use this option}
 \vspace{5pt}
 
-SMAC has an advanced option that essentially allows multiple runs of SMAC to share data and construct better models quickly. 
+SMAC has an experimental option that essentially allows multiple runs of SMAC to share data and construct better models quickly. 
 
 \begin{verbatim}
 ./smac --scenario-file <file> --shared-model-mode true
@@ -144,7 +144,7 @@ There are a couple of things to keep in mind when running with this option:
 
 \item The frequency with which runs are re-read is controlled via the \textbf{-~$\!$-shared-model-mode-frequency} which defaults to 5 minutes, depending on your scenario and the amount of data you need you may want to set it lower. If your runs take considerably longer than 5 minutes there is no need to increase this, the data is only re-read at most once for every local algorithm run, and the above is designed to prevent hitting the file system too frequently
 
-\item You probably will need to increase the amount of memory you give to SMAC, using the \texttt{SMAC\_MEMORY} environment variable.
+\item You probably will need to increase the amount of memory you give to SMAC, using the \texttt{SMAC\_MEMORY} environment variable. In your bash shell script this can be accomplished via export SMAC\_MEMORY=2048, and in Windows SET SMAC\_MEMORY=2048.
 
 \item This mode turns N independent SMAC runs into N dependent runs of SMAC. This mode is designed to help get better performing configurations, it be inappropriate to treat these runs as independent samples from the same distribution for experimental purposes. What may be appropriate is to compare the experimental protocols, selecting the best performing run of independent SMAC on the training set, versus the best performing run of dependent SMAC on the training set, and reporting their values on the testing set.
 
@@ -152,17 +152,20 @@ There are a couple of things to keep in mind when running with this option:
  	
  	 One advantage of this approach is that if you only care about getting a good configuration quickly (without worrying about reproducibility), you can schedule the runs of SMAC to the cluster independently, which should make them quicker to dispatch and yet still benefit from the shared data.
  
-\end{enumerate}
+ \item While SMAC is running in shared model mode, you may see sporadic errors about corrupted files, etc. These are generally safe to ignore and are likely caused by writing and reading happening simultaneously. Upon reading an error, SMAC will continue trying to read the file. Until the file is successfully read, no further errors or warnings will be presented.   
 
-At the end of a run you will see a line like:
+\item At the end of a run you will see a line like:
 
 \begin{verbatim}
 [INFO ] At shutdown: ./smac-output/branin-scenario/live-rundata-3.json 
-had 10 runs added to it
+had 15 runs added to it
 [INFO ] At shutdown: we retrieved atleast 20 runs and added them to
- our current data set [live-rundata-1.json=>10, live-rundata-2.json=>10]
-
+ our current data set [live-rundata-1.json=>11, live-rundata-2.json=>17]
 \end{verbatim}
+
+This output indicates that this run of SMAC (with seed 3) completed 15 runs locally. It also read in 11 runs from run 1, and 17 runs from run 2.
+\end{enumerate}
+
 
 
 
