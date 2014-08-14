@@ -55,6 +55,7 @@ import ca.ubc.cs.beta.aeatk.state.StateDeserializer;
 import ca.ubc.cs.beta.aeatk.state.StateFactory;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.decorators.helpers.TargetAlgorithmEvaluatorNotifyTerminationCondition;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.decorators.resource.caching.runhistory.RunHistoryCachingTargetAlgorithmEvaluatorDecorator;
 import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aeatk.trajectoryfile.TrajectoryFileLogger;
 import ca.ubc.cs.beta.smac.configurator.AbstractAlgorithmFramework;
@@ -181,7 +182,8 @@ public class SMACBuilder {
 			tae = oTAE;
 		}
 		
-		tae = taeWrapper.wrap(tae);
+		
+		
 		AbstractAlgorithmFramework smac;
 
 
@@ -189,19 +191,28 @@ public class SMACBuilder {
 		RunHistory rhROAR = new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective());
 		
 		
-		RunHistory rhModel;
+		ThreadSafeRunHistory rhModel;
 		
 		if(oRHModel == null)
 		{
-			rhModel= new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective());
+			rhModel= new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective()));;
 		} else
 		{
-			rhModel = oRHModel;
+			rhModel = new ThreadSafeRunHistoryWrapper(oRHModel);
 		}
 
 		rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode);
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
+		
+		
+		if(options.shareModelMode && options.shareModeModeTAE)
+		{
+			tae = new RunHistoryCachingTargetAlgorithmEvaluatorDecorator(tae, rhModel);
+		}
+		
+		tae = taeWrapper.wrap(tae);
+		
 		
 		
 		CompositeTerminationCondition termCond = options.scenarioConfig.limitOptions.getTerminationConditions(cpuTime);
