@@ -220,6 +220,8 @@ public class SMACBuilder {
 		tLog = new TrajectoryFileLogger(rh, termCond, outputDir +  File.separator + "traj-run-" + options.seedOptions.numRun, initialIncumbent, cpuTime);
 		eventManager.registerHandler(IncumbentPerformanceChangeEvent.class, tLog);
 		eventManager.registerHandler(AutomaticConfigurationEnd.class, tLog);
+		eventManager.registerHandler(ModelBuildStartEvent.class, tLog);
+		eventManager.registerHandler(ModelBuildEndEvent.class, tLog);
 		
 		Set onEvents = new HashSet();
 		
