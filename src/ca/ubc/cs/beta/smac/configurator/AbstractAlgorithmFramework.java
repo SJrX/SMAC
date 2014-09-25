@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,6 +39,7 @@ import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
 import ca.ubc.cs.beta.aeatk.misc.watch.AutoStartStopWatch;
 import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
+import ca.ubc.cs.beta.aeatk.objectives.ObjectiveHelper;
 import ca.ubc.cs.beta.aeatk.objectives.OverallObjective;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
@@ -57,6 +59,11 @@ import ca.ubc.cs.beta.aeatk.state.StateDeserializer;
 import ca.ubc.cs.beta.aeatk.state.StateFactory;
 import ca.ubc.cs.beta.aeatk.state.StateSerializer;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluatorRunObserver;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.decorators.functionality.OutstandingEvaluationsTargetAlgorithmEvaluatorDecorator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.decorators.resource.BoundedTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.decorators.resource.PreemptingTargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.experimental.queuefacade.basic.BasicTargetAlgorithmEvaluatorQueue;
 import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.aeatk.termination.TerminationCondition;
 import ca.ubc.cs.beta.aeatk.termination.standard.ConfigurationSpaceExhaustedCondition;
@@ -137,6 +144,9 @@ public class AbstractAlgorithmFramework {
 	private final CPUTime cpuTime;
 	
 	private final String objectiveToReport;
+
+	protected final BasicTargetAlgorithmEvaluatorQueue lowPriorityTAEQueue;
+			
 	
 
 	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
@@ -148,7 +158,17 @@ public class AbstractAlgorithmFramework {
 				
 		this.execConfig = execConfig;
 		
-		this.tae = algoEval;
+		
+		
+		
+		
+		this.tae = new PreemptingTargetAlgorithmEvaluator(algoEval);
+		
+		TargetAlgorithmEvaluator lowPriorityTAE = new OutstandingEvaluationsTargetAlgorithmEvaluatorDecorator(new BoundedTargetAlgorithmEvaluator(((PreemptingTargetAlgorithmEvaluator) tae).getLowPriorityTargetAlgorithmEvaluator(), Math.max(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs-1,1)));
+		
+		lowPriorityTAEQueue = new BasicTargetAlgorithmEvaluatorQueue(lowPriorityTAE, false);
+		
+		
 		this.stateFactory = stateFactory;
 		this.configSpace = configSpace;
 		this.runHistory = rh;
@@ -599,6 +619,8 @@ public class AbstractAlgorithmFramework {
 			
 			if(options.shutdownTAEWhenDone)
 			{
+				
+				
 				tae.notifyShutdown();
 			}
 		}
@@ -773,8 +795,6 @@ public class AbstractAlgorithmFramework {
 	 * @param challenger - challenger we are running with
 	 * @param runIncumbent - whether we should run the incumbent before hand 
 	 */
-	
-	
 	private void challengeIncumbent(ParameterConfiguration challenger, boolean runIncumbent) {
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		
@@ -831,6 +851,7 @@ public class AbstractAlgorithmFramework {
 		
 		
 		
+		
 		int N=options.initialChallengeRuns;
 		while(true){
 			/*
@@ -865,7 +886,7 @@ public class AbstractAlgorithmFramework {
 			double bound_inc = Double.POSITIVE_INFINITY;
 			Set<ProblemInstance> missingInstances = null;
 			Set<ProblemInstance> missingPlusCommon = null;
-			if(options.adaptiveCapping)
+			if(options.adaptiveCapping || options.dynamicAdaptiveCapping)
 			{
 				missingInstances = new HashSet<ProblemInstance>();
 				
@@ -896,41 +917,131 @@ public class AbstractAlgorithmFramework {
 				}
 			} else
 			{
-				for (int i = 0; i < runsToMake ; i++) {
-					//Runs to make and aMissing should be the same size
-					//int index = permutations[i];
+				
+				
+				if(options.dynamicAdaptiveCapping)
+				{
 					
-					AlgorithmRunConfiguration runConfig;
-					ProblemInstanceSeedPair pisp = aMissing.get(0);
-					if(options.adaptiveCapping)
+					
+					
+					final double incCost = runHistory.getEmpiricalCost(incumbent, missingPlusCommon,cutoffTime);
+					final double chalCost = runHistory.getEmpiricalCost(challenger, missingPlusCommon, cutoffTime);
+					
+					final ObjectiveHelper helper = new ObjectiveHelper(options.scenarioConfig.getRunObjective(), options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, cutoffTime);
+					List<AlgorithmRunResult> incumbentRuns = new ArrayList<>(runHistory.getAlgorithmRunsExcludingRedundant(incumbent));
+					
+					final List<AlgorithmRunResult> challengerExistingRuns = new ArrayList<>(runHistory.getAlgorithmRunsExcludingRedundant(challenger));
+					
+					filterIrrelevantRuns(missingPlusCommon, incumbentRuns);
+					filterIrrelevantRuns(missingPlusCommon, challengerExistingRuns);
+					
+					final double newIncumbentCost = helper.computeObjective(incumbentRuns);
+					final double newChallengerCost = helper.computeObjective(challengerExistingRuns);
+					
+					double differenceRatio = (incCost - newIncumbentCost) / (Math.max(incCost, newIncumbentCost)+1);
+					
+					if (differenceRatio > 0.01){
+						log.warn("Old method for computing empirical cost computed {} where as the new method computed {}, the ratio is {}", incCost, newIncumbentCost, differenceRatio);
+					}
+					
+					List<AlgorithmRunConfiguration> runsToExecute = new ArrayList<>();
+				
+					for(int i=0; i < runsToMake; i++)
 					{
-						double capTime = computeCap(challenger, pisp, aMissing, missingPlusCommon, cutoffTime, bound_inc);
+						ProblemInstanceSeedPair pisp = aMissing.get(0);
+						double capTime = cutoffTime;
+						if(options.adaptiveCapping)
+						{
+							capTime = computeCap(challenger, pisp, aMissing, missingPlusCommon, cutoffTime, bound_inc);
+						}
+						
 						if(capTime < cutoffTime)
 						{
-							if(capTime <= BEST_POSSIBLE_VALUE)
+							runsToExecute.add(getBoundedRunConfig(pisp, capTime, challenger));
+						} else
+						{
+							runsToExecute.add(getRunConfig(pisp, cutoffTime, challenger));
+						}
+						
+						sMissing.remove(pisp);
+						aMissing.remove(0);
+					}
+					
+					
+					final TargetAlgorithmEvaluatorRunObserver taeObserver = new TargetAlgorithmEvaluatorRunObserver()
+					{
+
+						boolean runsKilled = false;
+						@Override
+						public void currentStatus(
+								List<? extends AlgorithmRunResult> runs) {
+							List<AlgorithmRunResult> currentRuns = new ArrayList<>(runs);
+							currentRuns.addAll(challengerExistingRuns);
+							
+							
+							
+							double incumbentUpperBound = options.capSlack * newIncumbentCost + options.capAddSlack;
+							
+							double challengerBound = helper.computeObjective(challengerExistingRuns);
+							if(incumbentUpperBound <  challengerBound)
 							{
-								//If we are here abort runs
-								break;
+								if(!runsKilled)
+								{
+									runsKilled = true;
+									log.debug("Challenger performance {} is significantly worse than incumbents {} , terminating runs", challengerBound, newIncumbentCost);
+								}
+								
+								for(AlgorithmRunResult run : runs)
+								{
+									run.kill();
+								}
 							}
-							runConfig = getBoundedRunConfig(pisp, capTime, challenger);
+								
+						}
+						
+					};
+					evaluateRun(runsToExecute, taeObserver);
+					runsToEval.clear();
+				} else
+				{
+					
+					for (int i = 0; i < runsToMake ; i++) {
+						//Runs to make and aMissing should be the same size
+						//int index = permutations[i];
+						
+						AlgorithmRunConfiguration runConfig;
+						ProblemInstanceSeedPair pisp = aMissing.get(0);
+						if(options.adaptiveCapping)
+						{
+							double capTime = computeCap(challenger, pisp, aMissing, missingPlusCommon, cutoffTime, bound_inc);
+							if(capTime < cutoffTime)
+							{
+								if(capTime <= BEST_POSSIBLE_VALUE)
+								{
+									//If we are here abort runs
+									break;
+								}
+								runConfig = getBoundedRunConfig(pisp, capTime, challenger);
+							} else
+							{
+								runConfig = getRunConfig(pisp, cutoffTime, challenger);
+							}
 						} else
 						{
 							runConfig = getRunConfig(pisp, cutoffTime, challenger);
 						}
-					} else
-					{
-						runConfig = getRunConfig(pisp, cutoffTime, challenger);
+						
+						runsToEval.add(runConfig);
+						
+						sMissing.remove(pisp);
+						aMissing.remove(0);
+						if(runsToEval.size() == options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs )
+						{
+							evaluateRun(runsToEval);
+							runsToEval.clear();
+						} 
 					}
 					
-					runsToEval.add(runConfig);
-					
-					sMissing.remove(pisp);
-					aMissing.remove(0);
-					if(runsToEval.size() == options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs )
-					{
-						evaluateRun(runsToEval);
-						runsToEval.clear();
-					} 
 				}
 			}
 			if(runsToEval.size() > 0)
@@ -948,6 +1059,24 @@ public class AbstractAlgorithmFramework {
 				break;
 			}
 			
+		}
+	}
+
+
+	/**
+	 * @param missingPlusCommon
+	 * @param incumbentRuns
+	 */
+	private void filterIrrelevantRuns(Set<ProblemInstance> missingPlusCommon,
+			List<AlgorithmRunResult> incumbentRuns) {
+		Iterator<AlgorithmRunResult> runIt = incumbentRuns.iterator();
+		while(runIt.hasNext())
+		{
+			AlgorithmRunResult run =  runIt.next();
+			if(!missingPlusCommon.contains(run.getProblemInstance()))
+			{
+				runIt.remove();
+			}
 		}
 	}
 	
@@ -1228,6 +1357,16 @@ public class AbstractAlgorithmFramework {
 	 */
 	protected List<AlgorithmRunResult> evaluateRun(List<AlgorithmRunConfiguration> runConfigs)
 	{
+		return evaluateRun(runConfigs, null);
+	}
+	
+	/**
+	 * Evaluates a list of runs and updates our runHistory
+	 * @param runConfigs
+	 * @return
+	 */
+	protected List<AlgorithmRunResult> evaluateRun(List<AlgorithmRunConfiguration> runConfigs, final TargetAlgorithmEvaluatorRunObserver obs)
+	{
 		if (have_to_stop(iteration)){
 			log.debug("Cannot schedule any more runs, out of time");
 			throw new OutOfTimeException();
@@ -1240,7 +1379,43 @@ public class AbstractAlgorithmFramework {
 			log.debug("Iteration {}: Scheduling run for config{} ({}) on instance {} with seed {} and captime {}", args);
 		}
 		
-		List<AlgorithmRunResult> completedRuns = tae.evaluateRun(runConfigs);
+		final AtomicBoolean terminatedRuns = new AtomicBoolean();
+		
+		TargetAlgorithmEvaluatorRunObserver myObs = new TargetAlgorithmEvaluatorRunObserver()
+		{
+
+			@Override
+			public void currentStatus(List<? extends AlgorithmRunResult> runs) {
+				// TODO Auto-generated method stub
+			
+				if(obs != null)
+				{
+					obs.currentStatus(runs);
+				}
+				
+				if(termCond.haveToStop())
+				{
+					for(AlgorithmRunResult run : runs)
+					{
+						if(!run.isRunCompleted())
+						{
+							//If all runs are done this won't fire
+							
+							if(terminatedRuns.compareAndSet(false, true))
+							{
+								log.info("Termination Criterion Reached, existing runs will be killed, reason: {}", termCond.getTerminationReason());
+							}
+							run.kill();
+						}
+					}
+				}
+ 
+				
+			}
+			
+		};
+		
+		List<AlgorithmRunResult> completedRuns = tae.evaluateRun(runConfigs, myObs);
 		
 		for(AlgorithmRunResult run : completedRuns)
 		{
@@ -1253,6 +1428,21 @@ public class AbstractAlgorithmFramework {
 		
 		
 		updateRunHistory(completedRuns);
+		
+		if(terminatedRuns.get())
+		{
+			//We don't always throw this exception because we generally want SMAC to continue running
+			//if possible, since this might be a better configuration.
+			//However if we terminated a run, then we may get bad response values back (KILLED)
+			if (have_to_stop(iteration)){
+				log.debug("Cannot schedule any more runs, out of time");
+				throw new OutOfTimeException();
+			} else
+			{
+				throw new IllegalStateException("We terminated some runs, but we don't have to stop"); 
+			}
+		}
+		
 		return completedRuns;
 	}
 

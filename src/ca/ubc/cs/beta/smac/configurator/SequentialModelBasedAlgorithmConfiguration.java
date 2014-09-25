@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
@@ -17,8 +19,11 @@ import org.slf4j.LoggerFactory;
 
 import ca.ubc.cs.beta.aeatk.acquisitionfunctions.AcquisitionFunction;
 import ca.ubc.cs.beta.aeatk.algorithmexecutionconfiguration.AlgorithmExecutionConfiguration;
+import ca.ubc.cs.beta.aeatk.algorithmrunconfiguration.AlgorithmRunConfiguration;
 import ca.ubc.cs.beta.aeatk.algorithmrunresult.AlgorithmRunResult;
+import ca.ubc.cs.beta.aeatk.concurrent.threadfactory.SequentiallyNamedThreadFactory;
 import ca.ubc.cs.beta.aeatk.eventsystem.EventManager;
+import ca.ubc.cs.beta.aeatk.exceptions.DuplicateRunException;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.misc.associatedvalue.ParamWithEI;
 import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
@@ -35,7 +40,9 @@ import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfiguration;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.ParameterConfigurationSpace;
 import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurationOriginTracker;
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
+import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstanceSeedPair;
 import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
+import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.SetInstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
@@ -44,6 +51,7 @@ import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistory;
 import ca.ubc.cs.beta.aeatk.smac.SMACOptions;
 import ca.ubc.cs.beta.aeatk.state.StateFactory;
 import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluator;
+import ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluatorRunObserver;
 import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import static ca.ubc.cs.beta.aeatk.misc.math.ArrayMathOps.*;
@@ -76,19 +84,25 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	private static final boolean SELECT_CONFIGURATION_SYNC_DEBUGGING = false;
 	
-	private final RunHistory modelRunHistory;
+	private final ThreadSafeRunHistory modelRunHistory;
 
+	private final ThreadSafeRunHistory mainRunHistory;
 	
 	private final ExponentialDistribution exp;
 	
-	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
+	private final AlgorithmExecutionConfiguration execConfig;
+	private final ExecutorService execService;
+	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialConfiguration, EventManager eventManager, final ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, ThreadSafeRunHistory modelRH, CPUTime cpuTime) {
 		super(smacConfig,execConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc,cpuTime);
-
+		
+		
+		
 		numPCA = smacConfig.numPCA;
 		logModel = smacConfig.randomForestOptions.logModel;
 		this.smacConfig = smacConfig;
 		this.ei = ei;
 		
+		this.mainRunHistory = rh;
 		if(modelRH.getAlgorithmRunDataExcludingRedundant().size() > 0)
 		{
 			log.debug("Model warmstart payload detected with {} runs ", modelRH.getAlgorithmRunDataExcludingRedundant().size());
@@ -96,8 +110,225 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		this.modelRunHistory = modelRH;
 		MersenneTwister prng = new MersenneTwister(pool.getSeed(SeedableRandomPoolConstants.LCB_EXPONENTIAL_SAMPLING_SEED));
 		this.exp = new ExponentialDistribution(prng,1);
+		
+		this.execConfig = execConfig;
+		
+		
+		if(smacConfig.doRandomRunsWithTAE && smacConfig.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs > 1)
+		{
+			execService = Executors.newFixedThreadPool(2, new SequentiallyNamedThreadFactory("SMAC Random Submission Threads", true));
+			
+			execService.execute(new RandomSubmissionLogging());
+			execService.execute(new RandomSubmissionRunnable());
+			
+			
+			
+		} else
+		{
+			execService = null;
+		}
 	}
 
+	
+	private class RandomSubmissionLogging implements Runnable
+	{
+
+		@Override
+		public void run() {
+			while(!getTerminationCondition().haveToStop())
+			{
+				try {
+					List<AlgorithmRunResult> runs = lowPriorityTAEQueue.take().getAlgorithmRuns();
+					try {
+						modelRunHistory.append(runs);
+					} catch (DuplicateRunException e) {
+						//Doesn't matter
+						
+					}
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					return;
+				}
+			}
+			
+			
+		}
+		
+	}
+	
+	private class RandomSubmissionRunnable implements Runnable
+	{
+			@Override
+			public void run() {
+				
+				
+				Random randConfigs = pool.getRandom("RANDOM_SUBMISSION_CONFIGURATIONS");
+				Random randInstances = pool.getRandom("RANDOM_SUBMISSION_INSTANCE_SELECTION");
+				Random randSeeds = pool.getRandom("RANDOM_SUBMISSION_SEED_SELECTION");
+				
+				int collisionsInARow = 0;
+				
+				int runsSubmitted = 0;
+masterLoop:
+				while(!getTerminationCondition().haveToStop())
+				{
+					mainRunHistory.readLock();
+
+					AlgorithmRunConfiguration runConfig;
+					try
+					{
+						
+						
+						switch(options.scenarioConfig.getIntraInstanceObjective())
+						{
+							case MEAN10:
+							case MEAN:
+							case MEAN1000:
+								break;
+							default:
+								//We don't do a proper search below for the appropriate bound 
+								//for the runtime, so for instance if it was something non-sensical like PAR0.5 (timeout runs count for 1/2 the cutoff time),
+								//Then we would screw up our calculation of what was better
+								log.error("Not sure what intra instance objective is being used, cannot seed random runs");
+								return;
+						}
+						
+						switch(options.scenarioConfig.interInstanceObj)
+						{
+							case MEAN10:
+							case MEAN:
+							case MEAN1000:
+								break;
+							default:
+								//We don't do a proper search below for the appropriate bound 
+								//for the runtime, so for instance if it was something non-sensical like PAR0.5 (timeout runs count for 1/2 the cutoff time),
+								//Then we would screw up our calculation of what was better
+								log.error("Not sure what inter instance objective is being used, cannot seed random runs");
+								return;
+						}
+						
+						ParameterConfiguration incumbent = getIncumbent();
+						
+						
+						
+						ProblemInstance submissionInstance = instances.get(randInstances.nextInt(instances.size()));
+						
+						
+						
+						
+						ParameterConfiguration newConfiguration = configSpace.getRandomParameterConfiguration(randConfigs);
+						
+						if(modelRunHistory.getProblemInstancesRan(newConfiguration).contains(submissionInstance))
+						{
+							//Try again with something else after sleeping for 1 second.
+							collisionsInARow++;
+							
+							if(collisionsInARow > 100)
+							{
+								log.warn("Random seeding of model cannot continue as we seem to have run every configuration & problem instance seed pair that exists (100 collisions in a row)" );
+								break masterLoop;
+							}
+							
+							continue;
+						} else
+						{
+							collisionsInARow=0;
+						}
+						
+						double runCutOffTime = cutoffTime;
+					
+						switch(options.scenarioConfig.getRunObjective())
+						{
+							case RUNTIME:
+									Set<ProblemInstance> instancesRan = mainRunHistory.getProblemInstancesRan(incumbent);
+									
+									double incCost; //Estimate of performance, if we ran the incumbent already on this instance, we will use it's cost
+									//Otherwise we will request for the emprical estimate accross the entire distribution.
+									
+									if(instancesRan.contains(submissionInstance))
+									{
+										 incCost = mainRunHistory.getEmpiricalCost(incumbent, Collections.singleton(submissionInstance), cutoffTime);
+										
+										
+									} else
+									{							
+										incCost = mainRunHistory.getEmpiricalCost(incumbent, instancesRan, cutoffTime);
+									}
+										
+									
+									runCutOffTime = Math.min(incCost*options.capSlack + options.capAddSlack, SequentialModelBasedAlgorithmConfiguration.this.cutoffTime);
+
+								break;
+							case QUALITY:
+									runCutOffTime =  SequentialModelBasedAlgorithmConfiguration.this.cutoffTime;
+								break;
+							default:
+								log.error("Not sure what run objective we are optimizing for, cannot get random runs");
+						}
+						
+						long seed = -1;
+						if(!options.scenarioConfig.algoExecOptions.deterministic)
+						{
+							if(SequentialModelBasedAlgorithmConfiguration.this.instanceSeedGen instanceof SetInstanceSeedGenerator)
+							{
+								log.error("Seeding of instances will not follow the preloaded instance seeds");
+							} else
+							{
+								seed = randSeeds.nextInt(1000000);
+							}
+						}
+						runConfig = new AlgorithmRunConfiguration(new ProblemInstanceSeedPair(submissionInstance, seed), runCutOffTime, newConfiguration, execConfig);
+						
+					} finally
+					{
+						mainRunHistory.releaseReadLock();
+					}
+
+					
+					if(Thread.interrupted())
+					{
+						Thread.currentThread().interrupt();
+						break masterLoop;
+					}
+					StopWatch watch = new AutoStartStopWatch();
+					TargetAlgorithmEvaluatorRunObserver  obs = new TargetAlgorithmEvaluatorRunObserver()
+					{
+
+						@Override
+						public void currentStatus(
+								List<? extends AlgorithmRunResult> runs) {
+							if(getTerminationCondition().haveToStop())
+							{
+								for(AlgorithmRunResult run : runs)
+								{
+									run.kill();
+								}
+							}
+							
+						}
+						
+					};
+					lowPriorityTAEQueue.evaluateRunAsync(Collections.singletonList(runConfig), obs);
+					log.debug("Submission of Random Run took {} seconds ",watch.stop() / 1000.0);
+					runsSubmitted++;
+					
+					
+				}
+				
+				log.info("Submitted {} random evaluations in background", runsSubmitted);
+				
+				if(execService != null)
+				{
+					execService.shutdownNow();
+				}
+				
+			}
+			
+			
+		
+	}
+	
+	
 	
 	protected double freeMemoryAfterGC()
 	{
@@ -115,125 +346,139 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	 * Learns a model from the data in runHistory.
 	 */
 	@Override
-	protected void learnModel(RunHistory runHistory, ParameterConfigurationSpace configSpace) 
+	protected void learnModel(RunHistory runHistoryX, ParameterConfigurationSpace configSpace) 
 	{
 		
+		ThreadSafeRunHistory runHistory = modelRunHistory;
 		
-		runHistory = modelRunHistory;
-		
-		
-		if(runHistory.getAlgorithmRunsExcludingRedundant().size() == 0)
+		runHistory.readLock();
+		try
 		{
-			throw new IllegalStateException("Expected one run to be done before building model");
-		}
 		
-		if(options.randomForestOptions.subsampleValuesWhenLowMemory)
-		{
+			if(runHistory.getAlgorithmRunsExcludingRedundant().size() == 0)
+			{
+				throw new IllegalStateException("Expected one run to be done before building model");
+			}
 			
-			double freeMemory = freeMemoryAfterGC();
-			if(freeMemory < options.randomForestOptions.freeMemoryPercentageToSubsample)
+			if(options.randomForestOptions.subsampleValuesWhenLowMemory)
 			{
-				subsamplePercentage *= options.randomForestOptions.subsamplePercentage;
-				Object[] args = { getIteration(), freeMemory, subsamplePercentage};
-				log.debug("Iteration {} : Free memory too low ({}) subsample percentage now {} ", args);
-			}
-
-		} else
-		{
-			subsamplePercentage = 1;
-		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		//=== The following two sets are required to be sorted by instance and paramConfig ID.
-		Set<ProblemInstance> all_instances = new LinkedHashSet<ProblemInstance>(instances);
-		Set<ParameterConfiguration> paramConfigs = runHistory.getUniqueParamConfigurations();
-		
-		Set<ProblemInstance> runInstances=runHistory.getUniqueInstancesRan();
-		ArrayList<Integer> runInstancesIdx = new ArrayList<Integer>(all_instances.size());
-		
-		//=== Get the instance feature matrix (X).
-		int i=0; 
-		double[][] instanceFeatureMatrix = new double[all_instances.size()][];
-		for(ProblemInstance pi : all_instances)
-		{
-			if(runInstances.contains(pi))
-			{
-				runInstancesIdx.add(i);
-			}
-			instanceFeatureMatrix[i] = pi.getFeaturesDouble();
-			i++;
-		}
-
-		//=== Get the parameter configuration matrix (Theta).
-		double[][] thetaMatrix = new double[paramConfigs.size()][];
-		i = 0;
-		for(ParameterConfiguration pc : paramConfigs)
-		{
-			if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
-			{
-				thetaMatrix[i++] = pc.toComparisonValueArray();
+				
+				double freeMemory = freeMemoryAfterGC();
+				if(freeMemory < options.randomForestOptions.freeMemoryPercentageToSubsample)
+				{
+					subsamplePercentage *= options.randomForestOptions.subsamplePercentage;
+					Object[] args = { getIteration(), freeMemory, subsamplePercentage};
+					log.debug("Iteration {} : Free memory too low ({}) subsample percentage now {} ", args);
+				}
+	
 			} else
 			{
-				thetaMatrix[i++] = pc.toValueArray();
+				subsamplePercentage = 1;
 			}
-		}
-
-		//=== Get an array of the order in which instances were used (TODO: same for Theta, from ModelBuilder) 
-		int[] usedInstanceIdxs = new int[runInstancesIdx.size()]; 
-		for(int j=0; j <  runInstancesIdx.size(); j++)
-		{
-			usedInstanceIdxs[j] = runInstancesIdx.get(j);
-		}
-		
-		
-		List<AlgorithmRunResult> runs = runHistory.getAlgorithmRunsExcludingRedundant();
-		double[] runResponseValues = RunHistoryHelper.getRunResponseValues(runs, runHistory.getRunObjective());
-		boolean[] censored = RunHistoryHelper.getCensoredEarlyFlagForRuns(runs);
-		
-		if(smacConfig.mbOptions.maskCensoredDataAsKappaMax)
-		{
-			for(int j=0; j < runResponseValues.length; j++)
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			//=== The following two sets are required to be sorted by instance and paramConfig ID.
+			Set<ProblemInstance> all_instances = new LinkedHashSet<ProblemInstance>(instances);
+			Set<ParameterConfiguration> paramConfigs = runHistory.getUniqueParamConfigurations();
+			
+			Set<ProblemInstance> runInstances=runHistory.getUniqueInstancesRan();
+			ArrayList<Integer> runInstancesIdx = new ArrayList<Integer>(all_instances.size());
+			
+			//=== Get the instance feature matrix (X).
+			int i=0; 
+			double[][] instanceFeatureMatrix = new double[all_instances.size()][];
+			for(ProblemInstance pi : all_instances)
 			{
-				if(censored[j])
+				if(runInstances.contains(pi))
 				{
-					runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime;
+					runInstancesIdx.add(i);
+				}
+				instanceFeatureMatrix[i] = pi.getFeaturesDouble();
+				i++;
+			}
+	
+			//=== Get the parameter configuration matrix (Theta).
+			double[][] thetaMatrix = new double[paramConfigs.size()][];
+			i = 0;
+			for(ParameterConfiguration pc : paramConfigs)
+			{
+				if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
+				{
+					thetaMatrix[i++] = pc.toComparisonValueArray();
+				} else
+				{
+					thetaMatrix[i++] = pc.toValueArray();
 				}
 			}
-		}
-		
-		
-		for(int j=0; j < runResponseValues.length; j++)
-		{ //=== Not sure if I Should be penalizing runs prior to the model
-			// but matlab sure does
-			if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
-			{	
-				runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
-			}
-		}
 	
-		//=== Sanitize the data.
-		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndexExcludingRedundant(), censored, configSpace);
+			//=== Get an array of the order in which instances were used (TODO: same for Theta, from ModelBuilder) 
+			int[] usedInstanceIdxs = new int[runInstancesIdx.size()]; 
+			for(int j=0; j <  runInstancesIdx.size(); j++)
+			{
+				usedInstanceIdxs[j] = runInstancesIdx.get(j);
+			}
+			
+			
+			List<AlgorithmRunResult> runs = runHistory.getAlgorithmRunsExcludingRedundant();
+			double[] runResponseValues = RunHistoryHelper.getRunResponseValues(runs, runHistory.getRunObjective());
+			boolean[] censored = RunHistoryHelper.getCensoredEarlyFlagForRuns(runs);
+			
+			if(smacConfig.mbOptions.maskCensoredDataAsKappaMax)
+			{
+				for(int j=0; j < runResponseValues.length; j++)
+				{
+					if(censored[j])
+					{
+						runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime;
+					}
+				}
+			}
+			
+			switch(smacConfig.scenarioConfig.getRunObjective())
+			{
+			case QUALITY:
+				break;
+			case RUNTIME:
+				for(int j=0; j < runResponseValues.length; j++)
+				{ //=== Not sure if I Should be penalizing runs prior to the model
+					// but matlab sure does
+					if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
+					{	
+						runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
+					}
+				}
+				break;
+			default: 
+				throw new IllegalStateException("Don't know how to optimize this run objective:" + smacConfig.scenarioConfig.getRunObjective());
+			}
+			
+			//=== Sanitize the data.
+			sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndexExcludingRedundant(), censored, configSpace);
+			
+			
+			if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
+			{
+				sanitizedData = new MaskCensoredDataAsUncensored(sanitizedData);
+			}
+			
+			
+			if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
+			{
+				sanitizedData = new MaskInactiveConditionalParametersWithDefaults(sanitizedData, configSpace);
+			}
 		
-		
-		if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
+		} finally
 		{
-			sanitizedData = new MaskCensoredDataAsUncensored(sanitizedData);
+			runHistory.releaseReadLock();
 		}
-		
-		
-		if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
-		{
-			sanitizedData = new MaskInactiveConditionalParametersWithDefaults(sanitizedData, configSpace);
-		}
-		
 		
 		//=== Actually build the model.
 		ModelBuilder mb;
