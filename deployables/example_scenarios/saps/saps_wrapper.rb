@@ -1,3 +1,4 @@
+
 #=== Deal with inputs.
 if ARGV.length < 5
 	puts "saps_wrapper.rb is a wrapper for the SAPS algorithm."
@@ -20,7 +21,21 @@ end
 paramstring = ARGV[5...ARGV.length].join(" ")
 
 #=== Build algorithm command and execute it.
+
+os = RUBY_PLATFORM
+
+
 cmd = "#{File.dirname(__FILE__)}/ubcsat -alg saps #{paramstring} -inst #{cnf_filename} -cutoff #{cutoff_length} -timeout #{cutoff_time} -target #{qual} -seed #{seed} -r stats stdout default,best"
+
+if os.include? "mac" or os.include? "darwin"
+  puts "Mac OS X Detected"
+  cmd = "#{File.dirname(__FILE__)}/ubcsat-mac -alg saps #{paramstring} -inst #{cnf_filename} -cutoff #{cutoff_length} -timeout #{cutoff_time} -target #{qual} -seed #{seed} -r stats stdout default,best"
+end
+
+if os.include?"win" or os.include?"msys" or os.include?"mingw" or os.include?"emc"
+  puts "Windows Detected"
+  cmd = "#{File.absolute_path(File.dirname(__FILE__))}\\ubcsat.exe -alg saps #{paramstring} -inst #{cnf_filename} -cutoff #{cutoff_length} -timeout #{cutoff_time} -target #{qual} -seed #{seed} -r stats stdout default,best"
+end
 
 filename = "ubcsat_output#{rand}.txt"
 exec_cmd = "#{cmd} > #{filename}"

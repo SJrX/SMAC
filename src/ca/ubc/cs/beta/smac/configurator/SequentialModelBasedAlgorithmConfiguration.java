@@ -10,6 +10,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import org.apache.commons.math3.distribution.ExponentialDistribution;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +37,7 @@ import ca.ubc.cs.beta.aeatk.parameterconfigurationspace.tracking.ParamConfigurat
 import ca.ubc.cs.beta.aeatk.probleminstance.ProblemInstance;
 import ca.ubc.cs.beta.aeatk.probleminstance.seedgenerator.InstanceSeedGenerator;
 import ca.ubc.cs.beta.aeatk.random.SeedableRandomPool;
+import ca.ubc.cs.beta.aeatk.random.SeedableRandomPoolConstants;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistory;
 import ca.ubc.cs.beta.aeatk.runhistory.RunHistoryHelper;
 import ca.ubc.cs.beta.aeatk.runhistory.ThreadSafeRunHistory;
@@ -75,7 +78,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	
 	private final RunHistory modelRunHistory;
 
-
+	
+	private final ExponentialDistribution exp;
+	
 	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialConfiguration, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
 		super(smacConfig,execConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, eventManager, rh, pool, termCond, configTracker,initProc,cpuTime);
 
@@ -89,7 +94,8 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			log.debug("Model warmstart payload detected with {} runs ", modelRH.getAlgorithmRunDataExcludingRedundant().size());
 		}
 		this.modelRunHistory = modelRH;
-	 
+		MersenneTwister prng = new MersenneTwister(pool.getSeed(SeedableRandomPoolConstants.LCB_EXPONENTIAL_SAMPLING_SEED));
+		this.exp = new ExponentialDistribution(prng,1);
 	}
 
 	
@@ -204,13 +210,26 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		
+		
 		for(int j=0; j < runResponseValues.length; j++)
 		{ //=== Not sure if I Should be penalizing runs prior to the model
 			// but matlab sure does
-			if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
-			{	
-				runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
+			
+			switch(options.scenarioConfig.getRunObjective())
+			{
+			case RUNTIME:
+				if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
+				{	
+					runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
+				}
+				break;
+			case QUALITY:
+				
+				break;
+			default:
+				throw new IllegalArgumentException("Not sure what objective this is: " + options.scenarioConfig.getRunObjective());
 			}
+			
 		}
 	
 		//=== Sanitize the data.
@@ -309,6 +328,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		log.trace("Prediction for incumbent: {} +/- {} (in log space if logModel=true)", tmp_predictions[0][0], tmp_predictions[1][0]);
 		
 		double fmin = runHistory.getEmpiricalCost(incumbent, instanceSet, smacConfig.scenarioConfig.algoExecOptions.cutoffTime);
+		double lcbStandardErrors = exp.sample();
 		//=== Get the empirical cost into log space if the model gives log predictions. 
 		if (smacConfig.randomForestOptions.logModel)
 		{
@@ -348,7 +368,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		//=== Compute EI of these configurations (as given by predmean,predvar)
 		
 		StopWatch watch = new AutoStartStopWatch();
-		double[] negativeExpectedImprovementOfTheta = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar);
+		double[] negativeExpectedImprovementOfTheta = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar,lcbStandardErrors);
 		
 
 		watch.stop();
@@ -376,7 +396,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			watch = new AutoStartStopWatch();
 			
-			ParamWithEI lsResult = localSearch(sortedParams.get(i), fmin, Math.pow(10, -5));
+			ParamWithEI lsResult = localSearch(sortedParams.get(i), fmin, Math.pow(10, -5),lcbStandardErrors);
 			
 
 			if(lsResult.getAssociatedValue() < min_neg)
@@ -447,7 +467,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		log.trace("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
-		double[] expectedImprovementOfRandoms = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar);
+		double[] expectedImprovementOfRandoms = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar,lcbStandardErrors);
 		log.trace("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
 		t = new AutoStartStopWatch();
 		for(int i=0; i <  randomConfigs.size(); i++)
@@ -543,7 +563,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	 * @param epsilon - Minimum value of improvement required before terminating
 	 * @return best Param&EI Found
 	 */
-	private ParamWithEI localSearch(ParamWithEI startEIC, double fmin_sample, double epsilon)
+	private ParamWithEI localSearch(ParamWithEI startEIC, double fmin_sample, double epsilon, double lcbStandardErrors)
 	{
 		ParamWithEI incumbentEIC = startEIC;
 		
@@ -573,7 +593,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
 			double[] means = prediction[0];
 			double[] vars = prediction[1];
-			double[] eiVal = ei.computeAcquisitionFunctionValue(fmin_sample, means, vars); 
+			double[] eiVal = ei.computeAcquisitionFunctionValue(fmin_sample, means, vars,lcbStandardErrors); 
 			
 			//=== Determine EI of best neighbour.
 			double min = eiVal[0];
@@ -615,7 +635,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				double[] mean = predictions[0];
 				double[] var = predictions[1];
 				
-				eiVal = ei.computeAcquisitionFunctionValue(fmin_sample, mean, var);
+				eiVal = ei.computeAcquisitionFunctionValue(fmin_sample, mean, var,lcbStandardErrors);
 			}
 		}
 		

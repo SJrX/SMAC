@@ -152,7 +152,18 @@ There are a couple of things to keep in mind when running with this option:
  	
  	 One advantage of this approach is that if you only care about getting a good configuration quickly (without worrying about reproducibility), you can schedule the runs of SMAC to the cluster independently, which should make them quicker to dispatch and yet still benefit from the shared data.
  
+
  \item While SMAC is running in shared model mode, you may see sporadic errors about corrupted files, etc. These are generally safe to ignore and are likely caused by writing and reading happening simultaneously. Upon reading an error, SMAC will continue trying to read the file. Until the file is successfully read, no further errors or warnings will be presented.   
+
+\item When in this mode you should see messages like the following which indicate a new source of runs was detected:
+
+\begin{verbatim}
+[INFO ] Detected new sources of shared runs :
+ [live-rundata-1.json, live-rundata-2.json]
+\end{verbatim}
+
+This indicates that we have started to read runs from the above files.
+
 
 \item At the end of a run you will see a line like:
 
@@ -160,16 +171,12 @@ There are a couple of things to keep in mind when running with this option:
 [INFO ] At shutdown: ./smac-output/branin-scenario/live-rundata-3.json 
 had 15 runs added to it
 [INFO ] At shutdown: we retrieved atleast 20 runs and added them to
- our current data set [live-rundata-1.json=>11, live-rundata-2.json=>17]
+ our current data set [live-rundata-1.json=>10, live-rundata-2.json=>10]
+
 \end{verbatim}
 
-This output indicates that this run of SMAC (with seed 3) completed 15 runs locally. It also read in 11 runs from run 1, and 17 runs from run 2.
+
 \end{enumerate}
-
-
-
-
-
 
 \subsection{Offline Validation}
 

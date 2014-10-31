@@ -23,6 +23,6 @@
 	<classpathentry kind="lib" path="/AEATK/lib/opencsv-2.3.jar"/>
 	<classpathentry kind="lib" path="/AEATK/lib/slf4j-api-1.7.5.jar"/>
 	<classpathentry kind="lib" path="/AEATK/lib/spi-0.2.4.jar"/>
-	<classpathentry kind="lib" path="/AEATK/lib/commons-math3-3.2.jar"/>
+	<classpathentry kind="lib" path="/AEATK/lib/commons-math3-3.3.jar" sourcepath="lib/commons-math3-3.0/commons-math3-3.0-sources.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
