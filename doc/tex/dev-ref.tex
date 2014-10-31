@@ -138,6 +138,16 @@ Name  & Description \\
 
 \normalsize
 
+\subsection{SMAC Sequence Diagram}
+
+\begin{figure}[h]
+\includegraphics[height=18cm,angle=0, trim=2.5cm 0cm 0cm 0cm clip=true]{sequence.png} 
+\caption{Sequence diagram detailing the execution of a standard SMAC run}
+\label{sequence}
+\end{figure}
+
+See Figure \ref{sequence} on page \pageref{sequence} for a sequence diagram relating the 5 main classes.
+
 \subsection{Algorithm Execution \& Abstraction Toolkit}
 
 At some future point a better guide will be available, in the interim please e-mail the authors above for a draft.
@@ -184,10 +194,13 @@ Many of the helper utilities are contained in the \texttt{ca.ubc.cs.beta.aeatk.e
 
 If when running SMAC you see either of the following errors:
 
-\textcolor{red}{WARNING: I could not find ANY Target Algorithm Evaluators on the classpath. If you made this JAR yourself chances are you did not setup SPI correctly. See the AEATK Manual / Developer Reference for more information}
-
-\textcolor{red}{No Target Algorithm Evalutor found for name: CLI}
-
+\textcolor{red}{
+WARNING: I could not find ANY Target Algorithm Evaluators on the classpath.\\
+ If you made this JAR (or setup the classpath) yourself chances are you did not setup SPI correctly.
+ You must ensure that in the JAR (or on the classpath) there is a \\
+  META-INF/services/ca.ubc.cs.beta.aeatk.targetalgorithmevaluator.TargetAlgorithmEvaluatorFactory file \\
+ In this file should list every implementation of that interface 
+}
 \vspace{10pt}
 
 This means you did not follow steps 10 \& 11 properly.
