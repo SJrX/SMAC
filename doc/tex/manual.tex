@@ -236,11 +236,13 @@ Value & Error Name & Description \\
 				\item Changed default wrapper string to ``Result of this algorithm run:''.
 				
           	\end{enumerate}
-		\item[Version 2.08.01 (TBD)] Minor Changes
+		\item[Version 2.08.01 (Oct-2014)] Minor Changes
 			\begin{enumerate}
 				\item In shared model mode, SMAC can now reuse an existing run from another run.
 				\item Detailed Trajectory File now outputs predicted performance of the incumbent.
-				\item Fixed a bug with the LCB acquisition function usage.
+				\item Fixed a bug with the LCB acquisition function that (probably) causes poor performance.
+				\item Added Mac OS X support for SAPS example scenario (thanks Chris Fawcett and Alexandre Fr\'{e}chette)
+				\item Removed explicit SAPS Windows scenario, and changed the Linux one to detect windows.
 			\end{enumerate}
            
 
