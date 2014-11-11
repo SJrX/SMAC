@@ -1,21 +1,9 @@
 \begin{thebibliography}{}
 
-\bibitem[Hutter et~al., 2011a]{HutHooLey11-censoring}
-Hutter, F., Hoos, H.~H., and Leyton-Brown, K. (2011a).
-\newblock Bayesian optimization with censored response data.
-\newblock In {\em 2011 NIPS workshop on Bayesian Optimization, Sequential
-  Experimental Design, and Bandits}.
-\newblock Published online.
-
-\bibitem[Hutter et~al., 2011b]{HutHooLey11-SMAC}
-Hutter, F., Hoos, H.~H., and Leyton-Brown, K. (2011b).
+\bibitem[Hutter et~al., 2011]{HutHooLey11-SMAC}
+Hutter, F., Hoos, H.~H., and Leyton-Brown, K. (2011).
 \newblock Sequential model-based optimization for general algorithm
   configuration.
-\newblock In {\em {Proc.~of LION-5}}, {LNCS}, pages 507--523.
-
-\bibitem[Hutter et~al., 2009]{ParamILS-JAIR}
-Hutter, F., Hoos, H.~H., Leyton-Brown, K., and St\"{u}tzle, T. (2009).
-\newblock {ParamILS:} an automatic algorithm configuration framework.
-\newblock {\em Journal of Artificial Intelligence Research}, 36:267--306.
+\newblock In {\em {Proc.~of LION-5}}, pages 507--523.
 
 \end{thebibliography}
