@@ -245,6 +245,9 @@ Value & Error Name & Description \\
 				\item Removed explicit SAPS Windows scenario, and changed the Linux one to detect windows.
 				\item Fixed a bug with solution quality optimization and large values greater than the cutoff time. \textbf{CRASHED} runs will now be penalized. For more details about how CRASHED runs are handled see Section \ref{subsec:wrapper-output-semantics}.
 				\item Shared model mode will now log a message when a new file to read from is detected.
+				\item Fixed spear scenario to use instance features again.
+				\item SMAC will now throw an error if feature file specified and no features
+				found.
 			\end{enumerate}
            
 
