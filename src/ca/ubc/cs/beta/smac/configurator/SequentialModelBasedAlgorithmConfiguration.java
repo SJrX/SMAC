@@ -220,7 +220,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 	
 		//=== Sanitize the data.
-		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, usedInstanceIdxs, logModel, runHistory.getParameterConfigurationInstancesRanByIndexExcludingRedundant(), censored, configSpace);
+		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, logModel, runHistory.getParameterConfigurationInstancesRanByIndexExcludingRedundant(), censored, configSpace);
 		
 		
 		if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
