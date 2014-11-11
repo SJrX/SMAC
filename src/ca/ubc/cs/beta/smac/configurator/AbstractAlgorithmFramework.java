@@ -550,7 +550,7 @@ public class AbstractAlgorithmFramework {
 						learnModel(runHistory, configSpace);
 						log.trace("Model Learn Time: {} (s)", t.time() / 1000.0);
 						
-						fireEvent(new ModelBuildEndEvent(termCond, getModel()));
+						fireEvent(new ModelBuildEndEvent(termCond, getModel(), options.randomForestOptions.logModel));
 						ArrayList<ParameterConfiguration> challengers = new ArrayList<ParameterConfiguration>();
 						challengers.addAll(selectConfigurations());
 						

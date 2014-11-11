@@ -210,13 +210,26 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		
+		
 		for(int j=0; j < runResponseValues.length; j++)
 		{ //=== Not sure if I Should be penalizing runs prior to the model
 			// but matlab sure does
-			if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
-			{	
-				runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
+			
+			switch(options.scenarioConfig.getRunObjective())
+			{
+			case RUNTIME:
+				if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
+				{	
+					runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
+				}
+				break;
+			case QUALITY:
+				
+				break;
+			default:
+				throw new IllegalArgumentException("Not sure what objective this is: " + options.scenarioConfig.getRunObjective());
 			}
+			
 		}
 	
 		//=== Sanitize the data.
