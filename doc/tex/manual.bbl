@@ -1,9 +1,0 @@
-\begin{thebibliography}{}
-
-\bibitem[Hutter et~al., 2011]{HutHooLey11-SMAC}
-Hutter, F., Hoos, H.~H., and Leyton-Brown, K. (2011).
-\newblock Sequential model-based optimization for general algorithm
-  configuration.
-\newblock In {\em {Proc.~of LION-5}}, pages 507--523.
-
-\end{thebibliography}
