@@ -203,7 +203,7 @@ public class SMACBuilder {
 		
 		//It's important that the FileSharingRunHistoryDecorator go on the rhModel object, and not the rh object, because some runs may
 		//be sent only to the model.
-		rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode);
+		rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode, options.sharedModeModeAssymetricMode, options.defaultHandler, options.writeRunData);
 		
 		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
 		
