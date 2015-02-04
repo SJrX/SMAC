@@ -448,40 +448,43 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			randomConfigs.add(configSpace.getRandomParameterConfiguration(configSpaceEIRandom));
 		} 
 		
-		log.trace("Generating {} Random Configurations for EI took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
-		
-		t = new AutoStartStopWatch();
-		double[][] randomConfigToDebug = new double[randomConfigs.size()][];
-		for(int i=0; i < randomConfigs.size(); i++)
+		if(randomConfigs.size() >  0)
 		{
-			randomConfigToDebug[i] = randomConfigs.get(i).toValueArray();
+			log.trace("Generating {} Random Configurations for EI took {} (s)", numberOfRandomConfigsInEI, t.stop() / 1000.0);
+			
+			t = new AutoStartStopWatch();
+			double[][] randomConfigToDebug = new double[randomConfigs.size()][];
+			for(int i=0; i < randomConfigs.size(); i++)
+			{
+				randomConfigToDebug[i] = randomConfigs.get(i).toValueArray();
+			}
+			if(SELECT_CONFIGURATION_SYNC_DEBUGGING &&  log.isDebugEnabled())
+			{
+				log.trace("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
+			}
+			//=== Compute EI for the random configs.		
+			predictions = transpose(applyMarginalModel(randomConfigs));
+			predmean = predictions[0];
+			predvar = predictions[1];
+			
+			log.trace("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
+			t = new AutoStartStopWatch();
+			double[] expectedImprovementOfRandoms = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar,lcbStandardErrors);
+			log.trace("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
+			t = new AutoStartStopWatch();
+			for(int i=0; i <  randomConfigs.size(); i++)
+			{
+				double[] val = { predmean[i], predvar[i], expectedImprovementOfRandoms[i] };
+				configPredMeanVarEIMap.put(randomConfigs.get(i), val);
+			}
+			
+			log.trace("Map Insertion for Random Configurations took {} (s)", t.stop() / 1000.0);
+			
+			
+			//=== Add random configs to LS configs.
+			bestResults.addAll(ParamWithEI.merge(expectedImprovementOfRandoms, randomConfigs));
 		}
-		if(SELECT_CONFIGURATION_SYNC_DEBUGGING &&  log.isDebugEnabled())
-		{
-			log.trace("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
-		}
-		//=== Compute EI for the random configs.		
-		predictions = transpose(applyMarginalModel(randomConfigs));
-		predmean = predictions[0];
-		predvar = predictions[1];
 		
-		log.trace("Prediction for Random Configurations took {} (s)", t.stop() / 1000.0);
-		t = new AutoStartStopWatch();
-		double[] expectedImprovementOfRandoms = ei.computeAcquisitionFunctionValue(fmin, predmean, predvar,lcbStandardErrors);
-		log.trace("EI Calculation for Random Configurations took {} (s)", t.stop() / 1000.0);
-		t = new AutoStartStopWatch();
-		for(int i=0; i <  randomConfigs.size(); i++)
-		{
-			double[] val = { predmean[i], predvar[i], expectedImprovementOfRandoms[i] };
-			configPredMeanVarEIMap.put(randomConfigs.get(i), val);
-		}
-		
-		log.trace("Map Insertion for Random Configurations took {} (s)", t.stop() / 1000.0);
-		
-		
-		//=== Add random configs to LS configs.
-		bestResults.addAll(ParamWithEI.merge(expectedImprovementOfRandoms, randomConfigs));
-
 		//== More debugging.
 		configArrayToDebug = new double[bestResults.size()][];
 		j=0; 
@@ -623,6 +626,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				}
 
 				//== Move to random element of the best neighbours.
+				if(minIdx.size() == 0)
+				{
+					throw new IllegalStateException("AAAAAAH!");
+				}
 				int nextIdx = minIdx.get(configRandLS.nextInt(minIdx.size()));
 				ParameterConfiguration best = neighbourhood.get(nextIdx);
 				incumbentEIC = new ParamWithEI(eiVal[nextIdx], best);
@@ -677,6 +684,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 	protected double[][] applyMarginalModel(List<ParameterConfiguration> configs)
 	{
 		//=== Translate into array format, and call method for that format.
+		
 		double[][] configArrays = new double[configs.size()][];
 		int i=0; 
 		for(ParameterConfiguration config: configs)
