@@ -12,7 +12,7 @@ sp-learned-size-factor [0.1, 1.6] [0.4]l             # Uniform on logarithmic sc
 sp-learned-clauses-inc [1.1, 1.5] [1.3]              # 1.2 and 1.4 were introduced later. Uniform because multiplicative Was: in1.1,1.2,1.3,1.4,1.5, def 1.3
 sp-clause-activity-inc [0.5, 1.5] [1]                # Was: in 0.5,1,1.5, def 1
 sp-var-activity-inc [0.5, 1.5] [1]                   # Was: in 0.5,1,1.5, def 1
-sp-rand-phase-dec-freq{0, 0.0001, 0.001, 0.005, 0.01, 0.05}[0.001] # Used discretized version to preserve 0. Never picked 0.05 in previous experiments, always zero.
+sp-rand-phase-dec-freq {0, 0.0001, 0.001, 0.005, 0.01, 0.05}[0.001] # Used discretized version to preserve 0. Never picked 0.05 in previous experiments, always zero.
 sp-rand-var-dec-freq {0, 0.0001, 0.001, 0.005, 0.01, 0.05}[0.001]  # Used discretized version to preserve 0. Never picked 0.05 in previous experiments, always zero.
 sp-rand-var-dec-scaling [0.3, 1.1] [1]               # Domagoj said the previous values were too coarse, so finer discretization now.
 sp-rand-phase-scaling [0.3, 1.1] [1]                 # Same thing. Was: in 0.3,0.6,0.9,1,1.1, def 1

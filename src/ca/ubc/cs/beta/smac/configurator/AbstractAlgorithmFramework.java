@@ -734,6 +734,7 @@ public class AbstractAlgorithmFramework {
 	 */
 	private void intensify(List<ParameterConfiguration> challengers, double timeBound) 
 	{
+
 		double initialTime = runHistory.getTotalRunCost();
 		log.debug("Calling intensify with {} challenger(s)", challengers.size());
 		for(int i=0; i < challengers.size(); i++)
@@ -748,7 +749,11 @@ public class AbstractAlgorithmFramework {
 				
 				log.debug("Intensification timeBound: {} (s); used: {}  (s)", timeBound, timeUsed);
 			}
-			challengeIncumbent(challengers.get(i));
+			
+			//Challenger configurations can no longer be changed 
+			ParameterConfiguration challenger = challengers.get(i);
+			challenger.lock();
+			challengeIncumbent(challenger);
 		}
 	}
 
@@ -777,6 +782,9 @@ public class AbstractAlgorithmFramework {
 	
 	private void challengeIncumbent(ParameterConfiguration challenger, boolean runIncumbent) {
 		//=== Perform run for incumbent unless it has the maximum #runs.
+		
+		
+	
 		
 		if(runIncumbent)
 		{

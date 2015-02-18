@@ -297,6 +297,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		}
 		
 		//=== Convert to array form for debug hash code.
+		/*
 		double[][] configArrayToDebug = new double[challengers.size()][];
 		int j=0; 
 		for(ParameterConfiguration c : challengers)
@@ -308,7 +309,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			log.trace("Final Selected Challengers Configurations Hash Code {}", matlabHashCode(configArrayToDebug));
 		}
-		
+		*/
 		return challengers;
 	}
 	
