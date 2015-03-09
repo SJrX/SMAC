@@ -2,7 +2,7 @@
 \begin{document}
 The PCS format requires each line to contain one of the following 3 clauses, or only whitespace/comments.
 \begin{itemize}
-\item \textbf{Parameter Declaration Clauses} specify the names of parameters, their domains, and default values.
+\item \textbf{Parameter Declaration Clauses} specify the names of parameters, their type, their domains, and default values.
 \item \textbf{Conditional Parameter Clauses} specify when a parameter is active/inactive.
 \item \textbf{Forbidden Parameter Clauses} specify when a combination of parameter settings is illegal.
 \end{itemize}
@@ -18,22 +18,22 @@ The PCS format supports four types of parameters: Categorical, Ordinal, Integer,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection*{Categorical parameters} \label{sec:categorical-params}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Categorical parameters take one of a finite set of values. Each line specifying a categorical parameter should be of the form:
+Categorical parameters take one of a finite set of values. Each line specifying an categorical parameter should be of the form:
 
 \begin{verbatim}
-<parameter_name> c {<value 1>, ..., <value N>} [<default value>]
+<parameter_name> cat {<value 1>, ..., <value N>} [<default value>]
 \end{verbatim}
 where `\texttt{<default value>}' has to be one of the set of possible values. 
 
 \paragraph{Example 1}
 \begin{verbatim}
-decision-heuristic c {1,2,3} [1]
+decision-heuristic cat {1,2,3} [1]
 \end{verbatim}
 This means that the parameter `\texttt{decision-heuristic}' can be given one of three possible values, with the default assignment being `\texttt{1}'.
 
 \paragraph{Example 2}
 \begin{verbatim}
-@1:loops c {common,distinct,shared,no}[no]
+@1:loops cat {common,distinct,shared,no}[no]
 \end{verbatim}
 In this example, the somewhat cryptic parameter name `\texttt{@1:loops}' is perfectly legal; the only forbidden characters in parameter names are spaces, commas, quotes, and parentheses. 
 
@@ -46,13 +46,13 @@ When using the Advanced Forbidden Syntax, parameter name and values are restrict
 
 \paragraph{Example 3}
 \begin{verbatim}
-DS c {TinyDataStructure, FastDataStructure}[TinyDataStructure]
+DS cat {TinyDataStructure, FastDataStructure}[TinyDataStructure]
 \end{verbatim}
 As this example shows, the parameter values can even be Java class names (to be used, e.g., via reflection).
 
 \paragraph{Example 4}
 \begin{verbatim}
-random-variable-frequency c {0, 0.05, 0.1, 0.2} [0.05]
+random-variable-frequency cat {0, 0.05, 0.1, 0.2} [0.05]
 \end{verbatim}
 Finally, as this example shows, numerical parameters can trivially be treated as categorical ones by simply discretizing their domain (selecting a subset of reasonable values).
 
@@ -62,13 +62,13 @@ Finally, as this example shows, numerical parameters can trivially be treated as
 Ordinal parameters take one of a finite set of values. Each line specifying a ordinal parameter should be of the form:
 
 \begin{verbatim}
-<parameter_name> o {<value 1>, ..., <value N>} [<default value>]
+<parameter_name> ord {<value 1>, ..., <value N>} [<default value>]
 \end{verbatim}
 where `\texttt{<default value>}' has to be one of the set of possible values. An ordinal parameter differs from a categorical parameter, in that individual values are comparable (under $>$ and $<$ operators). 
 
 \paragraph{Example 5}
 \begin{verbatim}
-random-variable-frequency o {0, 0.05, 0.1, 0.2} [0.05]
+random-variable-frequency ord {0, 0.05, 0.1, 0.2} [0.05]
 \end{verbatim}
 
 This example encodes the same variable as Example 4, and has the same set of allowed values but also specifies that the following is true:
@@ -76,21 +76,21 @@ $0 < 0.05 < 0.1 < 0.2$.
 
 \paragraph{Example 6}
 \begin{verbatim}
-annealing-temperature o {cold, cool, medium, warm, hot} [medium]
+annealing-temperature ord {cold, cool, medium, warm, hot} [medium]
 \end{verbatim}
 
 In this example the set of variables is the same, but also informs us that \texttt{cold} $<$ \texttt{cool} $<$ \texttt{medium} $<$ \texttt{warm} $<$ \texttt{hot}.
 
 \paragraph{Example 7}
 \begin{verbatim}
-alpha-heuristic o { 1, 10, 100, 1000, INFINITE } [1]
+alpha-heuristic ord { 1, 10, 100, 1000, INFINITE } [1]
 \end{verbatim}
 
 Finally in this example it is shown that you can mix and match numerical and string values. 
 
 \vspace{5pt}
 \begin{bclogo}[logo=\bclampe, couleurBarre=red, noborder=true]{Tip}
-The primary benefit of encoding something as an ordinal is that it can allow better inferences about unseen parameter values. With a categorical parameter, the knowledge of one value doesn't tell one much if anything about other values, where as with an ordinal value we would expect closer values to be more related (or similar).
+The primary benefit of encoding something as an ordinal is that it can allow better inferences about unseen parameter values. With a categorical parameter, the knowledge of one value doesn't tell one much (if anything) about other values, where as with an ordinal value we would expect closer values (with respect to ordering) to be more related (or similar).
 \end{bclogo}
 
 
@@ -102,13 +102,13 @@ Numerical parameters (both Real and Integer) are specified as follows:
 \paragraph{Integer}
 
 \begin{verbatim}
-<parameter_name> i [<min value>, <max value>] [<default value>] [log]
+<parameter_name> int [<min value>, <max value>] [<default value>] [log]
 \end{verbatim}
 
 \paragraph{Real}
 
 \begin{verbatim}
-<parameter_name> r [<min value>, <max value>] [<default value>] [log]
+<parameter_name> real [<min value>, <max value>] [<default value>] [log]
 \end{verbatim}
 
 
@@ -118,22 +118,22 @@ Numerical parameters (both Real and Integer) are specified as follows:
 \paragraph{Example 8}
 
 \begin{verbatim}
-sp-rand-var-dec-scaling r [0.3, 1.1] [1]
+sp-rand-var-dec-scaling real [0.3, 1.1] [1]
 \end{verbatim}
 Parameter \texttt{sp-rand-var-dec-scaling} is real-valued with a default value of 1, and we can choose values for it from the (closed) interval \texttt{[0.3, 1.1]}.
 Note that there may be other parameter values outside this interval that are in principle legal values for the parameter (e.g., your solver might accept any positive floating point value for the parameter). What you specify here is the range that automated configuration procedures should search (i.e., a range you expect a priori to contain good values); of course, every value in the specified range must be legal. There is a tradeoff in choosing the best range size.%; see Section \ref{sec:tips} for some tips on defining a `good' parameter space.
 
 \paragraph{Example 9}
 \begin{verbatim}
-mult-factor i [2, 15] [5]
+mult-factor int [2, 15] [5]
 \end{verbatim}
-Parameter \texttt{mult-factor} is integer-valued, takes any integer value between \texttt{2} and \texttt{15} (inclusive), and has a default value of 5.\texttt{mult-factor} could also be specified as an ordinal parameter with values \texttt{\{2,3,4,5,6,7,8,9,10,11,12,13,14,15\}}. In most situations the representations are identical (the integer setting might be slightly faster), if you are using forbidden or conditional parameter settings however the distinction matters.
+Parameter \texttt{mult-factor} is integer-valued, takes any integer value between \texttt{2} and \texttt{15} (inclusive), and has a default value of 5. Parameter \texttt{mult-factor} could also be specified as an ordinal parameter with values \texttt{\{2,3,4,5,6,7,8,9,10,11,12,13,14,15\}}. In most situations the representations are identical (the integer setting might be slightly faster), if you are using forbidden or conditional parameter settings however the distinction matters.
 
 
 
 \paragraph{Example 10}
 \begin{verbatim}
-DLSc r [0.00001, 0.1] [0.01] log
+DLSc real [0.00001, 0.1] [0.01] log
 \end{verbatim}
 Parameter \texttt{DLSc} is real-valued with a default value of \texttt{0.01}, and we can choose values for it from the (closed) interval \texttt{[0.00001, 0.1]}.
 The trailing `\texttt{log}' denotes that this parameter naturally varies on a log scale. If we were to discretize the parameter, a natural choice would be
@@ -142,7 +142,7 @@ We express this natural variation on a log scale by the `\texttt{log}' flag. %Se
 
 \paragraph{Example 11}
 \begin{verbatim}
-first-restart i [10, 1000] [100] log
+first-restart int [10, 1000] [100] log
 \end{verbatim}
 Parameter \texttt{first-restart} is integer-valued with a default value of \texttt{100}, and we can choose values for it from the (closed) interval \texttt{[10, 1000]}.
 It also varies naturally on a logarithmic scale. For example, due to this logarithmic scale, after the transformation drawing a uniform random value of \texttt{first-restart} will yield a number below \texttt{100} half the time.
@@ -169,7 +169,7 @@ under which conditions a parameter is active. The syntax for conditional paramet
 				<parent name2> <operator2> <value2>
 \end{verbatim}
 
-\texttt{<operator>} can be one of \texttt{==,!=,<,>,in}. The $>$ and $<$ operators are only defined for ordinal, integer, or real types. \texttt{<value>} is either a specific allowed value for the parameter for the \texttt{==,!=, <, >} operators, or for the \texttt{in} operator it is a set of values (i.e., \texttt{\{a,b,c\}}).  The \texttt{<,>} operators are not available for parents that are categorical. Finally, you can specify conjunctions or disjunctions for parent parameters. Unfortunately there is no support for parenthesis with conditionals. The \texttt{\&\&} connective has higher precedence than \texttt{||}, so  \texttt{a||b\&\& c||d} is the same as: \texttt{a||(b\&\&\!c)||d}.
+\texttt{<operator>} can be one of \texttt{==,!=,<,>,in}. The $>$ and $<$ operators are only defined for ordinal, integer, or real types. \texttt{<value>} is either a specific allowed value for the parameter for the \texttt{==,!=, <, >} operators, or for the \texttt{in} operator it is a set of values (i.e., \texttt{\{a,b,c\}}). Finally, you can specify conjunctions or disjunctions for parent parameters. There is no support for parenthesis with conditionals. The \texttt{\&\&} connective has higher precedence than \texttt{||}, so  \texttt{a||b\&\& c||d} is the same as: \texttt{a||(b\&\&\!c)||d}.
 
 %
 This can be read as ``The child parameter \texttt{<child name>} is only active if the parent parameter \texttt{<parent name>} satisfies the logical conditional.''
@@ -190,8 +190,8 @@ This can be read as ``The child parameter \texttt{<child name>} is only active i
 \paragraph{Example 12}
 
 \begin{verbatim}
-sort-algo c {quick,insertion,merge,heap,stooge,bogo} [bogo]
-quick-selection-method c {first, random, median-of-medians} [random]
+sort-algo cat {quick,insertion,merge,heap,stooge,bogo} [bogo]
+quick-selection-method cat {first, random, median-of-medians} [random]
 quick-selection-method | sort-algo in {quick}
 \end{verbatim}
 In this example, \texttt{quick-selection-method} is conditional on the \texttt{sort-algo} parameter being set to \texttt{quick}, and will be ignored otherwise.
@@ -199,9 +199,9 @@ In this example, \texttt{quick-selection-method} is conditional on the \texttt{s
 \paragraph{Example 13}
 
 \begin{verbatim}
-heur1 c { off, on } [on]
-heur2 c { off, on } [on]
-heur_order c { heur1then2, heur2then1 } [heur1then2]
+heur1 cat { off, on } [on]
+heur2 cat { off, on } [on]
+heur_order cat { heur1then2, heur2then1 } [heur1then2]
 heur_order | heur1 == on && heur2 == on
 \end{verbatim}
 
@@ -209,9 +209,9 @@ In this example, the \texttt{heur\_order} parameter requires both of \texttt{heu
 
 \paragraph{Example 14}
 \begin{verbatim}
-temperature r [-273.15, 100] [10]
-rain r [0, 200] [0]
-gloves o { none, yarn, leather, gortex } [none]
+temperature real [-273.15, 100] [10]
+rain real [0, 200] [0]
+gloves ord { none, yarn, leather, gortex } [none]
 gloves | rain > 0 || temperature < 5
 \end{verbatim}
 
@@ -253,7 +253,7 @@ The default parameter setting is not allowed to contain a forbidden combination 
 
 \paragraph{Advanced Syntax}
 
-An advanced syntax for Forbidden clauses is available that allows specifying any expression of parameter settings as a forbidden.
+An advanced syntax for forbidden clauses is available that allows specifying any expression of parameter settings as a forbidden.
 
 The syntax is:
 
@@ -265,8 +265,8 @@ The syntax is:
 If only the points within a unit sphere are desired one can use the following PCS specification:
 
 \begin{verbatim}
-x r [-1,1] [0]
-y r [-1,1] [0]
+x real [-1,1] [0]
+y real [-1,1] [0]
 { x^2+y^2 > 1 }
 \end{verbatim}
 
@@ -274,9 +274,9 @@ y r [-1,1] [0]
 Additionally to specify a range of parameters like $ 0 < a < b < c < 1 $
 
 \begin{verbatim}
-a r [0,1]
-b r [0,1]
-c r [0,1]
+a real [0,1]
+b real [0,1]
+c real [0,1]
 { (a > b) || (b > c) }
 \end{verbatim}
 
@@ -301,9 +301,9 @@ Logical Operators & $>=$ , $<=$, $>$, $<$, $==$, $!=$,\texttt{||},\texttt{\&\&} 
 As a result of how forbidden parameters are implemented there are some things to keep in mind when using them.
 
 \begin{enumerate}
-\item Many procedures rely on generating random configurations, and the procedure is not aware of forbidden parameters. If a random configuration is forbidden, another random sample is obtained until it is valid. This can cause a significant  slowdown (e.g., with integer parameters the expression $\{ a^2 + b^2 == c^2 \}$ which would only select pythagorean triples), or cause the procedure to stop entirely (e.g., $\{ a^3 + b^3 == c^3 \}$ which is never satisfiable). Try to minimize the area of the space that is forbidden. For example given the forbidden expression $\{ a < -1 || a > 1\}$  the parameter settings \texttt{a r [-1,1] [0]} and \texttt{a r [-10,10] [0]} are equivalent, but the latter will be 10 times slower. 
+\item Many procedures rely on generating random configurations, and the procedure is not aware of forbidden parameters. If a random configuration is forbidden, another random sample is obtained until it is valid. This can cause a significant  slowdown (e.g., with integer parameters the expression $\{ a^2 + b^2 == c^2 \}$ which would only select pythagorean triples), or cause the procedure to stop entirely (e.g., $\{ a^3 + b^3 == c^3 \}$ which is never satisfiable). Try to minimize the area of the space that is forbidden. For example given the forbidden expression $\{ a < -1 || a > 1\}$  the parameter settings \texttt{a real [-1,1] [0]} and \texttt{a real [-10,10] [0]} are equivalent, but the latter will be 10 times slower. 
 
-\item Even if forbidden clauses are contradictions and thus could never be true, evaluating them involves significant time (in a toy example, we observed it resulted in a 4$\times$ slowdown) in the time it takes to generate a random configuration. If your procedure does get many target algorithm runs completed, or they are especially short, this time may become significant.
+\item Even if forbidden clauses are contradictions and thus could never be true, evaluating them involves significant time (in a toy example, we observed it resulted in a 4$\times$ slowdown) in the time it takes to generate a random configuration. If your procedure does get many target algorithm runs completed, or they are especially short, this time may become significant. Additionally, a much smaller but still significant effect was observed between having multiple advanced forbidden statements versus using the \texttt{\&\&} operator, with the latter being slightly faster. 
 
 \item Errors involving categorical and ordinal parameters are not caught. Using Example 14, the following is a legal expression \texttt{\{ gloves+log(leather) <= rain\textasciicircum 2 \}}, but its result is undefined, as far as this specification is concerned. For categorical only the $==$ and $!=$ operators should be used. For ordinals you can additionally use $>=$ , $<=$, $>$, $<$. 
 
@@ -311,7 +311,7 @@ As a result of how forbidden parameters are implemented there are some things to
 
 \item The names of parameters, as well as the values for categorical and ordinal parameters are restricted. All parameter names must start with a letter or the underscore and can only include letters, digits or underscores. The same restriction applies to values, except they can additionally be numeric.
 
-\item When expressions are evaluated all variables exist within the same name space, this means that all of the parameter names as well as the non-numeric values for ordinal and categorical parameters must be treated the same. Again delving into the implementation a bit, what this means is that every parameter name, and all the values for ordinals and categoricals (including the numeric values) must be topologically sortable, considering the ordinal parameters. For instance the following two lines when put together violate this requirement \texttt{a o { off, on } [on]} and \texttt{b o { on, off } [on]} , because in the first on is greater than off, and in the second the order is reversed. An additional example is that the following is illegal when using advanced forbidden syntax \texttt{a o { 1000,100,10,1 } [1] }, this is because as specified 1 $>$ 10, but numerically 10 $>$ 1. Like the restrictions on names, these restrictions only apply when a forbidden clause using the advanced syntax is specified.
+\item When expressions are evaluated all variables exist within the same name space, this means that all of the parameter names as well as the non-numeric values for ordinal and categorical parameters must be treated the same. Again delving into the implementation a bit, what this means is that every parameter name, and all the values for ordinals and categoricals (including the numeric values) must be topologically sortable, considering the ordinal parameters. For instance the following two lines when put together violate this requirement \texttt{a ord $\{$ off, on $\}$ [on]} and \texttt{b ord $\{$ on, off $\}$ [on]}, because in the first on is greater than off, and in the second the order is reversed. An additional example is that the following is illegal when using advanced forbidden syntax \texttt{a ord $\{$ 1000,100,10,1 $\}$ [1]}, this is because as specified 1 $>$ 10, but numerically 10 $>$ 1. Like the restrictions on names, these restrictions only apply when a forbidden clause using the advanced syntax is specified.
 
 \item You can use the \texttt{pcs-check} utility included in SMAC v2.10 or later which will check for many of these restrictions.
 \end{enumerate}
