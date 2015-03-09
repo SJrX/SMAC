@@ -110,6 +110,8 @@ public class AbstractAlgorithmFramework {
 	
 	private final ParameterConfiguration initialIncumbent;
 
+	private final List<ParameterConfiguration> initialChallengers;
+	
 	private final EventManager evtManager;
 
 	protected SeedableRandomPool pool;
@@ -139,7 +141,7 @@ public class AbstractAlgorithmFramework {
 	private final String objectiveToReport;
 	
 
-	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialIncumbent, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
+	public AbstractAlgorithmFramework(SMACOptions smacOptions, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, StateFactory stateFactory, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialIncumbent, List<ParameterConfiguration> initialChallengers, EventManager manager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker originTracker, InitializationProcedure initProc, CPUTime cpuTime )
 	{
 		this.cpuTime = cpuTime;
 		this.instances = instances;
@@ -156,6 +158,7 @@ public class AbstractAlgorithmFramework {
 		
 		
 		this.initialIncumbent = initialIncumbent;
+		this.initialChallengers = initialChallengers;
 		this.evtManager = manager;
 		this.pool = pool;
 		
@@ -532,6 +535,22 @@ public class AbstractAlgorithmFramework {
 				 */
 				
 				incumbentRunsLogged = runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent);
+
+				if(initialChallengers.size() > 0)
+				{
+					try
+					{
+						// shouldWriteStateOnCrash.set(true);
+						// if(shouldSave()) saveState();
+						
+						intensify(initialChallengers, options.initialChallengersIntensificationTime);
+						
+						logIncumbent(iteration);
+					} catch(OutOfTimeException e){
+						// We're out of time.
+						logIncumbent(iteration);
+					}
+				}
 				try{
 					while(!have_to_stop(iteration+1))
 					{

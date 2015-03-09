@@ -161,7 +161,8 @@ public class SMACBuilder {
 		options.checkProblemInstancesCompatibleWithVerifySAT(instances);
 		
 		ParameterConfiguration initialIncumbent = configSpace.getParameterConfigurationFromString(options.initialIncumbent, ParameterStringFormat.NODB_SYNTAX, pool.getRandom(SeedableRandomPoolConstants.INITIAL_INCUMBENT_SELECTION));
-	
+
+		List<ParameterConfiguration> initialChallengers = configSpace.getParameterConfigurationsFromList(options.initialChallengers, ParameterStringFormat.NODB_SYNTAX, pool.getRandom(SeedableRandomPoolConstants.INITIAL_INCUMBENT_SELECTION));
 		
 		if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
 		{
@@ -171,6 +172,11 @@ public class SMACBuilder {
 			log.debug("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParameterString(ParameterStringFormat.NODB_SYNTAX));
 		}
 		
+		if(initialChallengers.size() > 0)
+		{
+			log.info("Specified {} initial challengers.", initialChallengers.size());
+		}
+
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 		
 		TargetAlgorithmEvaluator tae;
@@ -348,13 +354,13 @@ public class SMACBuilder {
 		{
 			case ROAR:
 
-				smac = new AbstractAlgorithmFramework(options,execConfig, instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc,cpuTime);
+				smac = new AbstractAlgorithmFramework(options,execConfig, instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, initialChallengers, eventManager, rh, pool, termCond, configTracker, initProc,cpuTime);
 
 				break;
 			case SMAC:
 				
 				
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, execConfig, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, execConfig, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, initialChallengers, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
 
 				break;
 			case PSEL:
