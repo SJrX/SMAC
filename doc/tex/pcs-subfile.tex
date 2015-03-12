@@ -21,19 +21,19 @@ The PCS format supports four types of parameters: Categorical, Ordinal, Integer,
 Categorical parameters take one of a finite set of values. Each line specifying an categorical parameter should be of the form:
 
 \begin{verbatim}
-<parameter_name> cat {<value 1>, ..., <value N>} [<default value>]
+<parameter_name> categorical {<value 1>, ..., <value N>} [<default value>]
 \end{verbatim}
 where `\texttt{<default value>}' has to be one of the set of possible values. 
 
 \paragraph{Example 1}
 \begin{verbatim}
-decision-heuristic cat {1,2,3} [1]
+decision-heuristic categorical {1,2,3} [1]
 \end{verbatim}
 This means that the parameter `\texttt{decision-heuristic}' can be given one of three possible values, with the default assignment being `\texttt{1}'.
 
 \paragraph{Example 2}
 \begin{verbatim}
-@1:loops cat {common,distinct,shared,no}[no]
+@1:loops categorical {common,distinct,shared,no}[no]
 \end{verbatim}
 In this example, the somewhat cryptic parameter name `\texttt{@1:loops}' is perfectly legal; the only forbidden characters in parameter names are spaces, commas, quotes, and parentheses. 
 
@@ -46,13 +46,13 @@ When using the Advanced Forbidden Syntax, parameter name and values are restrict
 
 \paragraph{Example 3}
 \begin{verbatim}
-DS cat {TinyDataStructure, FastDataStructure}[TinyDataStructure]
+DS categorical {TinyDataStructure, FastDataStructure}[TinyDataStructure]
 \end{verbatim}
 As this example shows, the parameter values can even be Java class names (to be used, e.g., via reflection).
 
 \paragraph{Example 4}
 \begin{verbatim}
-random-variable-frequency cat {0, 0.05, 0.1, 0.2} [0.05]
+random-variable-frequency categorical {0, 0.05, 0.1, 0.2} [0.05]
 \end{verbatim}
 Finally, as this example shows, numerical parameters can trivially be treated as categorical ones by simply discretizing their domain (selecting a subset of reasonable values).
 
@@ -62,13 +62,13 @@ Finally, as this example shows, numerical parameters can trivially be treated as
 Ordinal parameters take one of a finite set of values. Each line specifying a ordinal parameter should be of the form:
 
 \begin{verbatim}
-<parameter_name> ord {<value 1>, ..., <value N>} [<default value>]
+<parameter_name> ordinal {<value 1>, ..., <value N>} [<default value>]
 \end{verbatim}
 where `\texttt{<default value>}' has to be one of the set of possible values. An ordinal parameter differs from a categorical parameter, in that individual values are comparable (under $>$ and $<$ operators). 
 
 \paragraph{Example 5}
 \begin{verbatim}
-random-variable-frequency ord {0, 0.05, 0.1, 0.2} [0.05]
+random-variable-frequency ordinal {0, 0.05, 0.1, 0.2} [0.05]
 \end{verbatim}
 
 This example encodes the same variable as Example 4, and has the same set of allowed values but also specifies that the following is true:
@@ -76,14 +76,14 @@ $0 < 0.05 < 0.1 < 0.2$.
 
 \paragraph{Example 6}
 \begin{verbatim}
-annealing-temperature ord {cold, cool, medium, warm, hot} [medium]
+annealing-temperature ordinal {cold, cool, medium, warm, hot} [medium]
 \end{verbatim}
 
 In this example the set of variables is the same, but also informs us that \texttt{cold} $<$ \texttt{cool} $<$ \texttt{medium} $<$ \texttt{warm} $<$ \texttt{hot}.
 
 \paragraph{Example 7}
 \begin{verbatim}
-alpha-heuristic ord { 1, 10, 100, 1000, INFINITE } [1]
+alpha-heuristic ordinal { 1, 10, 100, 1000, INFINITE } [1]
 \end{verbatim}
 
 Finally in this example it is shown that you can mix and match numerical and string values. 
@@ -102,7 +102,7 @@ Numerical parameters (both Real and Integer) are specified as follows:
 \paragraph{Integer}
 
 \begin{verbatim}
-<parameter_name> int [<min value>, <max value>] [<default value>] [log]
+<parameter_name> integer [<min value>, <max value>] [<default value>] [log]
 \end{verbatim}
 
 \paragraph{Real}
@@ -125,7 +125,7 @@ Note that there may be other parameter values outside this interval that are in 
 
 \paragraph{Example 9}
 \begin{verbatim}
-mult-factor int [2, 15] [5]
+mult-factor integer [2, 15] [5]
 \end{verbatim}
 Parameter \texttt{mult-factor} is integer-valued, takes any integer value between \texttt{2} and \texttt{15} (inclusive), and has a default value of 5. Parameter \texttt{mult-factor} could also be specified as an ordinal parameter with values \texttt{\{2,3,4,5,6,7,8,9,10,11,12,13,14,15\}}. In most situations the representations are identical (the integer setting might be slightly faster), if you are using forbidden or conditional parameter settings however the distinction matters.
 
@@ -142,7 +142,7 @@ We express this natural variation on a log scale by the `\texttt{log}' flag. %Se
 
 \paragraph{Example 11}
 \begin{verbatim}
-first-restart int [10, 1000] [100] log
+first-restart integer [10, 1000] [100] log
 \end{verbatim}
 Parameter \texttt{first-restart} is integer-valued with a default value of \texttt{100}, and we can choose values for it from the (closed) interval \texttt{[10, 1000]}.
 It also varies naturally on a logarithmic scale. For example, due to this logarithmic scale, after the transformation drawing a uniform random value of \texttt{first-restart} will yield a number below \texttt{100} half the time.
@@ -190,8 +190,8 @@ This can be read as ``The child parameter \texttt{<child name>} is only active i
 \paragraph{Example 12}
 
 \begin{verbatim}
-sort-algo cat {quick,insertion,merge,heap,stooge,bogo} [bogo]
-quick-selection-method cat {first, random, median-of-medians} [random]
+sort-algo categorical {quick,insertion,merge,heap,stooge,bogo} [bogo]
+quick-selection-method categorical {first, random, median-of-medians} [random]
 quick-selection-method | sort-algo in {quick}
 \end{verbatim}
 In this example, \texttt{quick-selection-method} is conditional on the \texttt{sort-algo} parameter being set to \texttt{quick}, and will be ignored otherwise.
@@ -199,9 +199,9 @@ In this example, \texttt{quick-selection-method} is conditional on the \texttt{s
 \paragraph{Example 13}
 
 \begin{verbatim}
-heur1 cat { off, on } [on]
-heur2 cat { off, on } [on]
-heur_order cat { heur1then2, heur2then1 } [heur1then2]
+heur1 categorical { off, on } [on]
+heur2 categorical { off, on } [on]
+heur_order categorical  { heur1then2, heur2then1 } [heur1then2]
 heur_order | heur1 == on && heur2 == on
 \end{verbatim}
 
@@ -211,7 +211,7 @@ In this example, the \texttt{heur\_order} parameter requires both of \texttt{heu
 \begin{verbatim}
 temperature real [-273.15, 100] [10]
 rain real [0, 200] [0]
-gloves ord { none, yarn, leather, gortex } [none]
+gloves ordinal { none, yarn, leather, gortex } [none]
 gloves | rain > 0 || temperature < 5
 \end{verbatim}
 
@@ -236,8 +236,8 @@ The syntax for forbidden parameter combinations is as follows:
 
 \paragraph{Example 15}
 \begin{verbatim}
-DSF {DataStructure1, DataStructure2, DataStructure3}[DataStructure1]
-PreProc {NoPreProc, SimplePreproc, ComplexPreproc}[ComplexPreproc]
+DSF categorical {DataStructure1, DataStructure2, DataStructure3}[DataStructure1]
+PreProc categorical {NoPreProc, SimplePreproc, ComplexPreproc}[ComplexPreproc]
 {DSF=DataStructure2, PreProc=ComplexPreproc}
 {DSF=DataStructure2, PreProc=SimplePreproc}
 {DSF=DataStructure3, PreProc=ComplexPreproc}
