@@ -142,11 +142,21 @@ All fields except for \textbf{additional rundata} are mandatory. If the field is
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wrapper Output Semantics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+\label{subsec:wrapper-output-semantics}
 As SMAC is entirely insulated from the target algorithm execution by the wrapper it is up to the wrapper to 
 ensure that constraints with respect to the cutoff and runlength are enforced. Occasionally wrappers may not properly enforce these constraints and SMAC will need to somehow handle these cases. The following table outlines how SMAC transforms these values and details what value is used in various parts of SMAC. In future versions some parts of this table may in fact change, and so it is best to ensure that your wrapper is well behaved.\\
 
  \textsc{Note}: The cutoff time in the table is the amount of time SMAC schedules the run for, the scenario cutoff time is denoted as $\kappa_{max}$.
+
+A description of the columns is as follows:
+
+\begin{description}
+\item[Tuner Time] The amount of time that will be subtracted from the remaining tuner time limit given in the scenario.
+\item[PAR10 Score] The value that will be used for empirical comparisons between configurations.
+\item[Model] 	The value that will be used to build the model.
+\end{description}
+
+\subsubsection{Runtime Optimization Semantics}
 
 \begin{center}
 \begin{tabular}{|l | l | l  ||  c | c | c |}
@@ -176,16 +186,11 @@ ensure that constraints with respect to the cutoff and runlength are enforced. O
 \end{tabular}
 \end{center}
 
-A description of the locations is as follows:
+\subsubsection{Solution Quality Optimization Semantics}
 
-\begin{description}
-\item[Tuner Time] The amount of time that will be subtracted from the remaining tuner time limit given in the scenario.
-\item[PAR10 Score] The value that will be used for empirical comparisons between configurations.
-\item[Model] 	The value that will be used to build the model.
-\end{description}
+For solution quality optimization, the Tuner Time calculation is the same as runtime. For the Model we always report the reported quality, except for \texttt{CRASHED} runs, in which case we change the value reported to $\min(10^{9},\texttt{observedValue})$.  You can disable this  transformation by  \textbf{-$~\!$-transform-crashed-quality} to \texttt{false}, you can modify the value that is used with \textbf{-$~\!$-transform-crashed-quality-value}. 
 
-
-
+\textsc{Note:} Unlike runtime optimization, if a \texttt{TIMEOUT} value has a low quality score, it will be considered good by SMAC. As such TIMEOUT values should generally have a high value.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Wrappers \& Native Libraries}

@@ -2,7 +2,7 @@
 \begin{document}
 The PCS format requires each line to contain one of the following 3 clauses, or only whitespace/comments.
 \begin{itemize}
-\item \textbf{Parameter Declaration Clauses} specify the names of parameters, their domains, and default values.
+\item \textbf{Parameter Declaration Clauses} specify the names of parameters, their type, their domains, and default values.
 \item \textbf{Conditional Parameter Clauses} specify when a parameter is active/inactive.
 \item \textbf{Forbidden Parameter Clauses} specify when a combination of parameter settings is illegal.
 \end{itemize}
@@ -13,93 +13,146 @@ Comments are allowed throughout the file; they begin with a \#, and run to the e
 \subsubsection{Parameter Declaration Clauses}\label{sec:param_decl_clauses}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The PCS format supports two types of parameters: categorical and numeric. 
+The PCS format supports four types of parameters: Categorical, Ordinal, Integer, or Real.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection*{Categorical parameters} \label{sec:categorical-params}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Categorical parameters take one of a finite set of values. Each line specifying a categorical parameter should be of the form:
+Categorical parameters take one of a finite set of values. Each line specifying an categorical parameter should be of the form:
 
 \begin{verbatim}
-<parameter_name> {<value 1>, ..., <value N>} [<default value>]
+<parameter_name> categorical {<value 1>, ..., <value N>} [<default value>]
 \end{verbatim}
 where `\texttt{<default value>}' has to be one of the set of possible values. 
 
-\paragraph{Example 1:}
+\paragraph{Example 1}
 \begin{verbatim}
-decision-heuristic {1,2,3} [1]
+decision-heuristic categorical {1,2,3} [1]
 \end{verbatim}
 This means that the parameter `\texttt{decision-heuristic}' can be given one of three possible values, with the default assignment being `\texttt{1}'.
 
-\paragraph{Example 2:}
+\paragraph{Example 2}
 \begin{verbatim}
-@1:loops {common,distinct,shared,no}[no]
+@1:loops categorical {common,distinct,shared,no}[no]
 \end{verbatim}
-In this example, the somewhat cryptic parameter name `\texttt{@1:loops}' is perfectly legal; the only forbidden characters in parameter names are spaces, commas, quotes, and parentheses.
+In this example, the somewhat cryptic parameter name `\texttt{@1:loops}' is perfectly legal; the only forbidden characters in parameter names are spaces, commas, quotes, and parentheses. 
+
 %
 Categorical parameter values are also strings with the same restrictions; in particular, there is no restriction for categorical parameter values to be numbers. 
 
-\paragraph{Example 3:}
+\begin{bclogo}[logo=\bcattention, couleurBarre=red, noborder=true]{Restrictions}
+When using the Advanced Forbidden Syntax, parameter name and values are restricted to starting with an alphabetic character or an underscore, and can only contain alphabetic, digits, or underscores.
+\end{bclogo}
+
+\paragraph{Example 3}
 \begin{verbatim}
-DS {TinyDataStructure, FastDataStructure}[TinyDataStructure]
+DS categorical {TinyDataStructure, FastDataStructure}[TinyDataStructure]
 \end{verbatim}
 As this example shows, the parameter values can even be Java class names (to be used, e.g., via reflection).
 
-\paragraph{Example 4:}
+\paragraph{Example 4}
 \begin{verbatim}
-random-variable-frequency {0, 0.05, 0.1, 0.2} [0.05]
+random-variable-frequency categorical {0, 0.05, 0.1, 0.2} [0.05]
 \end{verbatim}
 Finally, as this example shows, numerical parameters can trivially be treated as categorical ones by simply discretizing their domain (selecting a subset of reasonable values).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection*{Numerical parameters} \label{sec:numerical-params}
+\subsubsection*{Ordinal parameters} \label{sec:ordinal-params}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Numerical parameters (both real and integer) are specified as follows:
+Ordinal parameters take one of a finite set of values. Each line specifying a ordinal parameter should be of the form:
 
 \begin{verbatim}
-<parameter_name> [<min value>, <max value>] [<default value>] [i] [l]
+<parameter_name> ordinal {<value 1>, ..., <value N>} [<default value>]
 \end{verbatim}
-The trailing `\texttt{i}' and/or trailing `\texttt{l}' are optional. The `\texttt{i}' means the parameter is an integer parameter,
-and the `\texttt{l}' means that the parameter domain should be log-transformed for optimization (see Examples 3 and 4 below).
+where `\texttt{<default value>}' has to be one of the set of possible values. An ordinal parameter differs from a categorical parameter, in that individual values are comparable (under $>$ and $<$ operators). 
 
-\paragraph{Example 1:}
+\paragraph{Example 5}
+\begin{verbatim}
+random-variable-frequency ordinal {0, 0.05, 0.1, 0.2} [0.05]
+\end{verbatim}
+
+This example encodes the same variable as Example 4, and has the same set of allowed values but also specifies that the following is true:
+$0 < 0.05 < 0.1 < 0.2$. 
+
+\paragraph{Example 6}
+\begin{verbatim}
+annealing-temperature ordinal {cold, cool, medium, warm, hot} [medium]
+\end{verbatim}
+
+In this example the set of variables is the same, but also informs us that \texttt{cold} $<$ \texttt{cool} $<$ \texttt{medium} $<$ \texttt{warm} $<$ \texttt{hot}.
+
+\paragraph{Example 7}
+\begin{verbatim}
+alpha-heuristic ordinal { 1, 10, 100, 1000, INFINITE } [1]
+\end{verbatim}
+
+Finally in this example it is shown that you can mix and match numerical and string values. 
+
+\vspace{5pt}
+\begin{bclogo}[logo=\bclampe, couleurBarre=red, noborder=true]{Tip}
+The primary benefit of encoding something as an ordinal is that it can allow better inferences about unseen parameter values. With a categorical parameter, the knowledge of one value doesn't tell one much (if anything) about other values, where as with an ordinal value we would expect closer values (with respect to ordering) to be more related (or similar).
+\end{bclogo}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection*{Numeric parameters} \label{sec:numerical-params}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Numerical parameters (both Real and Integer) are specified as follows:
+
+\paragraph{Integer}
 
 \begin{verbatim}
-sp-rand-var-dec-scaling [0.3, 1.1] [1]
+<parameter_name> integer [<min value>, <max value>] [<default value>] [log]
+\end{verbatim}
+
+\paragraph{Real}
+
+\begin{verbatim}
+<parameter_name> real [<min value>, <max value>] [<default value>] [log]
+\end{verbatim}
+
+
+%The trailing `\texttt{i}' and/or trailing `\texttt{l}' are optional. The `\texttt{i}' means the parameter is an integer parameter,
+%and the `\texttt{l}' means that the parameter domain should be log-transformed for optimization (see Examples 3 and 4 below).
+
+\paragraph{Example 8}
+
+\begin{verbatim}
+sp-rand-var-dec-scaling real [0.3, 1.1] [1]
 \end{verbatim}
 Parameter \texttt{sp-rand-var-dec-scaling} is real-valued with a default value of 1, and we can choose values for it from the (closed) interval \texttt{[0.3, 1.1]}.
 Note that there may be other parameter values outside this interval that are in principle legal values for the parameter (e.g., your solver might accept any positive floating point value for the parameter). What you specify here is the range that automated configuration procedures should search (i.e., a range you expect a priori to contain good values); of course, every value in the specified range must be legal. There is a tradeoff in choosing the best range size.%; see Section \ref{sec:tips} for some tips on defining a `good' parameter space.
 
-\paragraph{Example 2:}
+\paragraph{Example 9}
 \begin{verbatim}
-mult-factor [2, 15] [5]i
+mult-factor integer [2, 15] [5]
 \end{verbatim}
-Parameter \texttt{mult-factor} is integer-valued, takes any integer value between \texttt{2} and \texttt{15} (inclusive), and has a default value of 5. 
-Technically, one could also specify this as a categorical parameter with possible values \texttt{\{2,3,4,5,6,7,8,9,10,11,12,13,14,15\}}. 
-However, categorical parameters are not ordered, and using an integer parameter allows the configuration procedure to make use of the natural order relation (this is useful since, a priori, we expect close-by values to yield similar performance).
+Parameter \texttt{mult-factor} is integer-valued, takes any integer value between \texttt{2} and \texttt{15} (inclusive), and has a default value of 5. Parameter \texttt{mult-factor} could also be specified as an ordinal parameter with values \texttt{\{2,3,4,5,6,7,8,9,10,11,12,13,14,15\}}. In most situations the representations are identical (the integer setting might be slightly faster), if you are using forbidden or conditional parameter settings however the distinction matters.
 
-\paragraph{Example 3:}
+
+
+\paragraph{Example 10}
 \begin{verbatim}
-DLSc [0.00001, 0.1] [0.01]l
+DLSc real [0.00001, 0.1] [0.01] log
 \end{verbatim}
 Parameter \texttt{DLSc} is real-valued with a default value of \texttt{0.01}, and we can choose values for it from the (closed) interval \texttt{[0.00001, 0.1]}.
-The trailing `\texttt{l}' denotes that this parameter naturally varies on a log scale. If we were to discretize the parameter, a natural choice would be
+The trailing `\texttt{log}' denotes that this parameter naturally varies on a log scale. If we were to discretize the parameter, a natural choice would be
 \texttt{\{0.00001, 0.0001, 0.001, 0.01, 0.1\}}. That means, a priori the distance between parameter values \texttt{0.001} and \texttt{0.01} is identical to that between \texttt{0.01} and \texttt{0.1} (after a log$_{10}$ transformation, \texttt{0.001}, \texttt{0.01}, and \texttt{0.1} become -3, -2, and -1, respectively).
-We express this natural variation on a log scale by the `\texttt{l}' flag. %See Section \ref{sec:tips} for further tips on transformations.
+We express this natural variation on a log scale by the `\texttt{log}' flag. %See Section \ref{sec:tips} for further tips on transformations.
 
-\paragraph{Example 4:}
+\paragraph{Example 11}
 \begin{verbatim}
-first-restart [10, 1000] [100]il
+first-restart integer [10, 1000] [100] log
 \end{verbatim}
 Parameter \texttt{first-restart} is integer-valued with a default value of \texttt{100}, and we can choose values for it from the (closed) interval \texttt{[10, 1000]}.
 It also varies naturally on a logarithmic scale. For example, due to this logarithmic scale, after the transformation drawing a uniform random value of \texttt{first-restart} will yield a number below \texttt{100} half the time.
 
-\paragraph{Restrictions}
+\begin{bclogo}[logo=\bcattention, couleurBarre=red, noborder=true]{Restrictions}
 \begin{itemize} 
 	\item Numerical integer parameters must have their lower and upper bounds specified as integers, and the default must also be an integer.
 	\item The bounds for parameters with a log scale must be strictly positive.
 \end{itemize}
-
+\end{bclogo}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Conditional Parameter Clauses}
@@ -109,25 +162,60 @@ Depending on the instantiation of some `higher-level' parameters, certain `lower
 For example, the subparameters of a heuristic are not important (i.e., active) if the heuristic is not selected.
 %
 All parameters are considered to be active by default, and conditional parameter clauses express 
-under which conditions a parameter is not active. The syntax for conditional parameter clauses is as follows:
+under which conditions a parameter is active. The syntax for conditional parameter clauses is as follows:
 
 \begin{verbatim}
-<child name> | <parent name> in {<parent val1>, ..., <parent valK>}
+<child name> | <parent name1> <operator1> <value1> (&& or ||) 
+				<parent name2> <operator2> <value2>
 \end{verbatim}
-%
-This can be read as ``The child parameter \texttt{<child name>} is only active if the parent parameter \texttt{<parent name>} takes one of the K specified values.''
-Parameters that are not listed as a child parameter in any conditional parameter clause are always active.
-A parameter can also be listed as a child in multiple conditional parameter clauses, and it is only active if the conditions
-of each such clause are met.
 
-\paragraph{Example:}
+\texttt{<operator>} can be one of \texttt{==,!=,<,>,in}. The $>$ and $<$ operators are only defined for ordinal, integer, or real types. \texttt{<value>} is either a specific allowed value for the parameter for the \texttt{==,!=, <, >} operators, or for the \texttt{in} operator it is a set of values (i.e., \texttt{\{a,b,c\}}). Finally, you can specify conjunctions or disjunctions for parent parameters. There is no support for parenthesis with conditionals. The \texttt{\&\&} connective has higher precedence than \texttt{||}, so  \texttt{a||b\&\& c||d} is the same as: \texttt{a||(b\&\&\!c)||d}.
+
+%
+This can be read as ``The child parameter \texttt{<child name>} is only active if the parent parameter \texttt{<parent name>} satisfies the logical conditional.''
+
+
+
+\begin{bclogo}[logo=\bclampe, couleurBarre=red, noborder=true]{Tip}
+\begin{itemize}
+\item Parameters that are not listed as a child parameter in any conditional parameter clause are always active.
+\item A child's name can appear only once.
+\end{itemize}
+\end{bclogo}
+
+
+%A parameter can also be listed as a child in multiple conditional parameter clauses, and it is only active if the conditions
+%of each such clause are met.
+
+\paragraph{Example 12}
 
 \begin{verbatim}
-sort-algo {quick,insertion,merge,heap,stooge,bogo} [bogo]
-quick-selection-method {first, random, median-of-medians} [random]
+sort-algo categorical {quick,insertion,merge,heap,stooge,bogo} [bogo]
+quick-selection-method categorical {first, random, median-of-medians} [random]
 quick-selection-method | sort-algo in {quick}
 \end{verbatim}
 In this example, \texttt{quick-selection-method} is conditional on the \texttt{sort-algo} parameter being set to \texttt{quick}, and will be ignored otherwise.
+
+\paragraph{Example 13}
+
+\begin{verbatim}
+heur1 categorical { off, on } [on]
+heur2 categorical { off, on } [on]
+heur_order categorical  { heur1then2, heur2then1 } [heur1then2]
+heur_order | heur1 == on && heur2 == on
+\end{verbatim}
+
+In this example, the \texttt{heur\_order} parameter requires both of \texttt{heur1} and \texttt{heur2} to have the value of \texttt{on}.
+
+\paragraph{Example 14}
+\begin{verbatim}
+temperature real [-273.15, 100] [10]
+rain real [0, 200] [0]
+gloves ordinal { none, yarn, leather, gortex } [none]
+gloves | rain > 0 || temperature < 5
+\end{verbatim}
+
+In this example, \texttt{gloves} is only active if the \texttt{rain} is greater than 0 or \texttt{temperature} is less than 5.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -140,14 +228,16 @@ Configuration methods should never try to run an algorithm with a forbidden para
 %
 The syntax for forbidden parameter combinations is as follows:
 
+\paragraph{Classic Syntax}
+
 \begin{verbatim}
 {<parameter name 1>=<value 1>, ..., <parameter name N>=<value N>}
 \end{verbatim}
 
-\paragraph{Example:}
+\paragraph{Example 15}
 \begin{verbatim}
-DSF {DataStructure1, DataStructure2, DataStructure3}[DataStructure1]
-PreProc {NoPreProc, SimplePreproc, ComplexPreproc}[ComplexPreproc]
+DSF categorical {DataStructure1, DataStructure2, DataStructure3}[DataStructure1]
+PreProc categorical {NoPreProc, SimplePreproc, ComplexPreproc}[ComplexPreproc]
 {DSF=DataStructure2, PreProc=ComplexPreproc}
 {DSF=DataStructure2, PreProc=SimplePreproc}
 {DSF=DataStructure3, PreProc=ComplexPreproc}
@@ -156,6 +246,88 @@ PreProc {NoPreProc, SimplePreproc, ComplexPreproc}[ComplexPreproc]
 In this example, there are different data structures and different simplifications.
 \texttt{DataStructure2} is incompatible with \texttt{ComplexPreproc}, and 
 \texttt{DataStructure2} is incompatible with both \texttt{SimplePreproc} and \texttt{ComplexPreproc}.
-Note that the default parameter setting is not allowed to contain a forbidden combination of parameter values.
+
+\begin{bclogo}[logo=\bcattention, couleurBarre=red, noborder=true]{Warning}
+The default parameter setting is not allowed to contain a forbidden combination of parameter values. This is true even if the parameters in question are inactive.
+\end{bclogo}
+
+\paragraph{Advanced Syntax}
+
+An advanced syntax for forbidden clauses is available that allows specifying any expression of parameter settings as a forbidden.
+
+The syntax is:
+
+\begin{verbatim}
+{ <expression> }
+\end{verbatim}
+
+\paragraph{Example 16}
+If only the points within a unit sphere are desired one can use the following PCS specification:
+
+\begin{verbatim}
+x real [-1,1] [0]
+y real [-1,1] [0]
+{ x^2+y^2 > 1 }
+\end{verbatim}
+
+\paragraph{Example 17}
+Additionally to specify a range of parameters like $ 0 < a < b < c < 1 $
+
+\begin{verbatim}
+a real [0,1]
+b real [0,1]
+c real [0,1]
+{ (a > b) || (b > c) }
+\end{verbatim}
+
+
+\paragraph{Using the Advanced Syntax}
+
+To understand all the limitations and restrictions of the advanced syntax it is probably simplest to explain how it is implemented. The advanced syntax utilizes exp4j (\url{http://www.objecthunter.net/exp4j/}) to parse and evaluate mathematical expressions.  The expression which consists of variables (parameters above) are populated with their corresponding values, and then evaluated, if the expression evaluates to 0.0 then it is considered \texttt{false}, otherwise it is treated as \texttt{true}. In this case \texttt{true} means that the parameter setting is forbidden.  With categorical and ordinal parameters, exp4j will evaluate the expression as a constant that is either the value of the parameter, if it is a number, or a suitable constant that will ensure proper ordering (e.g., an ordinal ranking of cold, warm, hot will have values assigned to variables cold, warm and hot such that cold $<$ warm $<$ hot). 
+
+The following lists the available operators\footnote{The Logical Operators are not included by in exp4j but have been added here}:
+
+\begin{tabular}{|c|l|}
+\hline
+Arithmetic Operators &  +, - , * , \/ , \textasciicircum, Unary +/-, and \% \\
+\hline
+Functions & abs,acos,asin,atan,cbrt,ceil,cos,cosh,exp,floor,log,log10,log2,sin,sinh,sqrt,tan,tanh \\
+\hline
+Logical Operators & $>=$ , $<=$, $>$, $<$, $==$, $!=$,\texttt{||},\texttt{\&\&} \\%,  ,  \\
+\hline
+\end{tabular}
+
+\begin{bclogo}[logo=\bcattention, couleurBarre=red, noborder=true]{Important!}
+As a result of how forbidden parameters are implemented there are some things to keep in mind when using them.
+
+\begin{enumerate}
+\item Many procedures rely on generating random configurations, and the procedure is not aware of forbidden parameters. If a random configuration is forbidden, another random sample is obtained until it is valid. This can cause a significant  slowdown (e.g., with integer parameters the expression $\{ a^2 + b^2 == c^2 \}$ which would only select pythagorean triples), or cause the procedure to stop entirely (e.g., $\{ a^3 + b^3 == c^3 \}$ which is never satisfiable). Try to minimize the area of the space that is forbidden. For example given the forbidden expression $\{ a < -1 || a > 1\}$  the parameter settings \texttt{a real [-1,1] [0]} and \texttt{a real [-10,10] [0]} are equivalent, but the latter will be 10 times slower. 
+
+\item Even if forbidden clauses are contradictions and thus could never be true, evaluating them involves significant time (in a toy example, we observed it resulted in a 4$\times$ slowdown) in the time it takes to generate a random configuration. If your procedure does get many target algorithm runs completed, or they are especially short, this time may become significant. Additionally, a much smaller but still significant effect was observed between having multiple advanced forbidden statements versus using the \texttt{\&\&} operator, with the latter being slightly faster. 
+
+\item Errors involving categorical and ordinal parameters are not caught. Using Example 14, the following is a legal expression \texttt{\{ gloves+log(leather) <= rain\textasciicircum 2 \}}, but its result is undefined, as far as this specification is concerned. For categorical only the $==$ and $!=$ operators should be used. For ordinals you can additionally use $>=$ , $<=$, $>$, $<$. 
+
+\item Real parameters should not use the $==$ and $!=$ operators, as they will almost always evaluate to false and true respectively.
+
+\item The names of parameters, as well as the values for categorical and ordinal parameters are restricted. All parameter names must start with a letter or the underscore and can only include letters, digits or underscores. The same restriction applies to values, except they can additionally be numeric.
+
+\item When expressions are evaluated all variables exist within the same name space, this means that all of the parameter names as well as the non-numeric values for ordinal and categorical parameters must be treated the same. Again delving into the implementation a bit, what this means is that every parameter name, and all the values for ordinals and categoricals (including the numeric values) must be topologically sortable, considering the ordinal parameters. For instance the following two lines when put together violate this requirement \texttt{a ord $\{$ off, on $\}$ [on]} and \texttt{b ord $\{$ on, off $\}$ [on]}, because in the first on is greater than off, and in the second the order is reversed. An additional example is that the following is illegal when using advanced forbidden syntax \texttt{a ord $\{$ 1000,100,10,1 $\}$ [1]}, this is because as specified 1 $>$ 10, but numerically 10 $>$ 1. Like the restrictions on names, these restrictions only apply when a forbidden clause using the advanced syntax is specified.
+
+\item You can use the \texttt{pcs-check} utility included in SMAC v2.10 or later which will check for many of these restrictions.
+\end{enumerate}
+
+\end{bclogo}
+
+
+
+
+
+
+
+
+
+
+
+
 
 \end{document}

@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import sys, math
+import sys, math, random, time
 
 # For black box function optimization, we can ignore the first 5 arguments. 
 # The remaining arguments specify parameters using this format: -name value 
@@ -15,6 +15,12 @@ for i in range(len(sys.argv)-1):
  
 # Compute the branin function:
 yValue = (x2 - (5.1 / (4 * math.pi * math.pi)) *x1*x1 + (5 / (math.pi)) *x1 -6) ** 2 + 10*(1- (1 / (8 * math.pi))) * math.cos(x1) + 10
- 
+
+yValue = min(yValue, 25)
+
+
+time.sleep(yValue/5)
+
 # SMAC has a few different output fields; here, we only need the 4th output:
-print "Result for SMAC: SUCCESS, 0, 0, %f, 0" % yValue
+print "Result of algorithm run: SUCCESS, %f, 0, %f, 0" %(yValue,yValue)
+ 

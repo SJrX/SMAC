@@ -8,6 +8,7 @@
 %%\usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{probsoln}
+\usepackage[tikz]{bclogo}
 \PSNrandseed{\time}
 \newcommand{\note}[1]{}
 % comment the next line to turn off notes
@@ -64,7 +65,7 @@ Vancouver, BC\ \ V6T~1Z4, Canada\\
 \section{Acknowledgements}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-We are indebted to Jonathan Shen for porting our random forest code from C to Java in preparation for a Java port of all of SMAC. Alexandre Fr\'echette and Chris Thornton for their constant feedback and patches to SMAC.  We would also like to thank Marius Schneider for many valuable early bug reports and suggestions for improvements. 
+We are indebted to Jonathan Shen for porting our random forest code from C to Java in preparation for a Java port of all of SMAC. Alexandre Fr\'echette and Chris Thornton for their constant feedback and patches to SMAC.  We would also like to thank Marius Lindauer for many valuable early bug reports and suggestions for improvements, as well as subsequent patches.
 
 %%%%
 % Steve Ramage flipped a coin on August 3rd, witnessed by Alex Fr\'echette who called Tails, and it landed tails so he goes first
@@ -236,11 +237,28 @@ Value & Error Name & Description \\
 				\item Changed default wrapper string to ``Result of this algorithm run:''.
 				
           	\end{enumerate}
-		\item[Version 2.08.01 (TBD)] Minor Changes
+		\item[Version 2.10.00 (Mar-2015)] Feature Improvements
 			\begin{enumerate}
-				\item In shared model mode, SMAC can now reuse an existing run from another run.
+				\item In shared model mode, SMAC can now reuse an existing run from another run, instead of re-running it.
 				\item Detailed Trajectory File now outputs predicted performance of the incumbent.
-				\item Fixed a bug with the LCB acquisition function usage.
+				\item Fixed a bug with the LCB acquisition function that (probably) causes poor performance.
+				\item Added Mac OS X support for SAPS example scenario (thanks Chris Fawcett and Alexandre Fr\'{e}chette).
+				\item Removed explicit SAPS Windows scenario, and changed the Linux one to detect windows.
+				\item Fixed a bug with solution quality optimization and large values greater than the cutoff time. \textbf{CRASHED} runs will now be penalized. For more details about how CRASHED runs are handled see Section \ref{subsec:wrapper-output-semantics}.
+				\item Shared model mode will now log a message when a new file to read from is detected.
+				\item Fixed spear scenario to use instance features again.
+				\item SMAC will now throw an error if feature file specified and no features
+				found.
+				\item Runs that are terminated because of taking too long will now be treated as \textbf{CRASHED} instead of \textbf{TIMEOUT}.
+				\item New PCS Syntax (old syntax still works fine) [Thanks to Marius].
+				\item Support for ordinals [Thanks to Marius].
+				\item More advanced support for conditionals [Thanks to Marius].
+				\item New Advanced Forbidden Syntax.
+				\item Vastly improved memory usage.
+				\item Fixed bug related to integer parameters being rerun.
+				\item Can now set \textbf{-$~\!$-num-ei-random} to zero.
+				\item Can now specify an initial list of challengers for SMAC using the 
+				\textbf{-$~\!$-initial-challengers}. [Thanks to Matthias]
 			\end{enumerate}
            
 

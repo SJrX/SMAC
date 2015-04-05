@@ -153,6 +153,14 @@ There are a couple of things to keep in mind when running with this option:
  	 One advantage of this approach is that if you only care about getting a good configuration quickly (without worrying about reproducibility), you can schedule the runs of SMAC to the cluster independently, which should make them quicker to dispatch and yet still benefit from the shared data.
  
 \end{enumerate}
+When in this mode you should see messages like the following which indicate a new source of runs was detected:
+
+\begin{verbatim}
+[INFO ] Detected new sources of shared runs : [live-rundata-1.json, live-rundata-2.json]
+\end{verbatim}
+
+This indicates that we have started to read runs from the above files.
+
 
 At the end of a run you will see a line like:
 
@@ -161,12 +169,7 @@ At the end of a run you will see a line like:
 had 10 runs added to it
 [INFO ] At shutdown: we retrieved atleast 20 runs and added them to
  our current data set [live-rundata-1.json=>10, live-rundata-2.json=>10]
-
 \end{verbatim}
-
-
-
-
 
 \subsection{Offline Validation}
 
