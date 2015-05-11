@@ -161,7 +161,8 @@ public class SMACBuilder {
 		options.checkProblemInstancesCompatibleWithVerifySAT(instances);
 		
 		ParameterConfiguration initialIncumbent = configSpace.getParameterConfigurationFromString(options.initialIncumbent, ParameterStringFormat.NODB_SYNTAX, pool.getRandom(SeedableRandomPoolConstants.INITIAL_INCUMBENT_SELECTION));
-	
+
+		List<ParameterConfiguration> initialChallengers = configSpace.getParameterConfigurationsFromList(options.initialChallengers, ParameterStringFormat.NODB_SYNTAX, pool.getRandom(SeedableRandomPoolConstants.INITIAL_INCUMBENT_SELECTION));
 		
 		if(!initialIncumbent.equals(configSpace.getDefaultConfiguration()))
 		{
@@ -171,6 +172,11 @@ public class SMACBuilder {
 			log.debug("Initial Incumbent is the default \"{}\" ", initialIncumbent.getFormattedParameterString(ParameterStringFormat.NODB_SYNTAX));
 		}
 		
+		if(initialChallengers.size() > 0)
+		{
+			log.info("Specified {} initial challengers.", initialChallengers.size());
+		}
+
 		validateObjectiveCombinations(options.scenarioConfig, options.adaptiveCapping);
 		
 		TargetAlgorithmEvaluator tae;
@@ -193,6 +199,8 @@ public class SMACBuilder {
 		
 		ThreadSafeRunHistory rhModel;
 		
+		
+		//Make threadsafe
 		if(oRHModel == null)
 		{
 			rhModel= new ThreadSafeRunHistoryWrapper(new NewRunHistory(options.scenarioConfig.getIntraInstanceObjective(), options.scenarioConfig.interInstanceObj, options.scenarioConfig.getRunObjective()));;
@@ -201,11 +209,39 @@ public class SMACBuilder {
 			rhModel = new ThreadSafeRunHistoryWrapper(oRHModel);
 		}
 		
-		//It's important that the FileSharingRunHistoryDecorator go on the rhModel object, and not the rh object, because some runs may
-		//be sent only to the model.
-		rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode);
 		
-		ThreadSafeRunHistory rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
+		switch(options.execMode)
+		{
+			case SMAC: 
+				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
+				break;
+			case ROAR:
+				break;
+			default:
+				throw new IllegalStateException("Execution Mode Not Supported at this time");
+
+		}
+		
+		
+		ThreadSafeRunHistory rh ;
+		if(rhModel.getAlgorithmRunsExcludingRedundant().size() == 0 && !options.shareModelMode)
+		{
+			//Don't make a seperate run history 
+			
+			rh = new ThreadSafeRunHistoryWrapper(new FileSharingRunHistoryDecorator(rhROAR,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode, options.sharedModeModeAssymetricMode, options.defaultHandler, options.writeRunData));
+			rhModel = rh;
+			
+			log.debug("No warm started data, and shared model mode is false using single run data object");
+		} else
+		{
+			//It's important that the FileSharingRunHistoryDecorator go on the rhModel object, and not the rh object, because some runs may
+			//be sent only to the model.
+			rhModel = new FileSharingRunHistoryDecorator(rhModel,new File(outputDir), options.seedOptions.numRun, instances, options.shareRunDataFrequency * 1000, options.shareModelMode, options.sharedModeModeAssymetricMode, options.defaultHandler, options.writeRunData);
+			
+			rh = new ThreadSafeRunHistoryWrapper(new TeeRunHistory(rhROAR, rhModel));
+
+		}
+
 		
 		
 		if(options.shareModelMode && options.shareModeModeTAE)
@@ -318,13 +354,13 @@ public class SMACBuilder {
 		{
 			case ROAR:
 
-				smac = new AbstractAlgorithmFramework(options,execConfig, instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh, pool, termCond, configTracker, initProc,cpuTime);
+				smac = new AbstractAlgorithmFramework(options,execConfig, instances,acTae,sf, configSpace, instanceSeedGen, initialIncumbent, initialChallengers, eventManager, rh, pool, termCond, configTracker, initProc,cpuTime);
 
 				break;
 			case SMAC:
 				
-				options.warmStartOptions.getWarmStartState(configSpace, instances, execConfig, rhModel);
-				smac = new SequentialModelBasedAlgorithmConfiguration(options, execConfig, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
+				
+				smac = new SequentialModelBasedAlgorithmConfiguration(options, execConfig, instances, acTae, options.expFunc.getFunction(),sf, configSpace, instanceSeedGen, initialIncumbent, initialChallengers, eventManager, rh,pool, termCond, configTracker, initProc, rhModel, cpuTime);
 
 				break;
 			case PSEL:

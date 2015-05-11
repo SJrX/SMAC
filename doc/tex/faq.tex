@@ -130,11 +130,44 @@ Not at this time.
 	
 	The next distinction is within the random forest itself. Categorical values can be split arbitrarily but numeric values are always split at some constant $c$, with values $>$ than $c$ going to the right, and values $\leq$ going to the left.
 
-\subsubsection{How should I encode a parameter interdependency in a PCS file (for example $0 < a < b < 10$)?}
+\subsection{Should I make a parameter ordinal or numeric integer?}
 
-	In the above case the best way to handle it, is probably to encode the parameters differently. For instance in the above, encoding the parameter $b$ as normal (that is $b$ [0,10] [5]i) for instance. Then for the $a$ parameter instead encode $aScaleOfb$ [0,1.0] [0.5]i.  The idea is that you simply scale the value of $b$ between 0 and 100\% to get the value of $a$. For example, it would take the value of $b$ say 8, and the value of $aScaleOfb$ say 0.25 and then pass to the algorithm the decoded value of $a$ as $8\times0.25=2$.
+	It doesn't really matter, these are both the same encoding.
 
-	Using forbidden parameters in the PCS file is discouraged, as SMAC must loop over each of the settings for each configuration it generates, and it may slow SMAC down immensely. If the relation is particularly complicated, or the above doesn't work for some other reason then modifying the code to encode the relation in a more compact form is certainly feasible..
+\subsubsection{How should I encode a parameter interdependency in a PCS file (for example $x^2+y^2<=1$)?}
+
+	There are a number of ways to do this. The first and most direct, if you are using SMAC v2.10 or later, is to simply use the advanced forbidden syntax, which allows you to specify any expression. Keep in mind that the expression indicates which parameters are forbidden, so to encode the example it would be:
+
+\begin{verbatim}
+x real [-1,1] [0]
+y real [-1,1] [0]
+
+{ x^2 + y^2 > 1 }  #Forbidden if outside the circle.
+\end{verbatim}
+
+See the manual section on the PCS format, for more information. Keep in mind that forbidden parameter settings can slow down the configuration scenario. In particular the slowdown is proportional to the region of the space that is forbidden over the total area of the space ignoring forbiddens. In the previous specification, changing x to have a range of \texttt{[-10,10]} would slow down configuration by 10$\times$.
+
+One can also in some cases encode the parameter space another way of encoding the parameter space is to use:
+
+\begin{verbatim}
+angle  [0,360] [0]
+radius [0,1]  [0]
+\end{verbatim}
+
+A third less obvious way is:
+
+\begin{verbatim}
+x real [-1,1] [0]
+yScalePercent real [-100,100] [0]
+\end{verbatim}
+
+In this example the x is chosen as normal, but y is a percentage of the allowed region, so the original y is: $y=\frac{yScalePercent}{100}\cdot (1-\sqrt{\mid x \mid }) $. This would be converted internally to the target algorithm or wrapper.
+
+Which option is best unfortunately depends on the algorithm being optimized. In general you should chose an encoding of your parameter space that minimizes the interaction effects between terms.
+
+%	In the above case the best way to handle it, is probably to encode the parameters differently. For instance in the above, encoding the parameter $b$ as normal (that is $b$ [0,10] [5]i) for instance. Then for the $a$ parameter instead encode $aScaleOfb$ [0,1.0] [0.5]i.  The idea is that you simply scale the value of $b$ between 0 and 100\% to get the value of $a$. For example, it would take the value of $b$ say 8, and the value of $aScaleOfb$ say 0.25 and then pass to the algorithm the decoded value of $a$ as $8\times0.25=2$.
+
+%	Using forbidden parameters in the PCS file is discouraged, as SMAC must loop over each of the settings for each configuration it generates, and it may slow SMAC down immensely. If the relation is particularly complicated, or the above doesn't work for some other reason then modifying the code to encode the relation in a more compact form is certainly feasible..
 
 \subsection{What are the best options for running SMAC?}
 \label{question:sharedModelMode}

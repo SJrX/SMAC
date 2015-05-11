@@ -93,7 +93,7 @@ to the command line wrapper that can be executed on the command line.
 </code>
 </pre>
 
-As requested, SMAC will terminate after 1000 algorithm runs and output the final best solution it found.
+As requested, SMAC will terminate after 100 algorithm runs and output the final best solution it found.
 <pre>
 <code>
 SMAC has finished. Reason: algorithm run limit (100 runs) has been reached.   
