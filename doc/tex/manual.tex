@@ -237,7 +237,7 @@ Value & Error Name & Description \\
 				\item Changed default wrapper string to ``Result of this algorithm run:''.
 				
           	\end{enumerate}
-		\item[Version 2.10.00 (Mar-2015)] Feature Improvements
+		\item[Version 2.10.00 (May-2015)] Feature Improvements
 			\begin{enumerate}
 				\item In shared model mode, SMAC can now reuse an existing run from another run, instead of re-running it.
 				\item Detailed Trajectory File now outputs predicted performance of the incumbent.
@@ -259,6 +259,11 @@ Value & Error Name & Description \\
 				\item Can now set \textbf{-$~\!$-num-ei-random} to zero.
 				\item Can now specify an initial list of challengers for SMAC using the 
 				\textbf{-$~\!$-initial-challengers}. [Thanks to Matthias]
+				\item SMAC will no longer call algorithm with zero cut off when using other TAEs.
+				\item Fixed \texttt{IllegalStateException} when dealing with large response values.
+				\item SMAC no longer leaves temp files on disk.
+				\item Fixed walltime reported incorrectly for some \textbf{CRASHED} runs.
+				
 			\end{enumerate}
            
 

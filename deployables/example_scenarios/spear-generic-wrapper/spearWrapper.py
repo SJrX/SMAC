@@ -36,7 +36,7 @@ class SatWrapper(AbstractWrapper):
         Returns:
             A command call list to execute the target algorithm.
         '''
-        binary_path = "examples/spear-generic-wrapper/Spear-32_1.2.1"
+        binary_path = "example_scenarios/spear-generic-wrapper/Spear-32_1.2.1"
         cmd = "%s --seed %d --model-stdout --dimacs %s" %(binary_path, runargs["seed"], runargs["instance"])       
         for name, value in config.items():
             cmd += " -%s %s" %(name,  value)
