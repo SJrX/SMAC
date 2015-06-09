@@ -5,12 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,53 +53,30 @@ public class ValidatorExecutor {
 		ValidationExecutorOptions options = new ValidationExecutorOptions();
 		Map<String, AbstractOptions> taeOptions = TargetAlgorithmEvaluatorLoader.getAvailableTargetAlgorithmEvaluators();
 		
-		
+		String outputDir = null;
 		try {
 			JCommander jcom = JCommanderHelper.parseCheckingForHelpAndVersion(args,options, taeOptions);
 			
-			//String outputDir = System.getProperty("user.dir") + File.separator +"ValidationRun-" + (new SimpleDateFormat("yyyy-MM-dd--HH-mm-ss-SSS")).format(new Date()) +File.separator;
-			
 			if(options.useScenarioOutDir)
 			{
-				throw new ParameterException("--use-scenario-outdir is now deprecated. Output of files will be in the same directory of the trajectory files or the current working directory if there isn't one ");
-				
-				//outputDir = options.scenarioConfig.outputDirectory + File.separator;
+				outputDir = options.scenarioConfig.outputDirectory;
+
+				File outputDirFile = new File(outputDir);
+
+				outputDirFile.mkdirs();
+
+
+				if(!outputDirFile.isDirectory())
+				{
+					throw new ParameterException("Output directory specified [" +outputDir+ "] is not valid");
+				}
+
 			}
 			
 			options.logOptions.initializeLogging(new File(".").getCanonicalFile().getAbsolutePath(), options.seedOptions.numRun);
 			
 			log = LoggerFactory.getLogger(ValidatorExecutor.class);
-			
-			
-			/*
-			 * 	options.logOptions.initializeLogging(outputDir, options.seedOptions.numRun);
-				SMACExecutor.logLocation = options.logOptions.getLogLocation(outputDir,options.seedOptions.numRun);
-				
-				log = LoggerFactory.getLogger(SMACExecutor.class);
-				
-				exception = MarkerFactory.getMarker("EXCEPTION");
-				stackTrace = MarkerFactory.getMarker("STACKTRACE");
-				
-				VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
-				
-				VersionTracker.logVersions();
-				SMACVersionInfo s = new SMACVersionInfo();
-				JavaVersionInfo j = new JavaVersionInfo();
-				OSVersionInfo o = new OSVersionInfo();
-				log.info(CommonMarkers.SKIP_FILE_PRINTING,"Version of {} is {}, running on {} and {} ", s.getProductName(), s.getVersion(), j.getVersion(), o.getVersion());
-				
-				
-				for(String name : jcom.getParameterFilesToRead())
-				{
-					log.debug("Parsing (default) options from file: {} ", name);
-				}
-				
-			}
-			
-			
-			
-			
-			 */
+
 			log.debug("==========Configuration Options==========\n{}", options.toString());
 			VersionTracker.setClassLoader(SPIClassLoaderHelper.getClassLoader());
 			VersionTracker.logVersions();
@@ -190,12 +162,37 @@ public class ValidatorExecutor {
 			ParameterConfigurationSpace configSpace = execConfig.getParameterConfigurationSpace();
 			
 			Set<TrajectoryFile> tfes = new TreeSet<TrajectoryFile>();
-			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0)
-			{
-				//log.debug("Parsing Trajectory File {} " , options.trajectoryFileOptions.trajectoryFiles.getAbsolutePath());
-				
-				
+
+			Map<String, List<String>> trajFiles = new TreeMap<>();
+			if(options.trajectoryFileOptions.trajectoryFiles.size() > 0) {
+
 				tfes.addAll(options.trajectoryFileOptions.parseTrajectoryFiles(configSpace));
+
+				if(outputDir != null) {
+					Set<String> duplicates = new TreeSet<>();
+					for (TrajectoryFile tfe : tfes) {
+						String name = tfe.getLocation().getName();
+						if(trajFiles.get(name) == null)
+						{
+							trajFiles.put(name, new ArrayList<String>());
+						}
+
+						trajFiles.get(name).add(tfe.getLocation().getAbsolutePath());
+
+						if(trajFiles.get(name).size() > 1)
+						{
+							duplicates.add(name);
+						}
+					}
+
+					if (!duplicates.isEmpty()) {
+						StringBuilder sb = new StringBuilder();
+						for (String dup : duplicates) {
+							sb.append(dup).append(" => ").append(trajFiles.get(dup)).append("\n");
+						}
+						throw new ParameterException("Duplicate file names detected. You cannot use --use-scenario-outdir when different sources have the same file name. In this case: \n" + sb +" You will need to do duplicate filenames in separate batches or turn off the --use-scenario-outdir option.");
+					}
+				}
 
 				 if(options.validationOptions.maxTimestamp == -1)
 				 {
@@ -310,13 +307,7 @@ public class ValidatorExecutor {
 			options.scenarioConfig.algoExecOptions.taeOpts.turnOffCrashes();
 			
 			TargetAlgorithmEvaluator validatingTae = TargetAlgorithmEvaluatorBuilder.getTargetAlgorithmEvaluator(options.scenarioConfig.algoExecOptions.taeOpts,  false,taeOptions);
-			
-			
-			
-			
-			
-			//log.info("Begining Validation on tuner time: {} (trajectory file time: {}) empirical performance {}, overhead time: {}, numrun: {}, configuration  \"{}\" ", arr);
-			
+
 			try {
 				int coreHint = Math.max(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs, ((CommandLineTargetAlgorithmEvaluatorOptions) taeOptions.get(CommandLineTargetAlgorithmEvaluatorFactory.NAME)).cores);
 			(new Validator()).multiValidate(testInstances,
@@ -328,7 +319,7 @@ public class ValidatorExecutor {
 					options.scenarioConfig.getIntraInstanceObjective(),
 					options.scenarioConfig.interInstanceObj,
 					tfes,
-					options.waitForPersistedRunCompletion, coreHint, execConfig);
+					options.waitForPersistedRunCompletion, coreHint, execConfig, outputDir);
 
 			
 			} finally
