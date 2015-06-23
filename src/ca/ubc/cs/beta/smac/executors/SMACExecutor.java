@@ -89,7 +89,7 @@ public class SMACExecutor {
 	private static InstanceListWithSeeds testingILWS;
 	
 	
-	private static Map<String,  AbstractOptions> taeOptions;
+	protected static Map<String,  AbstractOptions> taeOptions;
 	private static SeedableRandomPool pool;
 	
 	private static String outputDir;
@@ -117,33 +117,42 @@ public class SMACExecutor {
 	 * @param args 	string input arguments
 	 * @return return value for operating system
 	 */
-	public static int oldMain(String[] args)
+	protected static AbstractAlgorithmFramework optimize(SMACOptions options, SMACBuilder smacBuilder, StopWatch watch)
 	{
 		/*
 		 * WARNING: DO NOT LOG ANYTHING UNTIL AFTER WE HAVE PARSED THE CLI OPTIONS
 		 * AS THE CLI OPTIONS USE A TRICK TO ALLOW LOGGING TO BE CONFIGURABLE ON THE CLI
 		 * IF YOU LOG PRIOR TO IT ACTIVATING, IT WILL BE IGNORED 
-		 */
-		try {
-			SMACOptions options = parseCLIOptions(args);
-			
-			SMACBuilder smacBuilder = new SMACBuilder();
-			
+		 */	
 			//EventManager eventManager = smacBuilder.getEventManager();
-			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
 			AbstractAlgorithmFramework smac;
-			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
+			smac = smacBuilder.getAutomaticConfigurator(options.getAlgorithmExecutionConfig(),  trainingILWS, options, taeOptions, outputDir, pool);
 			
-			StopWatch watch = new AutoStartStopWatch();
-			
+			watch.start();
 			smac.run();
-			
 			watch.stop();
+			
 			smacBuilder.getLogRuntimeStatistics().logLastRuntimeStatistics();
 			
 			
 			pool.logUsage();
+			
+			return smac;
+	}
+	
+	/**
+	 * Executes SMAC according to the given arguments
+	 * @param args 	string input arguments
+	 * @return return value for operating system
+	 */
+	public static int oldMain(String[] args){
+		try{
+			SMACOptions options = parseCLIOptions(args);
+			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
+			SMACBuilder smacBuilder = new SMACBuilder();
+			StopWatch watch = new StopWatch();
+			AbstractAlgorithmFramework smac = optimize(options, smacBuilder, watch);
 			
 			ParameterConfiguration incumbent = smac.getIncumbent();
 			RunHistory runHistory = smac.runHistory();
@@ -424,7 +433,7 @@ public class SMACExecutor {
 	 * @param args
 	 * @return
 	 */
-	private static SMACOptions parseCLIOptions(String[] args) throws ParameterException, IOException
+	protected static SMACOptions parseCLIOptions(String[] args) throws ParameterException, IOException
 	{
 		//DO NOT LOG UNTIL AFTER WE PARSE CONFIG OBJECT
 		
