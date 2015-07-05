@@ -443,8 +443,7 @@ public class AbstractAlgorithmFramework {
 	/**
 	 * Function that determines whether we should stop processing or not
 	 * @param iteration - number of iterations we have done
-	 * @param nextRunTime - the time the next run takes
-	 * @return
+	 * @return whether we need to stop or not
 	 */
 	protected boolean have_to_stop(int iteration)
 	{
@@ -713,23 +712,15 @@ public class AbstractAlgorithmFramework {
 	}
 	
 	/**
-	 * 
-	 * @param tfePerformance
+	 * Retrieves a sample call of the incumbent.
 	 */
 	public String getCallString()
 	{
 		
-		
-
-//		StringBuilder sb = new StringBuilder();
-		
-		
 		ProblemInstanceSeedPair pisp =  runHistory.getProblemInstanceSeedPairsRan(incumbent).iterator().next();
 	
 		AlgorithmRunConfiguration runConfig = new AlgorithmRunConfiguration(pisp, cutoffTime, incumbent, execConfig);
-		String cmd = tae.getManualCallString(runConfig);
-		
-		return cmd;	
+		return tae.getManualCallString(runConfig);
 	}
 
 	
@@ -737,13 +728,13 @@ public class AbstractAlgorithmFramework {
 	{
 		return null;
 	}
-	private int selectionCount =0;
-	
+
 	protected List<ParameterConfiguration> selectConfigurations()
 	{
 		ParameterConfiguration config = configSpace.getRandomParameterConfiguration(pool.getRandom("ROAR_RANDOM_CONFIG"));
 		log.trace("Selecting a random configuration {}", config);
-		configTracker.addConfiguration(config, "RANDOM", "SelectionCount="+selectionCount);
+		int selectionCount = 1;
+		configTracker.addConfiguration(config, "RANDOM", "SelectionCount="+ selectionCount);
 		return Collections.singletonList(config);
 	}
 	/**
@@ -802,8 +793,7 @@ public class AbstractAlgorithmFramework {
 	private void challengeIncumbent(ParameterConfiguration challenger, boolean runIncumbent) {
 		//=== Perform run for incumbent unless it has the maximum #runs.
 		
-		
-	
+
 		
 		if(runIncumbent)
 		{
@@ -859,6 +849,8 @@ public class AbstractAlgorithmFramework {
 		
 		
 		int N=options.initialChallengeRuns;
+
+		boolean onlyEmptyRunScheduled = false;
 		while(true){
 			/*
 			 * Get all the <instance,seed> pairs the incumbent has run (get them in a set).
@@ -875,19 +867,15 @@ public class AbstractAlgorithmFramework {
 			if (runsToMake == 0){
 		        log.debug("Aborting challenge of incumbent. Incumbent has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(incumbent) + " runs, challenger has " + runHistory.getTotalNumRunsOfConfigExcludingRedundant(challenger) + " runs, and the maximum runs for any config is set to " + MAX_RUNS_FOR_INCUMBENT + ".");
 		        return;
-			} else
-			{
-			
 			}
+
 			Collections.sort(aMissing);
 			
 			//=== Sort aMissing in the order that we want to evaluate <instance,seed> pairs.
 			int[] permutations = RandomUtil.getPermutation(aMissing.size(), 0, pool.getRandom("CHALLENGE_INCUMBENT_SHUFFLE"));
 			RandomUtil.permuteList(aMissing, permutations);
 			aMissing = aMissing.subList(0, runsToMake);
-			
 
-			
 			//TODO: refactor adaptive capping.
 			double bound_inc = Double.POSITIVE_INFINITY;
 			Set<ProblemInstance> missingInstances = null;
@@ -909,18 +897,20 @@ public class AbstractAlgorithmFramework {
 				
 				bound_inc = runHistory.getEmpiricalCost(incumbent, missingPlusCommon, cutoffTime) + Math.pow(10, -3);
 			}
-			Object[] args2 = { N,  runHistory.getThetaIdx(challenger)!=-1?" " + runHistory.getThetaIdx(challenger):"" , challenger, bound_inc } ;
-			log.debug("Performing up to {} run(s) for challenger{} ({}) up to a total bound of {} ", args2);
+
+			log.debug("Performing up to {} run(s) for challenger{} ({}) up to a total bound of {} ",  N,  runHistory.getThetaIdx(challenger)!=-1?" " + runHistory.getThetaIdx(challenger):"" , challenger, bound_inc);
 			
 			List<AlgorithmRunConfiguration> runsToEval = new ArrayList<AlgorithmRunConfiguration>(options.scenarioConfig.algoExecOptions.taeOpts.maxConcurrentAlgoExecs); 
 			
 			if(options.adaptiveCapping && incumbentImpossibleToBeat(challenger, aMissing.get(0), aMissing, missingPlusCommon, cutoffTime, bound_inc))
 			{
-				log.trace("Challenger cannot beat incumbent => scheduling empty run");
-				runsToEval.add(getBoundedRunConfig(aMissing.get(0), 0, challenger));
-				if (runsToMake != 1){
-					throw new IllegalStateException("Error in empty run scheduling: empty runs should only be scheduled in first iteration of intensify.");
-				}
+				log.debug("Challenger cannot beat incumbent => scheduling empty run");
+				ProblemInstanceSeedPair pisp = aMissing.get(0);
+				runsToEval.add(getBoundedRunConfig(pisp, 0, challenger));
+
+				aMissing.remove(0);
+				sMissing.remove(pisp);
+				onlyEmptyRunScheduled = true;;
 			} else
 			{
 				for (int i = 0; i < runsToMake ; i++) {
@@ -967,7 +957,7 @@ public class AbstractAlgorithmFramework {
 			}
 				
 			
-			if(shouldContinueChallenge(challenger, sMissing))
+			if(shouldContinueChallenge(challenger, sMissing, onlyEmptyRunScheduled))
 			{
 				N *= 2;
 			} else
@@ -983,9 +973,10 @@ public class AbstractAlgorithmFramework {
 	 * 
 	 * @param challenger
 	 * @param outstandingPispSet
+	 * @param onlyEmptyRunScheduled
 	 * @return
 	 */
-	private boolean shouldContinueChallenge(ParameterConfiguration challenger, Set<ProblemInstanceSeedPair> outstandingPispSet) {
+	private boolean shouldContinueChallenge(ParameterConfiguration challenger, Set<ProblemInstanceSeedPair> outstandingPispSet, boolean onlyEmptyRunScheduled) {
 		
 		//=== Get performance of incumbent and challenger on their common instances.
 		Set<ProblemInstance> piCommon = runHistory.getProblemInstancesRan(incumbent);
@@ -1001,9 +992,15 @@ public class AbstractAlgorithmFramework {
 		//=== Decide whether to discard challenger, to make challenger incumbent, or to continue evaluating it more.
 		if (incCost + Math.pow(10, -6)  < chalCost){
 			log.debug("Challenger {} is worse; aborting its evaluation", getConfigurationString(challenger) );
-			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(challenger), "Continue=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost);
+			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(challenger), "Continue=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost, "LastRunWasEmpty=" + onlyEmptyRunScheduled);
 			
 			return false;
+		} else if (onlyEmptyRunScheduled) {
+			log.debug("Challenger {} looks good but only because of an empty-run; aborting its evaluation", getConfigurationString(challenger) );
+			configTracker.addConfiguration(challenger, "Challenge-Round-" + runHistory.getNumberOfUniqueProblemInstanceSeedPairsForConfiguration(challenger), "Continue=False","IncumbentCost=" + incCost , "ChallengeCost=" + chalCost, "LastRunWasEmpty=true");
+
+			return false;
+
 		} else if (outstandingPispSet.isEmpty())
 		{	
 			if(chalCost < incCost - Math.pow(10,-6))
