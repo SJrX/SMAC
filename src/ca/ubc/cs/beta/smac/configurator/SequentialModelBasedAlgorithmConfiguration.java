@@ -80,7 +80,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 
 	
 	private final ExponentialDistribution exp;
-	
+
 	public SequentialModelBasedAlgorithmConfiguration(SMACOptions smacConfig, AlgorithmExecutionConfiguration execConfig, List<ProblemInstance> instances, TargetAlgorithmEvaluator algoEval, AcquisitionFunction ei, StateFactory sf, ParameterConfigurationSpace configSpace, InstanceSeedGenerator instanceSeedGen, ParameterConfiguration initialConfiguration, List<ParameterConfiguration> initialChallengers, EventManager eventManager, ThreadSafeRunHistory rh, SeedableRandomPool pool, CompositeTerminationCondition termCond, ParamConfigurationOriginTracker configTracker, InitializationProcedure initProc, RunHistory modelRH, CPUTime cpuTime) {
 				super(smacConfig,execConfig, instances, algoEval,sf, configSpace, instanceSeedGen, initialConfiguration, initialChallengers, eventManager, rh, pool, termCond, configTracker,initProc,cpuTime);
 
@@ -280,11 +280,16 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		
 		List<ParameterConfiguration> randomChallengers = new ArrayList<ParameterConfiguration>(eichallengers.size());
 		
-		
+
 		 t = new AutoStartStopWatch();
 		for(int i=0; i < eichallengers.size(); i++)
 		{
-			randomChallengers.add(configSpace.getRandomParameterConfiguration(configSpaceRandomInterleave));
+			ParameterConfiguration random = configSpace.getRandomParameterConfiguration(configSpaceRandomInterleave);
+			if(i < 25)
+			{
+				configTracker.addConfiguration(random, "Random-Selection-" +this.getIteration(), "GeneratedThisRound=true");
+			}
+			randomChallengers.add(random);
 		}
 		log.trace("Generating {} Random Configurations took {} seconds", eichallengers.size(),  t.stop()/1000.0 );
 		

@@ -270,6 +270,15 @@ Value & Error Name & Description \\
 		\begin{enumerate}
 			\item Undeprecated \textbf{-$~\!$-use-scenario-outdir} after an outcry from users.
 		\end{enumerate}
+	\item[Version 2.10.02 (July-2015)] Minor Fixes
+		\begin{enumerate}
+			\item Fixed bug with \textbf{-$~\!$-initial-incumbent-runs} not being able to be set higher than the number of instances (as opposed to number of instance and seed pairs.
+			\item Fixed bug with \textbf{-$~\!$-initial-challenger-runs} causing a crash in rare circumstances.
+			\item Fixed minor bug with pseudo-random number generation (PRNG) which caused random sequences used in the first iteration, to be replayed in the second. The most pronounced effect of this, was that random configurations generated in the second iteration would be identical to those in the first. 
+			\item Added default directory for \textbf{-$~\!$-file-cache-source} and \textbf{-$~\!$-file-cache-output} of the folder runcache in the current working directory.
+		\end{enumerate}
+				
+		
 
 	\end{description}
 \subsection{Known Issues}
