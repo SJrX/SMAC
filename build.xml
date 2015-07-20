@@ -110,8 +110,8 @@ dirty: ${git.dirty}</echo>
 		</path>
 	</target>
 	
-	
-			
+
+
 	
 	<target name="archive" depends="compile">
 		<buildnumber file="${buildnumberfile}"/>
