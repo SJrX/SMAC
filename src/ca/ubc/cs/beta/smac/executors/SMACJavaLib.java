@@ -2,6 +2,7 @@ package ca.ubc.cs.beta.smac.executors;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 
 import ca.ubc.cs.beta.aeatk.misc.watch.StopWatch;
@@ -34,71 +35,86 @@ public class SMACJavaLib extends SMACExecutor {
 	 * 
 	 * @param objectiveFunction
 	 *            The objective function.
+	 * @param parameterConfiguration
+	 *            A parameter configuration file.
 	 * @param maxIterations
 	 *            The maximum number of SMAC iterations.
-	 * @param variableNames
-	 *            The name of all variables. MAY NOT contain the categorical
-	 *            variable's name.
-	 * @param continuousVariablesInitial
-	 *            The initial values for all continuous variables. MAY be null.
-	 * @param continuousVariablesMin
-	 *            The minimal values for all continuous variables.
-	 * @param continuousVariablesMax
-	 *            The maximal values for all continuous variables. MAY be null.
-	 * @param integerVariablesInitial
-	 *            The initial values for all integer variables.
-	 * @param integerVariablesMin
-	 *            The minimal values for all integer variables.
-	 * @param integerVariablesMax
-	 *            The maximal values for all integer variables.
-	 * @param categoricalVariables
-	 *            The categorical variables and their values. MAY be null.
 	 * @return The best configuration found.
 	 */
-//	public static ParameterConfiguration optimize(
-//			IObjectiveFunction objectiveFunction, int maxIterations, List<String> variableNames,
-//			double[] continuousVariablesInitial,
-//			double[] continuousVariablesMin, double[] continuousVariablesMax,
-//			int[] integerVariablesInitial, int[] integerVariablesMin,
-//			int[] integerVariablesMax,
-//			Map<String, List<String>> categoricalVariables) {
-//		return optimize(
-//				objectiveFunction,
-//				createParameterSpace(variableNames, continuousVariablesInitial,
-//						continuousVariablesMin, continuousVariablesMax,
-//						integerVariablesInitial, integerVariablesMin,
-//						integerVariablesMax, categoricalVariables),
-//				RunObjective.QUALITY, maxIterations);
-//	}
-
 	public static ParameterConfiguration optimize(
-			IObjectiveFunction objectiveFunction, File parameterConfiguration) throws ParameterException, IOException {
-		String[] arguments = new String[]{
-				"--algo", "java_intern",
-				"--run-obj", "QUALITY", 
-				"--use-instances", "false",
-				"--numberOfRunsLimit", "3",
+			IObjectiveFunction objectiveFunction, File parameterConfiguration,
+			int maxIterations) throws ParameterException, IOException {
+		String[] arguments = new String[] { "--algo", "java_intern",
+				"--run-obj", "QUALITY", "--use-instances", "false",
+				"--numberOfRunsLimit", new Integer(maxIterations).toString(),
 				"--tae", SyncJavaTargetAlgorithmEvaluatorFactory.NAME,
-				"--pcs-file", parameterConfiguration.getAbsolutePath()
-				};
-		return optimize(objectiveFunction, arguments).getIncumbent();		
+				"--pcs-file", parameterConfiguration.getAbsolutePath() };
+		return optimize(objectiveFunction, arguments).getIncumbent();
 	}
-	
+
 	/**
-	 * Overwrites the algoExecOptions and the instanceOptions.
+	 * Optimizes the given objective function and returns the best configuration
+	 * found. Creates a temporary parameter configuration space file and calls
+	 * {@link #optimize(IObjectiveFunction, File, int)}.
 	 * 
 	 * @param objectiveFunction
-	 * @param smacOpts
+	 *            the objective function
+	 * @param maxIterations
+	 *            the maximal number of function evaluations
+	 * @param variableNames
+	 *            the names of the variables
+	 * @param initialValues
+	 *            the initial values for each variable
+	 * @param minValues
+	 *            the lower boundaries for each variable
+	 * @param maxValues
+	 *            the upper boundaries for each variable
+	 * @return the best configuration found
+	 * @throws ParameterException
+	 * @throws IOException
+	 */
+	public static ParameterConfiguration optimize(
+			IObjectiveFunction objectiveFunction, int maxIterations,
+			String[] variableNames, double[] initialValues, double[] minValues,
+			double[] maxValues) throws ParameterException, IOException {
+		File parameterConfiguration = File.createTempFile("smac", ".pcs");
+		PrintWriter w = new PrintWriter(parameterConfiguration);
+		for (int i = 0; i < variableNames.length; i++)
+			w.write(variableNames[i] + " [" + minValues[i] + ", "
+					+ maxValues[i] + "] [" + initialValues[i] + "]\n");
+		w.close();
+		return optimize(objectiveFunction, parameterConfiguration,
+				maxIterations);
+	}
+
+	/**
+	 * Returns the options you have to use to execute SMAC in JAVA library mode.
+	 * 
+	 * @return the target algorithm evaluator options
+	 */
+	public static String[] getTAEoptions() {
+		return new String[] { "--algo", "java_intern", "--tae",
+				SyncJavaTargetAlgorithmEvaluatorFactory.NAME };
+	}
+
+	/**
+	 * The most elaborate way to use SMAC which allows you to exploit all
+	 * possibilities of SMAC. Just make sure to add {@link #getTAEoptions()} to
+	 * your arguments string. Overwrites the algoExecOptions and the
+	 * instanceOptions.
+	 * 
+	 * @param objectiveFunction
+	 *            the objective function
+	 * @param arguments
+	 *            command line string of arguments (including the --)
 	 * @return The terminated SMAC.
-	 * @throws IOException 
-	 * @throws ParameterException 
+	 * @throws IOException
+	 * @throws ParameterException
 	 */
 	public static AbstractAlgorithmFramework optimize(
-			IObjectiveFunction objectiveFunction, String[] arguments) throws ParameterException, IOException {
+			IObjectiveFunction objectiveFunction, String[] arguments)
+			throws ParameterException, IOException {
 		SMACOptions options = new SMACOptions();
-//		options.scenarioConfig = new ScenarioOptions();
-//		options.scenarioConfig.scenarioFile = File.createTempFile("tempScenarioFile", "");
-		
 		options = parseCLIOptions(arguments);
 		SyncJavaTargetAlgorithmEvaluatorOptions opts = new SyncJavaTargetAlgorithmEvaluatorOptions();
 		opts.objectiveFunction = objectiveFunction;
