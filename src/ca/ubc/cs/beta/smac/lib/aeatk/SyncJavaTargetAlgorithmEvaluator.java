@@ -122,6 +122,7 @@ public class SyncJavaTargetAlgorithmEvaluator extends
 			}
 			double runtime = sw.stop() / 1000.0;
 			t.cancel();
+			threadPoolExecutor.shutdownNow();
 			ObjectiveFunctionResult y = objectiveFunctionRunnable.getResult();
 			if (y != null) {
 				runStatus = y.isSat() ? RunStatus.SAT : RunStatus.UNSAT;
