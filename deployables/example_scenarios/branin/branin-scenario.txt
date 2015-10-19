@@ -2,4 +2,7 @@ use-instances = false
 runObj = QUALITY
 numberOfRunsLimit = 100 
 pcs-file = example_scenarios/branin/params.pcs
-algo = example_scenarios/branin/branin.py
+executable = /usr/bin/env
+arg = python
+arg = example_scenarios/branin/branin.py
+

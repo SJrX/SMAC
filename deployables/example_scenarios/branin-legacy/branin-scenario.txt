@@ -1,0 +1,5 @@
+use-instances = false
+runObj = QUALITY
+numberOfRunsLimit = 100 
+pcs-file = example_scenarios/branin-legacy/params.pcs
+algo = example_scenarios/branin-legacy/branin.py

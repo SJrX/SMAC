@@ -71,20 +71,6 @@ public class SMACExecutor {
 	
 	private static String logLocation = "<NO LOG LOCATION SPECIFIED, FAILURE MUST HAVE OCCURED EARLY>";
 	
-	/*
-	private static List<ProblemInstance> instances;
-	private static List<ProblemInstance> testInstances;
-	
-	private static InstanceSeedGenerator instanceSeedGen;
-	private static InstanceSeedGenerator testInstanceSeedGen;
-	
-	
-	
-	private static String instanceFileAbsolutePath;
-	private static String instanceFeatureFileAbsolutePath;
-	*/
-	
-	
 	private static InstanceListWithSeeds trainingILWS;
 	private static InstanceListWithSeeds testingILWS;
 	
@@ -133,6 +119,9 @@ public class SMACExecutor {
 			AlgorithmExecutionConfiguration execConfig = options.getAlgorithmExecutionConfig();
 			
 			AbstractAlgorithmFramework smac;
+
+			log.warn("This version of SMAC is a prototype conforming to the new ACLib Calling format, and is NOT feature complete. Some known issues are as follows: \n 1) Cost parameter can be positive or negative in violation of AClib spec \n 2) JSON based features have not been tested \n 3) Most information reported by the runs are not NOT saved or persisted in appropriate files.\n 4) Manual is wildly inaccurate \n 5) Broken Example Scenarios");
+
 			smac = smacBuilder.getAutomaticConfigurator(execConfig,  trainingILWS, options, taeOptions, outputDir, pool);
 			
 			StopWatch watch = new AutoStartStopWatch();
