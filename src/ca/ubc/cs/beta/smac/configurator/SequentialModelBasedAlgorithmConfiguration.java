@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import ca.ubc.cs.beta.aeatk.model.helper.ModelBuilderHelper;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.slf4j.Logger;
@@ -142,134 +143,16 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		{
 			subsamplePercentage = 1;
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		//=== The following two sets are required to be sorted by instance and paramConfig ID.
-		Set<ProblemInstance> all_instances = new LinkedHashSet<ProblemInstance>(instances);
-		Set<ParameterConfiguration> paramConfigs = runHistory.getUniqueParamConfigurations();
-		
-		Set<ProblemInstance> runInstances=runHistory.getUniqueInstancesRan();
-		ArrayList<Integer> runInstancesIdx = new ArrayList<Integer>(all_instances.size());
-		
-		//=== Get the instance feature matrix (X).
-		int i=0; 
-		double[][] instanceFeatureMatrix = new double[all_instances.size()][];
-		for(ProblemInstance pi : all_instances)
-		{
-			if(runInstances.contains(pi))
-			{
-				runInstancesIdx.add(i);
-			}
-			instanceFeatureMatrix[i] = pi.getFeaturesDouble();
-			i++;
-		}
 
-		//=== Get the parameter configuration matrix (Theta).
-		double[][] thetaMatrix = new double[paramConfigs.size()][];
-		i = 0;
-		for(ParameterConfiguration pc : paramConfigs)
-		{
-			if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
-			{
-				thetaMatrix[i++] = pc.toComparisonValueArray();
-			} else
-			{
-				thetaMatrix[i++] = pc.toValueArray();
-			}
-		}
+		ModelBuilder mb = ModelBuilderHelper.getModelBuilder(runHistory, configSpace,instances,smacConfig.mbOptions, smacConfig.randomForestOptions,  pool.getRandom("RANDOM_FOREST_BUILDING_PRNG"),smacConfig.adaptiveCapping,numPCA,logModel,subsamplePercentage);
 
-		//=== Get an array of the order in which instances were used (TODO: same for Theta, from ModelBuilder) 
-		int[] usedInstanceIdxs = new int[runInstancesIdx.size()]; 
-		for(int j=0; j <  runInstancesIdx.size(); j++)
-		{
-			usedInstanceIdxs[j] = runInstancesIdx.get(j);
-		}
-		
-		
-		List<AlgorithmRunResult> runs = runHistory.getAlgorithmRunsExcludingRedundant();
-		double[] runResponseValues = RunHistoryHelper.getRunResponseValues(runs, runHistory.getRunObjective());
-		boolean[] censored = RunHistoryHelper.getCensoredEarlyFlagForRuns(runs);
-		
-		if(smacConfig.mbOptions.maskCensoredDataAsKappaMax)
-		{
-			for(int j=0; j < runResponseValues.length; j++)
-			{
-				if(censored[j])
-				{
-					runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime;
-				}
-			}
-		}
-		
-		
-		
-		for(int j=0; j < runResponseValues.length; j++)
-		{ //=== Not sure if I Should be penalizing runs prior to the model
-			// but matlab sure does
-			
-			switch(options.scenarioConfig.getRunObjective())
-			{
-			case RUNTIME:
-				if(runResponseValues[j] >= options.scenarioConfig.algoExecOptions.cutoffTime)
-				{	
-					runResponseValues[j] = options.scenarioConfig.algoExecOptions.cutoffTime * options.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor();
-				}
-				break;
-			case QUALITY:
-				
-				break;
-			default:
-				throw new IllegalArgumentException("Not sure what objective this is: " + options.scenarioConfig.getRunObjective());
-			}
-			
-		}
-	
-		//=== Sanitize the data.
-		sanitizedData = new PCAModelDataSanitizer(instanceFeatureMatrix, thetaMatrix, numPCA, runResponseValues, logModel, runHistory.getParameterConfigurationInstancesRanByIndexExcludingRedundant(), censored, configSpace);
-		
-		
-		if(smacConfig.mbOptions.maskCensoredDataAsUncensored)
-		{
-			sanitizedData = new MaskCensoredDataAsUncensored(sanitizedData);
-		}
-		
-		
-		if(smacConfig.mbOptions.maskInactiveConditionalParametersAsDefaultValue)
-		{
-			sanitizedData = new MaskInactiveConditionalParametersWithDefaults(sanitizedData, configSpace);
-		}
-		
-		
-		//=== Actually build the model.
-		ModelBuilder mb;
-		//TODO: always go through AdaptiveCappingModelBuilder
-		forest = null;
-		preparedForest = null;
-		if(options.adaptiveCapping)
-		{
-			mb = new AdaptiveCappingModelBuilder(sanitizedData, smacConfig.randomForestOptions, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG"), smacConfig.mbOptions.imputationIterations, smacConfig.scenarioConfig.algoExecOptions.cutoffTime, smacConfig.scenarioConfig.getIntraInstanceObjective().getPenaltyFactor(), subsamplePercentage);
-		} else
-		{
-			//mb = new HashCodeVerifyingModelBuilder(sanitizedData,smacConfig.randomForestOptions, runHistory);
-			mb = new BasicModelBuilder(sanitizedData, smacConfig.randomForestOptions,subsamplePercentage, pool.getRandom("RANDOM_FOREST_BUILDING_PRNG")); 
-		}
-		
 		 /*= */
 		forest = mb.getRandomForest();
 		preparedForest = mb.getPreparedRandomForest();
 	
 		log.debug("Random Forest Built");
 	}
-	
-	//private int selectionCount = 0;
+
 	protected List<ParameterConfiguration> selectConfigurations()
 	{
 		Random configSpaceRandomInterleave = pool.getRandom("SMAC_RANDOM_INTERLEAVED_CONFIG_PRNG");
@@ -491,10 +374,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			{
 				randomConfigToDebug[i] = randomConfigs.get(i).toValueArray();
 			}
-			if(SELECT_CONFIGURATION_SYNC_DEBUGGING &&  log.isDebugEnabled())
-			{
-				log.trace("Local Search Selected Random Configs Hash Code: {}", matlabHashCode(randomConfigToDebug));
-			}
+
 			//=== Compute EI for the random configs.		
 			predictions = transpose(applyMarginalModel(randomConfigs));
 			predmean = predictions[0];
@@ -611,13 +491,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 			//=== Get EI of current configuration.
 			ParameterConfiguration c = incumbentEIC.getValue();
 			double currentMinEI = incumbentEIC.getAssociatedValue();
-			
-			//System.out.println("minEI: " + currentMinEI + " incumbent: " + c.hashCode());
-			double[][] cArray = {c.toValueArray()};
-			int LSHashCode = matlabHashCode(cArray);
-			
-			if(SELECT_CONFIGURATION_SYNC_DEBUGGING) log.trace("Local Search HashCode: {}", LSHashCode);
-			
+
 			//=== Get neighbourhood of current options and compute EI for all of it.
 			List<ParameterConfiguration> neighbourhood = c.getNeighbourhood(configRandLS, options.scenarioConfig.algoExecOptions.paramFileDelegate.continuousNeighbours);
 			double[][] prediction = transpose(applyMarginalModel(neighbourhood));
