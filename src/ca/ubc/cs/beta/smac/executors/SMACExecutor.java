@@ -598,6 +598,11 @@ public class SMACExecutor {
 			{
 				log.warn("NumRun {} plus Seed Offset {} should be positive, things may not seed correctly",options.seedOptions.numRun, options.seedOptions.seedOffset );
 			}
+
+			if(options.randomForestOptions.ignoreConditionality == null) {
+					options.randomForestOptions.ignoreConditionality = options.mbOptions.maskInactiveConditionalParametersAsDefaultValue;
+			}
+
 			
 			return options;
 		} catch(IOException e)
