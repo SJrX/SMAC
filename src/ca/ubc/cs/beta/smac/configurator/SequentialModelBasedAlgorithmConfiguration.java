@@ -49,6 +49,9 @@ import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import static ca.ubc.cs.beta.aeatk.misc.math.ArrayMathOps.*;
 
+// Sample Run Configuration: 
+// --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --acq-func LCB  --rf-split-min 1  --mask-inactive-conditional-parameters-as-default-value false --fullTreeBootstrap true
+
 public class SequentialModelBasedAlgorithmConfiguration extends
 		AbstractAlgorithmFramework {
 
@@ -483,9 +486,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		while(true)
 		{
 			localSearchSteps++;
-			if(localSearchSteps % 1000 == 0)
+			if(localSearchSteps % 100 == 0) // this is now the standard termination criterion, so not 1000 anymore
 			{
-				log.warn("Local Search has done {} iterations, possible infinite loop", localSearchSteps );
+				break; // since we're accepting sideways moves now, we won't typically stop due to being in a local min.
+//				log.warn("Local Search has done {} iterations, possible infinite loop", localSearchSteps );
 			}
 			
 			//=== Get EI of current configuration.
@@ -509,8 +513,12 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				}
 			}
 		
+/*
 			//=== If significant improvement then move to one of the best neighbours; otherwise break.   
 			if(min >= currentMinEI - epsilon)
+ */ 
+			//=== If no significant worsening then move to one of the best neighbours; otherwise break.   
+			if(min >= currentMinEI + epsilon)
 			{
 				break;
 			} else
