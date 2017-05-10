@@ -1,0 +1,10 @@
+algo = python -u example_scenarios/saps_genericWrapper/wrapper.py --mem-limit 1024 --sat-checker ./example_scenarios/tools/SAT
+deterministic = 0
+run_obj = runtime
+overall_obj = mean
+cputime_limit = 30
+cutoff_length = max
+target_run_cputime_limit = 5
+paramfile = example_scenarios/saps_genericWrapper/saps-params.pcs
+instance_file = example_scenarios/saps_genericWrappersaps/instances-train.txt
+test_instance_file = example_scenarios/saps_genericWrapper/instances-test.txt

@@ -1,0 +1,9 @@
+pcs-file = example_scenarios/spear_genericWrapper/params.pcs
+runObj = RUNTIME
+cutoffTime = 1
+wallclock-limit = 30
+deterministic = 0
+feature_file = example_scenarios/spear_genericWrapper/features.csv
+instance_file = example_scenarios/spear_genericWrapper/instances-train.txt
+test_instance_file = example_scenarios/spear_genericWraper/instances-test.txt
+algo = python -u example_scenarios/spear_genericWrapper/wrapper.py --mem-limit 1024 --sat-checker ./example_scenarios/tools/SAT --sol-file ./example_scenarios/spear_genericWrapper/solubility.txt
