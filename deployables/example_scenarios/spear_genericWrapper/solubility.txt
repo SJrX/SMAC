@@ -1,0 +1,10 @@
+example_scenarios/spear_genericWrapper/instances/train/qcplin2006.10085.cnf UNSATISFIABLE
+example_scenarios/spear_genericWrapper/instances/train/qcplin2006.10218.cnf UNSATISFIABLE
+example_scenarios/spear_genericWrapper/instances/train/qcplin2006.10408.cnf UNSATISFIABLE
+example_scenarios/spear_genericWrapper/instances/train/qcplin2006.10422.cnf UNSATISFIABLE
+example_scenarios/spear_genericWrapper/instances/train/qcplin2006.10427.cnf UNSATISFIABLE
+example_scenarios/spear_genericWrapper/instances/test/qcplin2006.6215.cnf SATISFIABLE
+example_scenarios/spear_genericWrapper/instances/test/qcplin2006.37487.cnf UNSATISFIABLE
+example_scenarios/spear_genericWrapper/instances/test/qcplin2006.4455.cnf SATISFIABLE
+example_scenarios/spear_genericWrapper/instances/test/qcplin2006.48775.cnf SATISFIABLE
+example_scenarios/spear_genericWrapper/instances/test/qcplin2006.34621.cnf SATISFIABLE
