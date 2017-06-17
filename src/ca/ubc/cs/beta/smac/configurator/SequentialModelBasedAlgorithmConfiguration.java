@@ -493,9 +493,9 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		while(true)
 		{
 			localSearchSteps++;
-			if(localSearchSteps % 1000 == 0) // this is now the standard termination criterion
+			if(options.allowSidewaysMoves && localSearchSteps % options.numberOfLsStepsIfSideways == 0) 
 			{
-				break; // since we're accepting sideways moves now, we won't typically stop due to being in a local min.
+				break; // if we're accepting sideways moves, we won't typically stop due to being in a local min, but after these many steps.
 //				log.warn("Local Search has done {} iterations, possible infinite loop", localSearchSteps );
 			}
 			

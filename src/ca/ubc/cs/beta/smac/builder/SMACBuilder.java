@@ -26,6 +26,7 @@ import ca.ubc.cs.beta.aeatk.eventsystem.events.state.StateRestoredEvent;
 import ca.ubc.cs.beta.aeatk.eventsystem.handlers.LogRuntimeStatistics;
 import ca.ubc.cs.beta.aeatk.initialization.InitializationProcedure;
 import ca.ubc.cs.beta.aeatk.initialization.classic.ClassicInitializationProcedure;
+import ca.ubc.cs.beta.aeatk.initialization.doubleracing.DoubleRacingInitializationProcedure;
 import ca.ubc.cs.beta.aeatk.initialization.doublingcapping.DoublingCappingInitializationProcedure;
 import ca.ubc.cs.beta.aeatk.initialization.table.UnbiasChallengerInitializationProcedure;
 import ca.ubc.cs.beta.aeatk.misc.cputime.CPUTime;
@@ -301,6 +302,11 @@ public class SMACBuilder {
 			case UNBIASED_TABLE:
 				initProc = new UnbiasChallengerInitializationProcedure(rh, initialIncumbent, acTae, execConfig, options.ucip, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, objHelper);
 				break;
+
+			case DOUBLE_RACING:
+				initProc = new DoubleRacingInitializationProcedure(rh, initialIncumbent, acTae, options.draceModeOpts, instanceSeedGen, instances, options.maxIncumbentRuns, termCond, execConfig.getAlgorithmMaximumCutoffTime(), pool, options.deterministicInstanceOrdering, execConfig);
+				break;
+
 				
 			default:
 				throw new IllegalStateException("Not sure what this initialization mode is");
