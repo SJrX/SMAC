@@ -1,5 +1,0 @@
-use-instances = false
-runObj = QUALITY
-numberOfRunsLimit = 100 
-pcs-file = /home/frank/git/SMAC/deployables/example_scenarios/leadingones/params-2.pcs
-algo = python2 /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones.py
