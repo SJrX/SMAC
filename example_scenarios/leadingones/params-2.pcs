@@ -1,0 +1,4 @@
+x1 categorical {1,0} [0]
+x2 categorical {1,0} [0]
+
+x2 | x1 in {1}

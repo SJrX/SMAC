@@ -1,0 +1,65 @@
+# 
+# UBCSAT version 1.1.0ll
+# 
+# http://www.satlib.org/ubcsat
+# 
+# ubcsat -h for help
+# 
+#  -alg saps
+#  -runs 1 
+#  -cutoff 2147483647 
+#  -timeout 1.250000 
+#  -gtimeout 0.000000 
+#  -noimprove 0 
+#  -target 0 
+#  -wtarget 0.000000 
+#  -seed 9736885 
+#  -solve 0 
+#  -find,-numsol 0 
+#  -findunique 0 
+#  -srestart 0 
+#  -prestart 0.000000 
+#  -drestart 0 
+# 
+#  -alpha 1.123961 
+#  -rho 0.594755 
+#  -ps 0.183027 
+#  -wp 0.042428 
+#  -sapsthresh -0.100000 
+# 
+# UBCSAT default output: 
+#    'ubcsat -r out null' to suppress, 'ubcsat -hc' for customization help
+# 
+# 
+# Output Columns: |run|found|best|beststep|steps|
+# 
+# run: Run Number
+# found: Target Solution Quality Found? (1 => yes)
+# best: Best (Lowest) # of False Clauses Found
+# beststep: Step of Best (Lowest) # of False Clauses Found
+# steps: Total Number of Search Steps
+# 
+#       F  Best       Step      Total 
+#   Run N Sol'n         of     Search 
+#   No. D Found       Best      Steps 
+# 
+      1 1     0      13104      13104 
+
+
+Variables = 870
+Clauses = 6670
+TotalLiterals = 13920
+TotalCPUTimeElapsed = 0.000     
+FlipsPerSecond = inf    
+RunsExecuted = 1
+SuccessfulRuns = 1
+PercentSuccess = 100.00
+Steps_Mean = 13104
+Steps_CoeffVariance = 0
+Steps_Median = 13104
+CPUTime_Mean = 0
+CPUTime_CoeffVariance = 0
+CPUTime_Median = 0
+BestSolution_Mean = 0
+
+
