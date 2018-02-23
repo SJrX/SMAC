@@ -493,9 +493,10 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		while(true)
 		{
 			localSearchSteps++;
-			if(localSearchSteps % 1000 == 0)
+			if(options.allowSidewaysMoves && localSearchSteps % options.numberOfLsStepsIfSideways == 0) 
 			{
-				log.warn("Local Search has done {} iterations, possible infinite loop", localSearchSteps );
+				break; // if we're accepting sideways moves, we won't typically stop due to being in a local min, but after these many steps.
+//				log.warn("Local Search has done {} iterations, possible infinite loop", localSearchSteps );
 			}
 			
 			//=== Get EI of current configuration.
@@ -519,8 +520,16 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 				}
 			}
 		
-			//=== If significant improvement then move to one of the best neighbours; otherwise break.   
-			if(min >= currentMinEI - epsilon)
+			boolean stoppingConditionSatisfied = false;
+			if (options.allowSidewaysMoves){
+				//=== If significant worsening then stop; otherwise move to one of the best neighbours.   
+				stoppingConditionSatisfied = (min >= currentMinEI + epsilon);
+			} else {
+				//=== If no significant improvement then stop; otherwise move to one of the best neighbours.   
+				stoppingConditionSatisfied = (min >= currentMinEI - epsilon);
+			}
+			
+			if(stoppingConditionSatisfied)
 			{
 				break;
 			} else
@@ -561,7 +570,7 @@ public class SequentialModelBasedAlgorithmConfiguration extends
 		log.trace("Local Search took {} steps", localSearchSteps);
 		
 		return incumbentEIC;
-	}			
+	}
 	
 
 	/**
