@@ -49,8 +49,23 @@ import ca.ubc.cs.beta.aeatk.termination.CompositeTerminationCondition;
 import ca.ubc.cs.beta.models.fastrf.RandomForest;
 import static ca.ubc.cs.beta.aeatk.misc.math.ArrayMathOps.*;
 
+//=================================================================================================================
+// February 24, 2018: experiments with /home/frank/bin/smac-build/smac-v2.10.04-activeParams-15
+// This run configuration results in -100 in ~60 evaluations: --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --acq-func LCB --rf-split-min 1
+// Specifically:
+// - for leading ones, as for any blackbox function, we use --intensification-percentage 0
+// - We also need --rf-split-min 1 and --acq-func LCB
+
+
+// Without --intensification-percentage 0, it finds -100 slowly, in ~90 evaluations: --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --acq-func LCB --rf-split-min 1
+// Without --rf-split-min 1, it only finds -16:     --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --acq-func LCB
+// Without --acq-func LCB, it finds -100 very slowly, in 100 evaluations:   --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --rf-split-min 1
+//=================================================================================================================
+
+
 // Sample Run Configuration: 
 // --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --acq-func LCB  --rf-split-min 1  --mask-inactive-conditional-parameters-as-default-value false --fullTreeBootstrap true
+// was set as run configuration in Eclipse project (Feb 24, 2018): --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --acq-func LCB --rf-split-min 1 --mask-inactive-conditional-parameters-as-default-value true --ignoreConditionality true --allow-sideways-moves false --num-ls-steps-if-sideways 1
 
 // still only finds about -20      --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --acq-func LCB --rf-split-min 1 --mask-inactive-conditional-parameters-as-default-value false --ignoreConditionality true
 // finds -100 in 100 evaluations:  --scenarioFile /home/frank/git/SMAC/deployables/example_scenarios/leadingones/leadingones-100-scenario.txt --log-level debug --log-all-call-strings true --intensification-percentage 0 --acq-func LCB --rf-split-min 1 --mask-inactive-conditional-parameters-as-default-value false --ignoreConditionality false
